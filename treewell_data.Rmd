@@ -1,0 +1,39 @@
+---
+title: "treewell_data"
+author: "Erika Lee"
+date: "2024-05-16"
+output: html_document
+---
+
+```{r setup, warnings='hide',message=FALSE}
+library(tidyverse) # Package with dplyr, tibble, readr, and others to help clean coding
+library(dataRetrieval) # Package to download data. 
+library(sf) #Geospatial package to plot and explore data
+library(mapview) #Simple interface to leaflet interactive maps
+library(broom) #Simplifies model outputs
+library(knitr) #Makes nice tables
+library(kableExtra) #Makes even nicer tables
+library(lubridate) #Makes working with dates easier
+library(ggthemes) #Makes plots prettier
+library(tidyr) #Makes multiple simultaneous models easier
+```
+
+```{r}
+setwd("/Volumes/wcnr-network/Research/Kampf/Private/field_data")
+```
+
+## Download Prep
+
+```{r}
+#make a tibble with site IDs
+treewell_sites <- tibble(sites=c('pers_b','trans_b'),
+                   tree_id_zone=c('pt','tt'))
+
+#download rules
+```
+
+Download Data
+
+```{r}
+=read_excel("nsf/105E_pers_burned/105E_pers_b_composite.xlsx")
+```
