@@ -15,7 +15,10 @@ library(knitr) #Makes nice tables
 library(kableExtra) #Makes even nicer tables
 library(lubridate) #Makes working with dates easier
 library(ggthemes) #Makes plots prettier
-library(tidyr) #Makes multiple simultaneous models easier
+library(tidyr)
+library(readxl)#Makes multiple simultaneous models easier
+library(plotly)
+library(rstatix)
 ```
 
 ```{r}
@@ -35,5 +38,52 @@ treewell_sites <- tibble(sites=c('pers_b','trans_b'),
 Download Data
 
 ```{r}
-=read_excel("nsf/105E_pers_burned/105E_pers_b_composite.xlsx")
+treewell_composite=read_excel("nsf/treewell_data/treewell_data_r.xlsx")
+```
+
+## Tidying Dataframe
+
+```{r}
+#adjusting date/time, although there is technically no time in this data
+treewell_clean <- treewell_composite %>%
+  mutate(date = ymd(date, tz = 'MST'))
+```
+
+Creating Dataframes for 5 and 10 cm increment measurements
+
+```{r}
+#5cm dataframe
+treewell_5cm <- treewell_clean %>%
+  filter(increments_cm==5)
+
+#10cm dataframe
+treewell_10cm <- treewell_clean %>%
+  filter(increments_cm==10)
+```
+
+## Data Exploration
+
+```{r}
+#initial visualization - all data
+dbh_treewell_diameter_plot <- ggplot(data = treewell_clean, aes(x = treewell_diameter, y = dbh)) +
+  geom_smooth(method = 'lm', se = TRUE, color = "blue") +
+  labs(
+    title = "Treewell vs Tree Diameter",
+    x = "Treewell Diameter (cm)",
+    y = "Tree Diameter (cm)"
+  ) +
+  geom_point()
+
+ggplotly(dbh_treewell_diameter_plot)
+```
+
+## Correlation Test
+
+```{r}
+#calculate pearsons correlation coefficient
+correlation_result <- cor.test(treewell_clean$treewell_diameter, treewell_clean$dbh)
+
+print(correlation_result)
+
+#interpretation - not a very stong, but positive, pearsons correlation coefficient of 0.415, p-value is statistically significant at the 0.05 value, suggesting there is strong evidence to reject the null hypothesis that the true correlation between treewell diameter and tree diameter is zero. 
 ```
