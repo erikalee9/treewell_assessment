@@ -27,14 +27,6 @@ setwd("/Volumes/wcnr-network/Research/Kampf/Private/field_data")
 
 ## Download Prep
 
-```{r}
-#make a tibble with site IDs
-treewell_sites <- tibble(sites=c('pers_b','trans_b'),
-                   tree_id_zone=c('pt','tt'))
-
-#download rules
-```
-
 Download Data
 
 ```{r}
@@ -116,14 +108,49 @@ print(correlation_result)
 
 ```{r}
 #pivoting the clean dataset longer to have aspect included
-
-##NOT WORKING!
-treewell_clean_long <- treewell_clean %>%
-  mutate(across(starts_with(c("d_edge", "sd")), as.numeric)) %>%
-  pivot_longer(cols = contains(c("N", "E", "S", "W")), names_to = "type", values_to = "data")
-
-treewell_clean_long <- treewell_clean_long %>%
-  select(tree_ID, site, date, tree_mort, dbh, treewell_diameter, type, data)
+treewell_long <- treewell_clean %>%
+  select(-c(tree_mort, site)) %>%
+  pivot_longer(cols = c(d_edge_N, d_edge_E, d_edge_S, d_edge_W), names_to = "d_edge_aspect", values_to = "d_edge_data") %>%
+  pivot_longer(cols = c(sd_tree_N, sd_tree_E, sd_tree_S, sd_tree_W), names_to = "sd_tree_aspect", values_to = "sd_tree_data") %>%
+  pivot_longer(cols = c(sd_1_N, sd_1_E, sd_1_S, sd_1_W), names_to = "sd_1_aspect", values_to = "sd_1_data") %>%
+  pivot_longer(cols = c(sd_2_N, sd_2_E, sd_2_S, sd_2_W), names_to = "sd_2_aspect", values_to = "sd_2_data") %>%
+  pivot_longer(cols = c(sd_3_N, sd_3_E, sd_3_S, sd_3_W), names_to = "sd_3_aspect", values_to = "sd_3_data") %>%
+  #adjusting the variable names in the measurement rows
+  mutate(d_edge_aspect = case_when(
+    str_detect(d_edge_aspect, "N") ~ "N",
+    str_detect(d_edge_aspect, "E") ~ "E",
+    str_detect(d_edge_aspect, "S") ~ "S",
+    str_detect(d_edge_aspect, "W") ~ "W",
+    TRUE ~ d_edge_aspect
+  )) %>%
+  mutate(sd_tree_aspect = case_when(
+    str_detect(sd_tree_aspect, "N") ~ "N",
+    str_detect(sd_tree_aspect, "E") ~ "E",
+    str_detect(sd_tree_aspect, "S") ~ "S",
+    str_detect(sd_tree_aspect, "W") ~ "W",
+    TRUE ~ sd_tree_aspect
+  )) %>%
+  mutate(sd_1_aspect = case_when(
+    str_detect(sd_1_aspect, "N") ~ "N",
+    str_detect(sd_1_aspect, "E") ~ "E",
+    str_detect(sd_1_aspect, "S") ~ "S",
+    str_detect(sd_1_aspect, "W") ~ "W",
+    TRUE ~ sd_1_aspect,
+  )) %>%
+  mutate(sd_2_aspect = case_when(
+    str_detect(sd_2_aspect, "N") ~ "N",
+    str_detect(sd_2_aspect, "E") ~ "E",
+    str_detect(sd_2_aspect, "S") ~ "S",
+    str_detect(sd_2_aspect, "W") ~ "W",
+    TRUE ~ sd_2_aspect,
+  )) %>%
+  mutate(sd_3_aspect = case_when(
+    str_detect(sd_3_aspect, "N") ~ "N",
+    str_detect(sd_3_aspect, "E") ~ "E",
+    str_detect(sd_3_aspect, "S") ~ "S",
+    str_detect(sd_3_aspect, "W") ~ "W",
+    TRUE ~ sd_3_aspect,
+  ))
 ```
 
 ```{r}
