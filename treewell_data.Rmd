@@ -46,7 +46,11 @@ treewell_composite=read_excel("nsf/treewell_data/treewell_data_r.xlsx")
 ```{r}
 #adjusting date/time, although there is technically no time in this data
 treewell_clean <- treewell_composite %>%
-  mutate(date = ymd(date, tz = 'MST'))
+  mutate(date = ymd(date, tz = 'MST')) %>%
+  #adding in a column with site name
+  mutate(site = if_else(str_detect(tree_ID, "tt"), "transitional", "persistent")) %>%
+  #reorder columns
+  select(c(tree_ID, site, everything()))
 ```
 
 Creating Dataframes for 5 and 10 cm increment measurements
@@ -59,12 +63,32 @@ treewell_5cm <- treewell_clean %>%
 #10cm dataframe
 treewell_10cm <- treewell_clean %>%
   filter(increments_cm==10)
+
+#persistent dataframe
+treewell_pers <- treewell_clean %>%
+  filter(site=="persistent")
+
+#transitional dataframe
+treewell_trans <- treewell_clean %>%
+  filter(site=="transitional")
 ```
 
 ## Data Exploration
 
 ```{r}
-#initial visualization - all data
+#initial visualization - all data histogram
+treewell_d_hist <- ggplot(data = treewell_clean, aes(x = treewell_diameter)) +
+  geom_histogram(binwidth = 5, fill = "skyblue", color = "black") +
+  labs(
+    title = "Histogram of Treewell Diameter",
+    x = "Treewell Diameter (cm)",
+    y = "Frequency"
+  ) +
+  facet_wrap(~date)
+
+print(treewell_d_hist)
+
+#initial visualization - all data scatterplot w/ correlation
 dbh_treewell_diameter_plot <- ggplot(data = treewell_clean, aes(x = treewell_diameter, y = dbh)) +
   geom_smooth(method = 'lm', se = TRUE, color = "blue") +
   labs(
@@ -86,4 +110,39 @@ correlation_result <- cor.test(treewell_clean$treewell_diameter, treewell_clean$
 print(correlation_result)
 
 #interpretation - not a very stong, but positive, pearsons correlation coefficient of 0.415, p-value is statistically significant at the 0.05 value, suggesting there is strong evidence to reject the null hypothesis that the true correlation between treewell diameter and tree diameter is zero. 
+```
+
+## Aspect Data Exploration
+
+```{r}
+#pivoting the clean dataset longer to have aspect included
+
+##NOT WORKING!
+treewell_clean_long <- treewell_clean %>%
+  mutate(across(starts_with(c("d_edge", "sd")), as.numeric)) %>%
+  pivot_longer(cols = contains(c("N", "E", "S", "W")), names_to = "type", values_to = "data")
+
+treewell_clean_long <- treewell_clean_long %>%
+  select(tree_ID, site, date, tree_mort, dbh, treewell_diameter, type, data)
+```
+
+```{r}
+#creating aspect dataframes
+treewell_n <- treewell_clean %>%
+  select(c(tree_ID, site, date, tree_mort, dbh, treewell_diameter, d_edge_N, sd_tree_N, sd_1_N, sd_2_N, sd_3_N, increments_cm))
+
+treewell_e <- treewell_clean %>%
+  select(c(tree_ID, site, date, tree_mort, dbh, treewell_diameter, d_edge_E, sd_tree_E, sd_1_E, sd_2_E, sd_3_E, increments_cm))
+
+treewell_s <- treewell_clean %>%
+  select(c(tree_ID, site, date, tree_mort, dbh, treewell_diameter, d_edge_S, sd_tree_S, sd_1_S, sd_2_S, sd_3_S, increments_cm))
+
+treewell_w <- treewell_clean %>%
+  select(c(tree_ID, site, date, tree_mort, dbh, treewell_diameter, d_edge_W, sd_tree_W, sd_1_W, sd_2_W, sd_3_W, increments_cm))
+```
+
+Plotting Aspects
+
+```{r}
+treewell_aspects_plot <- ggplot()
 ```
