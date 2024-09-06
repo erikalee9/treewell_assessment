@@ -171,32 +171,98 @@ treewell_w <- treewell_zeroed %>%
   select(c(tree_ID, site, date, tree_mort, dbh, treewell_diameter, d_edge_W, sd_tree_W, sd_1_W, sd_2_W, sd_3_W, increments_cm))
 ```
 
-Plotting Aspect individually, then combining
+Plotting Aspect Scatterplot individually, then combining
 
-\*\* this is not going to work, if I am plotting the treewell Diameter value it will be the same for all aspects, I need to plot one of the other values to show the difference in developement based on growth?
-
-Consider if scatterplots are the best plotting technique for this.
+\*\* should I just do the may date for these?
 
 ```{r}
-treewell_aspects_n <- ggplot(treewell_n, aes(x = dbh, y = treewell_diameter)) +
+treewell_aspects_n <- ggplot(treewell_n, aes(x = dbh, y = sd_3_N)) +
   geom_point() +
   geom_smooth(method = 'lm', se = TRUE, color = "blue") +
   labs(
-    title = "Well vs Tree Diameter",
-    y = "Well Diameter (cm)",
+    title = "North Aspect Well vs Tree Diameter",
+    y = "North Side Well Diameter (cm)",
     x = "Tree Diameter (cm)"
-  )
+  ) +
+  facet_wrap(~date)
 
 print(treewell_aspects_n)
 
-treewell_aspects_e <- ggplot(treewell_e, aes(x = dbh, y = treewell_diameter)) +
+treewell_aspects_e <- ggplot(treewell_e, aes(x = dbh, y = sd_3_E)) +
   geom_point() +
   geom_smooth(method = 'lm', se = TRUE, color = "blue") +
   labs(
-    title = "Well vs Tree Diameter",
-    y = "Well Diameter (cm)",
+    title = "East Aspect Well vs Tree Diameter",
+    y = "East Side Well Diameter (cm)",
     x = "Tree Diameter (cm)"
-  )
+  ) +
+  facet_wrap(~date)
 
 print(treewell_aspects_e)
+
+treewell_aspects_s <- ggplot(treewell_s, aes(x = dbh, y = sd_3_S)) +
+  geom_point() +
+  geom_smooth(method = 'lm', se = TRUE, color = "blue") +
+  labs(
+    title = "South Aspect Well vs Tree Diameter",
+    y = "South Side Well Diameter (cm)",
+    x = "Tree Diameter (cm)"
+  ) +
+  facet_wrap(~date)
+
+print(treewell_aspects_s)
+
+treewell_aspects_w <- ggplot(treewell_w, aes(x = dbh, y = sd_3_W)) +
+  geom_point() +
+  geom_smooth(method = 'lm', se = TRUE, color = "blue") +
+  labs(
+    title = "West Aspect Well vs Tree Diameter",
+    y = "West Side Well Diameter (cm)",
+    x = "Tree Diameter (cm)"
+  )  +
+  facet_wrap(~date)
+
+print(treewell_aspects_w)
 ```
+
+```{r}
+#arranging all aspect scatter plots
+```
+
+Zone-specific Plots
+
+```{r}
+#boxplots by date
+treewell_boxplot <- ggplot(data = treewell_zeroed, aes(x = dbh, y = treewell_diameter, fill = site)) + 
+  geom_boxplot() + 
+  theme_bw() +
+  labs(title = "Well Diameter by Tree Diameter", x = "Tree Diameter (cm)", y = "Well Diameter (cm)") +
+  facet_wrap(~date)
+
+treewell_boxplot
+```
+
+Point Plots
+
+\*\* not sure this is very helpful? Try putting regression lines on them.
+
+```{r}
+#making just a may dataframe
+treewell_aspect_dataframe <- treewell_zeroed %>%
+  filter(date == "2024-05-03")
+
+aspect_color <- 
+  
+treewell_aspect_pointplot <- ggplot(data = treewell_aspect_dataframe) +
+  geom_point(aes(x = dbh, y = d_edge_N), color = "black") +
+  geom_point(aes(x = dbh, y = d_edge_E), color = "orange") +
+  geom_point(aes(x = dbh, y = d_edge_S), color = "red") +
+  geom_point(aes(x = dbh, y = d_edge_W), color = "blue") +
+  theme_bw() +
+  labs(title = "Well Diameter by Aspect and Tree Diameter on 2024-05-03", x = "Tree Diameter (cm)", y = "Well Diameter (cm)") +
+  facet_wrap(~site)
+
+treewell_aspect_pointplot 
+```
+
+\*\* can also plot snow depths with this, if needed?
