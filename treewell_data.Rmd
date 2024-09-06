@@ -38,38 +38,43 @@ treewell_composite=read_excel("nsf/treewell_data/treewell_data_r.xlsx")
 ```{r}
 #adjusting date/time, although there is technically no time in this data
 treewell_clean <- treewell_composite %>%
-  mutate(date = ymd(date, tz = 'MST')) %>%
+  mutate(date = ymd(date)) %>%
   #adding in a column with site name
   mutate(site = if_else(str_detect(tree_ID, "tt"), "transitional", "persistent")) %>%
   #reorder columns
   select(c(tree_ID, site, everything()))
 ```
 
+```{r}
+treewell_zeroed <- treewell_clean %>%
+  mutate(across(-(1:4), ~ ifelse(is.na(.), 0, .)))
+```
+
 Creating Dataframes for 5 and 10 cm increment measurements
 
 ```{r}
 #5cm dataframe
-treewell_5cm <- treewell_clean %>%
+treewell_5cm <- treewell_zeroed %>%
   filter(increments_cm==5)
 
 #10cm dataframe
-treewell_10cm <- treewell_clean %>%
+treewell_10cm <- treewell_zeroed %>%
   filter(increments_cm==10)
 
 #persistent dataframe
-treewell_pers <- treewell_clean %>%
-  filter(site=="persistent")
+treewell_pers <- treewell_zeroed %>%
+  filter(site == "persistent")
 
 #transitional dataframe
-treewell_trans <- treewell_clean %>%
-  filter(site=="transitional")
+treewell_trans <- treewell_zeroed %>%
+  filter(site == "transitional")
 ```
 
 ## Data Exploration
 
 ```{r}
 #initial visualization - all data histogram
-treewell_d_hist <- ggplot(data = treewell_clean, aes(x = treewell_diameter)) +
+treewell_d_hist <- ggplot(data = treewell_zeroed, aes(x = treewell_diameter)) +
   geom_histogram(binwidth = 5, fill = "skyblue", color = "black") +
   labs(
     title = "Histogram of Treewell Diameter",
@@ -81,11 +86,11 @@ treewell_d_hist <- ggplot(data = treewell_clean, aes(x = treewell_diameter)) +
 print(treewell_d_hist)
 
 #initial visualization - all data scatterplot w/ correlation
-dbh_treewell_diameter_plot <- ggplot(data = treewell_clean, aes(x = treewell_diameter, y = dbh)) +
+dbh_treewell_diameter_plot <- ggplot(data = treewell_zeroed, aes(x = treewell_diameter, y = dbh)) +
   geom_smooth(method = 'lm', se = TRUE, color = "blue") +
   labs(
-    title = "Treewell vs Tree Diameter",
-    x = "Treewell Diameter (cm)",
+    title = "Well vs Tree Diameter",
+    x = "Well Diameter (cm)",
     y = "Tree Diameter (cm)"
   ) +
   geom_point()
@@ -97,18 +102,16 @@ ggplotly(dbh_treewell_diameter_plot)
 
 ```{r}
 #calculate pearsons correlation coefficient
-correlation_result <- cor.test(treewell_clean$treewell_diameter, treewell_clean$dbh)
+correlation_result <- cor.test(treewell_zeroed$treewell_diameter, treewell_zeroed$dbh)
 
 print(correlation_result)
-
-#interpretation - not a very stong, but positive, pearsons correlation coefficient of 0.415, p-value is statistically significant at the 0.05 value, suggesting there is strong evidence to reject the null hypothesis that the true correlation between treewell diameter and tree diameter is zero. 
 ```
 
 ## Aspect Data Exploration
 
 ```{r}
 #pivoting the clean dataset longer to have aspect included
-treewell_long <- treewell_clean %>%
+treewell_long <- treewell_zeroed %>%
   select(-c(tree_mort, site)) %>%
   pivot_longer(cols = c(d_edge_N, d_edge_E, d_edge_S, d_edge_W), names_to = "d_edge_aspect", values_to = "d_edge_data") %>%
   pivot_longer(cols = c(sd_tree_N, sd_tree_E, sd_tree_S, sd_tree_W), names_to = "sd_tree_aspect", values_to = "sd_tree_data") %>%
@@ -155,21 +158,45 @@ treewell_long <- treewell_clean %>%
 
 ```{r}
 #creating aspect dataframes
-treewell_n <- treewell_clean %>%
+treewell_n <- treewell_zeroed %>%
   select(c(tree_ID, site, date, tree_mort, dbh, treewell_diameter, d_edge_N, sd_tree_N, sd_1_N, sd_2_N, sd_3_N, increments_cm))
 
-treewell_e <- treewell_clean %>%
+treewell_e <- treewell_zeroed %>%
   select(c(tree_ID, site, date, tree_mort, dbh, treewell_diameter, d_edge_E, sd_tree_E, sd_1_E, sd_2_E, sd_3_E, increments_cm))
 
-treewell_s <- treewell_clean %>%
+treewell_s <- treewell_zeroed %>%
   select(c(tree_ID, site, date, tree_mort, dbh, treewell_diameter, d_edge_S, sd_tree_S, sd_1_S, sd_2_S, sd_3_S, increments_cm))
 
-treewell_w <- treewell_clean %>%
+treewell_w <- treewell_zeroed %>%
   select(c(tree_ID, site, date, tree_mort, dbh, treewell_diameter, d_edge_W, sd_tree_W, sd_1_W, sd_2_W, sd_3_W, increments_cm))
 ```
 
-Plotting Aspects
+Plotting Aspect individually, then combining
+
+\*\* this is not going to work, if I am plotting the treewell Diameter value it will be the same for all aspects, I need to plot one of the other values to show the difference in developement based on growth?
+
+Consider if scatterplots are the best plotting technique for this.
 
 ```{r}
-treewell_aspects_plot <- ggplot()
+treewell_aspects_n <- ggplot(treewell_n, aes(x = dbh, y = treewell_diameter)) +
+  geom_point() +
+  geom_smooth(method = 'lm', se = TRUE, color = "blue") +
+  labs(
+    title = "Well vs Tree Diameter",
+    y = "Well Diameter (cm)",
+    x = "Tree Diameter (cm)"
+  )
+
+print(treewell_aspects_n)
+
+treewell_aspects_e <- ggplot(treewell_e, aes(x = dbh, y = treewell_diameter)) +
+  geom_point() +
+  geom_smooth(method = 'lm', se = TRUE, color = "blue") +
+  labs(
+    title = "Well vs Tree Diameter",
+    y = "Well Diameter (cm)",
+    x = "Tree Diameter (cm)"
+  )
+
+print(treewell_aspects_e)
 ```
