@@ -417,3 +417,316 @@ treediameter_hist <- ggplot(data = treewell_maydata, aes(x = dbh)) +
 
 print(treediameter_hist)
 ```
+
+## Aspect Correlation Tests:
+
+### All areas combined
+
+```{r}
+#north correlation
+north_cor_result <- cor.test(treewell_n$d_edge_N, treewell_n$dbh)
+
+print(north_cor_result)
+```
+
+North correlation Results:
+
+t = 1.5172, df = 52, p-value = 0.1353
+
+alternative hypothesis: true correlation is not equal to 0
+
+95 percent confidence interval: -0.06547983 0.44890337
+
+sample estimates: cor 0.2058906
+
+```{r}
+#east correlation
+east_cor_result <- cor.test(treewell_e$d_edge_E, treewell_n$dbh)
+
+print(east_cor_result)
+```
+
+East Correlation Results:
+
+t = 1.1771, df = 52, p-value = 0.2445
+
+alternative hypothesis: true correlation is not equal to 0
+
+95 percent confidence interval: -0.1114601 0.4111335
+
+sample estimates: cor 0.1611087
+
+```{r}
+#south correlation
+south_cor_result <- cor.test(treewell_s$d_edge_S, treewell_n$dbh)
+
+print(south_cor_result)
+```
+
+South Correlation Results:
+
+t = 0.76607, df = 52, p-value = 0.4471
+
+alternative hypothesis: true correlation is not equal to 0
+
+95 percent confidence interval: -0.1668391 0.3631296
+
+sample estimates: cor 0.1056407
+
+```{r}
+#south correlation
+west_cor_result <- cor.test(treewell_w$d_edge_W, treewell_n$dbh)
+
+print(west_cor_result)
+```
+
+West Correlation Results:
+
+t = 2.0528, df = 52, p-value = 0.04514
+
+alternative hypothesis: true correlation is not equal to 0
+
+95 percent confidence interval: 0.006515724 0.504568023
+
+sample estimates: cor 0.2737986
+
+### Separated Areas and Dates
+
+```{r}
+#creating dataframes
+april_trans_n <- treewell_n %>%
+  filter(date == "2024-04-12", site == "transitional")
+
+may_trans_n <- treewell_n %>%
+  filter(date == "2024-05-03", site == "transitional")
+
+may_pers_n <- treewell_n %>%
+  filter(date == "2024-05-03", site == "persistent")
+
+april_trans_e <- treewell_e %>%
+  filter(date == "2024-04-12", site == "transitional")
+
+may_trans_e <- treewell_e %>%
+  filter(date == "2024-05-03", site == "transitional")
+
+may_pers_e <- treewell_e %>%
+  filter(date == "2024-05-03", site == "persistent")
+
+april_trans_s <- treewell_s %>%
+  filter(date == "2024-04-12", site == "transitional")
+
+may_trans_s <- treewell_s %>%
+  filter(date == "2024-05-03", site == "transitional")
+
+may_pers_s <- treewell_s %>%
+  filter(date == "2024-05-03", site == "persistent")
+
+april_trans_w <- treewell_w %>%
+  filter(date == "2024-04-12", site == "transitional")
+
+may_trans_w <- treewell_w %>%
+  filter(date == "2024-05-03", site == "transitional")
+
+may_pers_w <- treewell_w %>%
+  filter(date == "2024-05-03", site == "persistent")
+```
+
+#### North Results:
+
+```{r}
+#north correlation
+april_trans_n_cor_result <- cor.test(april_trans_n$d_edge_N, april_trans_n$dbh)
+
+print(april_trans_n_cor_result)
+```
+
+April Trans North Results:\
+t = 1.1127, df = 16, p-value = 0.2823
+
+alternative hypothesis: true correlation is not equal to 0
+
+95 percent confidence interval: -0.2273044 0.6531518
+
+sample estimates: cor 0.268007
+
+```{r}
+may_trans_n_cor_result <- cor.test(may_trans_n$d_edge_N, may_trans_n$dbh)
+
+print(may_trans_n_cor_result)
+```
+
+May Trans North Results:
+
+t = -0.86342, df = 16, p-value = 0.4007
+
+alternative hypothesis: true correlation is not equal to 0
+
+95 percent confidence interval: -0.6170792 0.2838336
+
+sample estimates: cor -0.2109963
+
+```{r}
+may_pers_n_cor_result <- cor.test(may_pers_n$d_edge_N, may_pers_n$dbh)
+
+print(may_pers_n_cor_result)
+```
+
+May Pers North Results:
+
+t = 2.701, df = 16, p-value = 0.01574
+
+alternative hypothesis: true correlation is not equal to 0
+
+95 percent confidence interval: 0.1255509 0.8138537
+
+sample estimates: cor 0.5596184
+
+#### East Results:
+
+```{r}
+april_trans_e_cor_result <- cor.test(april_trans_e$d_edge_E, april_trans_e$dbh)
+
+print(april_trans_e_cor_result)
+```
+
+April Trans East Results:
+
+t = 1.5783, df = 16, p-value = 0.1341
+
+alternative hypothesis: true correlation is not equal to 0
+
+95 percent confidence interval: -0.1204729 0.7119170
+
+sample estimates: cor 0.3670415
+
+```{r}
+may_trans_e_cor_result <- cor.test(may_trans_e$d_edge_E, may_trans_e$dbh)
+
+print(may_trans_e_cor_result)
+```
+
+May Trans East Results:
+
+t = -0.45698, df = 16, p-value = 0.6538
+
+alternative hypothesis: true correlation is not equal to 0
+
+95 percent confidence interval: -0.5511682 0.3731376
+
+sample estimates: cor -0.113506
+
+```{r}
+may_pers_e_cor_result <- cor.test(may_pers_e$d_edge_E, may_pers_e$dbh)
+
+print(may_pers_e_cor_result)
+```
+
+May Pers East Results:
+
+t = 1.2632, df = 16, p-value = 0.2246
+
+alternative hypothesis: true correlation is not equal to 0
+
+95 percent confidence interval: -0.1928404 0.6733438
+
+sample estimates: cor 0.3011419
+
+#### South Results:
+
+```{r}
+april_trans_s_cor_result <- cor.test(april_trans_s$d_edge_S, april_trans_s$dbh)
+
+print(april_trans_s_cor_result)
+```
+
+April Trans South Results:
+
+t = 4.7755, df = 16, p-value = 0.0002064
+
+alternative hypothesis: true correlation is not equal to 0
+
+95 percent confidence interval: 0.4668169 0.9083684
+
+sample estimates: cor 0.7666099
+
+```{r}
+may_trans_s_cor_result <- cor.test(may_trans_s$d_edge_S, may_trans_s$dbh)
+
+print(may_trans_s_cor_result)
+```
+
+May Trans South Results:
+
+t = -1.1173, df = 16, p-value = 0.2804
+
+alternative hypothesis: true correlation is not equal to 0
+
+95 percent confidence interval: -0.6537756 0.2262718
+
+sample estimates: cor -0.2690171
+
+```{r}
+may_pers_s_cor_result <- cor.test(may_pers_s$d_edge_S, may_pers_s$dbh)
+
+print(may_pers_s_cor_result)
+```
+
+May Pers South Results:
+
+t = 1.0223, df = 16, p-value = 0.3219
+
+alternative hypothesis: true correlation is not equal to 0
+
+95 percent confidence interval: -0.2479211 0.6404430
+
+sample estimates: cor 0.247609
+
+#### West Results:
+
+```{r}
+april_trans_w_cor_result <- cor.test(april_trans_w$d_edge_W, april_trans_w$dbh)
+
+print(april_trans_w_cor_result)
+```
+
+April Trans West Results:
+
+t = 4.6585, df = 16, p-value = 0.0002622
+
+alternative hypothesis: true correlation is not equal to 0
+
+95 percent confidence interval: 0.4518867 0.9050017
+
+sample estimates: cor 0.7586934
+
+```{r}
+may_trans_w_cor_result <- cor.test(may_trans_w$d_edge_W, may_trans_w$dbh)
+
+print(may_trans_w_cor_result)
+```
+
+May Trans West Results:
+
+t = 1.0328, df = 16, p-value = 0.3171
+
+alternative hypothesis: true correlation is not equal to 0
+
+95 percent confidence interval: -0.2455352 0.6419391
+
+sample estimates: cor 0.2499923
+
+```{r}
+may_pers_w_cor_result <- cor.test(may_pers_w$d_edge_W, may_pers_w$dbh)
+
+print(may_pers_w_cor_result)
+```
+
+May Pers West Results
+
+t = 1.4838, df = 16, p-value = 0.1573
+
+alternative hypothesis: true correlation is not equal to 0
+
+95 percent confidence interval: -0.1421718 0.7008553
+
+sample estimates: cor 0.3477826
