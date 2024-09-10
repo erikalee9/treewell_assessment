@@ -7,10 +7,6 @@ output: html_document
 
 ```{r setup, warnings='hide',message=FALSE}
 library(tidyverse) # Package with dplyr, tibble, readr, and others to help clean coding
-library(dataRetrieval) # Package to download data. 
-library(sf) #Geospatial package to plot and explore data
-library(mapview) #Simple interface to leaflet interactive maps
-library(broom) #Simplifies model outputs
 library(knitr) #Makes nice tables
 library(kableExtra) #Makes even nicer tables
 library(lubridate) #Makes working with dates easier
@@ -46,7 +42,8 @@ treewell_clean <- treewell_composite %>%
 
 ```{r}
 treewell_zeroed <- treewell_clean %>%
-  mutate(across(-(1:4), ~ ifelse(is.na(.), 0, .)))
+  mutate(across(-(1:4), ~ ifelse(is.na(.), 0, .))) %>%
+  rename(zone = site)
 ```
 
 Creating Dataframes for 5 and 10 cm increment measurements
@@ -62,11 +59,11 @@ treewell_10cm <- treewell_zeroed %>%
 
 #persistent dataframe
 treewell_pers <- treewell_zeroed %>%
-  filter(site == "persistent")
+  filter(zone == "persistent")
 
 #transitional dataframe
 treewell_trans <- treewell_zeroed %>%
-  filter(site == "transitional")
+  filter(zone == "transitional")
 ```
 
 ## Data Exploration
@@ -74,25 +71,30 @@ treewell_trans <- treewell_zeroed %>%
 ```{r}
 #initial visualization - all data histogram
 treewell_d_hist <- ggplot(data = treewell_zeroed, aes(x = treewell_diameter)) +
-  geom_histogram(binwidth = 5, fill = "skyblue", color = "black") +
+  geom_histogram(binwidth = 5, fill = "#2166AC", color = "black") +
   labs(
-    title = "Histogram of Treewell Diameter",
+  #  title = "Histogram of Treewell Diameter",
     x = "Treewell Diameter (cm)",
     y = "Frequency"
   ) +
-  facet_wrap(~date)
+  facet_wrap(~date) +
+  theme_bw()
 
 print(treewell_d_hist)
 
 #initial visualization - all data scatterplot w/ correlation
-dbh_treewell_diameter_plot <- ggplot(data = treewell_zeroed, aes(x = treewell_diameter, y = dbh)) +
-  geom_smooth(method = 'lm', se = TRUE, color = "blue") +
+dbh_treewell_diameter_plot <- ggplot(data = treewell_zeroed, aes(y = treewell_diameter, x = dbh)) +
+  geom_smooth(method = 'lm', se = TRUE, color = "grey") +
+  geom_point(aes(color = zone)) +
   labs(
-    title = "Well vs Tree Diameter",
-    x = "Well Diameter (cm)",
-    y = "Tree Diameter (cm)"
+   # title = "Well vs Tree Diameter",
+    y = "Well Diameter (cm)",
+    x = "Tree Diameter (cm)"
   ) +
-  geom_point()
+  theme_bw() +
+  scale_color_manual(values = c(
+    "persistent" = "#2166AC",
+    "transitional" = "#D95F02"))
 
 ggplotly(dbh_treewell_diameter_plot)
 ```
@@ -158,16 +160,16 @@ treewell_long <- treewell_zeroed %>%
 ```{r}
 #creating aspect dataframes
 treewell_n <- treewell_zeroed %>%
-  select(c(tree_ID, site, date, tree_mort, dbh, treewell_diameter, d_edge_N, sd_tree_N, sd_1_N, sd_2_N, sd_3_N, increments_cm))
+  select(c(tree_ID, zone, date, tree_mort, dbh, treewell_diameter, d_edge_N, sd_tree_N, sd_1_N, sd_2_N, sd_3_N, increments_cm))
 
 treewell_e <- treewell_zeroed %>%
-  select(c(tree_ID, site, date, tree_mort, dbh, treewell_diameter, d_edge_E, sd_tree_E, sd_1_E, sd_2_E, sd_3_E, increments_cm))
+  select(c(tree_ID, zone, date, tree_mort, dbh, treewell_diameter, d_edge_E, sd_tree_E, sd_1_E, sd_2_E, sd_3_E, increments_cm))
 
 treewell_s <- treewell_zeroed %>%
-  select(c(tree_ID, site, date, tree_mort, dbh, treewell_diameter, d_edge_S, sd_tree_S, sd_1_S, sd_2_S, sd_3_S, increments_cm))
+  select(c(tree_ID, zone, date, tree_mort, dbh, treewell_diameter, d_edge_S, sd_tree_S, sd_1_S, sd_2_S, sd_3_S, increments_cm))
 
 treewell_w <- treewell_zeroed %>%
-  select(c(tree_ID, site, date, tree_mort, dbh, treewell_diameter, d_edge_W, sd_tree_W, sd_1_W, sd_2_W, sd_3_W, increments_cm))
+  select(c(tree_ID, zone, date, tree_mort, dbh, treewell_diameter, d_edge_W, sd_tree_W, sd_1_W, sd_2_W, sd_3_W, increments_cm))
 ```
 
 \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
@@ -186,7 +188,7 @@ treewell_n_long <- treewell_n %>%
   ) %>%
   mutate(aspect = "north") %>%
   rename(treewell_diameter_full = treewell_diameter) %>%
-  select(tree_ID, site, date, tree_mort, aspect, dbh, treewell_diameter_full, measurement, well_diameter, increments_cm)
+  select(tree_ID, zone, date, tree_mort, aspect, dbh, treewell_diameter_full, measurement, well_diameter, increments_cm)
 
 treewell_e_long <- treewell_e %>%
   pivot_longer(cols = starts_with("d_edge"), 
@@ -196,7 +198,7 @@ treewell_e_long <- treewell_e %>%
   ) %>%
   mutate(aspect = "east") %>%
   rename(treewell_diameter_full = treewell_diameter) %>%
-  select(tree_ID, site, date, tree_mort, aspect, dbh, treewell_diameter_full, measurement, well_diameter, increments_cm)
+  select(tree_ID, zone, date, tree_mort, aspect, dbh, treewell_diameter_full, measurement, well_diameter, increments_cm)
 
 treewell_s_long <- treewell_s %>%
   pivot_longer(cols = starts_with("d_edge"), 
@@ -206,7 +208,7 @@ treewell_s_long <- treewell_s %>%
   ) %>%
   mutate(aspect = "south") %>%
   rename(treewell_diameter_full = treewell_diameter) %>%
-  select(tree_ID, site, date, tree_mort, aspect, dbh, treewell_diameter_full, measurement, well_diameter, increments_cm)
+  select(tree_ID, zone, date, tree_mort, aspect, dbh, treewell_diameter_full, measurement, well_diameter, increments_cm)
 
 treewell_w_long <- treewell_w %>%
   pivot_longer(cols = starts_with("d_edge"), 
@@ -216,7 +218,7 @@ treewell_w_long <- treewell_w %>%
   ) %>%
   mutate(aspect = "west") %>%
   rename(treewell_diameter_full = treewell_diameter) %>%
-  select(tree_ID, site, date, tree_mort, aspect, dbh, treewell_diameter_full, measurement, well_diameter, increments_cm)
+  select(tree_ID, zone, date, tree_mort, aspect, dbh, treewell_diameter_full, measurement, well_diameter, increments_cm)
 ```
 
 ```{r}
@@ -228,113 +230,141 @@ treewell_long_may <- treewell_n_long %>%
   filter(date == "2024-05-03")
 
 trans_treewell_long_aspect_may <- treewell_long_may %>%
-  filter( site == "transitional")
+  filter(zone == "transitional")
 
 pers_treewell_long_aspect_may <- treewell_long_may %>%
-  filter( site == "persistent")
+  filter(zone == "persistent")
+
+#transitional april dataframe
+treewell_long_april <- treewell_n_long %>%
+  full_join(treewell_e_long) %>%
+  full_join(treewell_s_long) %>%
+  full_join(treewell_w_long) %>%
+  filter(date == "2024-04-12")
+
+trans_treewell_long_aspect_april <- treewell_long_april %>%
+  filter(zone == "transitional")
 ```
 
 ```{r}
 #plotting aspect in points
 ##transitional
 trans_treewell_aspect_may_plot <- ggplot(data = trans_treewell_long_aspect_may) +
-  geom_point(aes(x = dbh, y = well_diameter)) +
+  geom_point(aes(x = dbh, y = well_diameter, color = zone)) +
   theme_bw() +
-  geom_smooth(aes(x = dbh, y = well_diameter), method = 'lm', se = TRUE, color = "blue") +
-  labs(title = "Transitional", x = "Tree Diameter (cm)", y = "Well Diameter (cm)") +
+  geom_smooth(aes(x = dbh, y = well_diameter), method = 'lm', se = TRUE, color = "grey") +
+  labs(title = "Transitional May", x = "Tree Diameter (cm)", y = "Well Diameter (cm)") +
   theme_bw() +  # Use a minimal theme for a clean look
-  scale_color_manual(values = aspect_color, labels = color_labels) + 
   facet_wrap(~aspect) +
-  coord_cartesian(ylim = c(0, 85), xlim = c(0,30))
+  coord_cartesian(ylim = c(0, 100), xlim = c(0,30)) +
+  scale_color_manual(values = c(
+    "persistent" = "#2166AC",
+    "transitional" = "#D95F02")) +
+  theme(legend.position = "none")
 
 trans_treewell_aspect_may_plot
 
 ##persistent
 pers_treewell_aspect_may_plot <- ggplot(data = pers_treewell_long_aspect_may) +
-  geom_point(aes(x = dbh, y = well_diameter)) +
+  geom_point(aes(x = dbh, y = well_diameter, color = zone)) +
   theme_bw() +
-  geom_smooth(aes(x = dbh, y = well_diameter), method = 'lm', se = TRUE, color = "blue") +
-  labs(title = "Persistent", x = "Tree Diameter (cm)", y = "Well Diameter (cm)") +
+  geom_smooth(aes(x = dbh, y = well_diameter), method = 'lm', se = TRUE, color = "grey") +
+  labs(title = "Persistent May", x = "Tree Diameter (cm)", y = "Well Diameter (cm)") +
   theme_bw() +  # Use a minimal theme for a clean look
-  scale_color_manual(values = aspect_color, labels = color_labels) + 
   facet_wrap(~aspect) +
-  coord_cartesian(ylim = c(0, 85), xlim = c(0,30))
+  coord_cartesian(ylim = c(0, 100), xlim = c(0,30)) +
+  scale_color_manual(values = c(
+    "persistent" = "#2166AC",
+    "transitional" = "#D95F02")) +
+  theme(legend.position = "none")
 
 pers_treewell_aspect_may_plot
+
+##transitional april plot
+trans_treewell_aspect_april_plot <- ggplot(data = trans_treewell_long_aspect_april) +
+  geom_point(aes(x = dbh, y = well_diameter, color = zone)) +
+  theme_bw() +
+  geom_smooth(aes(x = dbh, y = well_diameter), method = 'lm', se = TRUE, color = "grey") +
+  labs(title = "Transitional April", x = "Tree Diameter (cm)", y = "Well Diameter (cm)") +
+  theme_bw() +  # Use a minimal theme for a clean look
+  facet_wrap(~aspect) +
+  #coord_cartesian(ylim = c(0, 45))
+  coord_cartesian(ylim = c(0, 100), xlim = c(0,30)) +
+    scale_color_manual(values = c(
+    "persistent" = "#2166AC",
+    "transitional" = "#D95F02")) +
+  theme(legend.position = "none")
+
+trans_treewell_aspect_april_plot
 
 ```
 
 ```{r}
 library(ggpubr)
 #arranging plots
-comb_treewell_aspect_plot <- ggarrange(pers_treewell_aspect_may_plot, trans_treewell_aspect_may_plot, ncol = 2, nrow = 1, common.legend = TRUE, legend = "right")
+comb_treewell_aspect_plot <- ggarrange(trans_treewell_aspect_april_plot, pers_treewell_aspect_may_plot, trans_treewell_aspect_may_plot, ncol = 3, nrow = 1)
 
 comb_treewell_aspect_plot
 ```
 
+Same plots as above, but with free x and y scales!
+
 ```{r}
-"Well Diameter by Aspect and Tree Diameter on 2024-05-03"
+trans_treewell_aspect_may_plot_freexy <- ggplot(data = trans_treewell_long_aspect_may) +
+  geom_point(aes(x = dbh, y = well_diameter, color = zone)) +
+  theme_bw() +
+  geom_smooth(aes(x = dbh, y = well_diameter), method = 'lm', se = TRUE, color = "grey") +
+  labs(title = "Transitional May", x = "Tree Diameter (cm)", y = "Well Diameter (cm)") +
+  theme_bw() +  # Use a minimal theme for a clean look
+  facet_wrap(~aspect) +
+  scale_color_manual(values = c(
+    "persistent" = "#2166AC",
+    "transitional" = "#D95F02")) +
+  theme(legend.position = "none")
+
+trans_treewell_aspect_may_plot_freexy
+
+##persistent
+pers_treewell_aspect_may_plot_freexy <- ggplot(data = pers_treewell_long_aspect_may) +
+  geom_point(aes(x = dbh, y = well_diameter, color = zone)) +
+  theme_bw() +
+  geom_smooth(aes(x = dbh, y = well_diameter), method = 'lm', se = TRUE, color = "grey") +
+  labs(title = "Persistent May", x = "Tree Diameter (cm)", y = "Well Diameter (cm)") +
+  theme_bw() +  # Use a minimal theme for a clean look
+  facet_wrap(~aspect) +
+  scale_color_manual(values = c(
+    "persistent" = "#2166AC",
+    "transitional" = "#D95F02")) +
+  theme(legend.position = "none")
+
+pers_treewell_aspect_may_plot_freexy
+
+##transitional april plot
+trans_treewell_aspect_april_plot_freexy <- ggplot(data = trans_treewell_long_aspect_april) +
+  geom_point(aes(x = dbh, y = well_diameter, color = zone)) +
+  theme_bw() +
+  geom_smooth(aes(x = dbh, y = well_diameter), method = 'lm', se = TRUE, color = "grey") +
+  labs(title = "Transitional April", x = "Tree Diameter (cm)", y = "Well Diameter (cm)") +
+  theme_bw() +  # Use a minimal theme for a clean look
+  facet_wrap(~aspect) +
+    scale_color_manual(values = c(
+    "persistent" = "#2166AC",
+    "transitional" = "#D95F02")) +
+  theme(legend.position = "none")
+
+trans_treewell_aspect_april_plot_freexy
+```
+
+```{r}
+#combining freexy plots
+comb_treewell_aspect_plot_freexy <- ggarrange(trans_treewell_aspect_april_plot_freexy, pers_treewell_aspect_may_plot_freexy, trans_treewell_aspect_may_plot_freexy, ncol = 3, nrow = 1)
+
+comb_treewell_aspect_plot_freexy
 ```
 
 \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
 
-Plotting Aspect Scatterplot individually, then combining
-
-\*\* should I just do the may date for these?
-
-```{r}
-treewell_aspects_n <- ggplot(treewell_n, aes(x = dbh, y = sd_3_N)) +
-  geom_point() +
-  geom_smooth(method = 'lm', se = TRUE, color = "blue") +
-  labs(
-    title = "North Aspect Well vs Tree Diameter",
-    y = "North Side Well Diameter (cm)",
-    x = "Tree Diameter (cm)"
-  ) +
-  facet_wrap(~date)
-
-print(treewell_aspects_n)
-
-treewell_aspects_e <- ggplot(treewell_e, aes(x = dbh, y = sd_3_E)) +
-  geom_point() +
-  geom_smooth(method = 'lm', se = TRUE, color = "blue") +
-  labs(
-    title = "East Aspect Well vs Tree Diameter",
-    y = "East Side Well Diameter (cm)",
-    x = "Tree Diameter (cm)"
-  ) +
-  facet_wrap(~date)
-
-print(treewell_aspects_e)
-
-treewell_aspects_s <- ggplot(treewell_s, aes(x = dbh, y = sd_3_S)) +
-  geom_point() +
-  geom_smooth(method = 'lm', se = TRUE, color = "blue") +
-  labs(
-    title = "South Aspect Well vs Tree Diameter",
-    y = "South Side Well Diameter (cm)",
-    x = "Tree Diameter (cm)"
-  ) +
-  facet_wrap(~date)
-
-print(treewell_aspects_s)
-
-treewell_aspects_w <- ggplot(treewell_w, aes(x = dbh, y = sd_3_W)) +
-  geom_point() +
-  geom_smooth(method = 'lm', se = TRUE, color = "blue") +
-  labs(
-    title = "West Aspect Well vs Tree Diameter",
-    y = "West Side Well Diameter (cm)",
-    x = "Tree Diameter (cm)"
-  )  +
-  facet_wrap(~date)
-
-print(treewell_aspects_w)
-```
-
-```{r}
-#arranging all aspect scatter plots
-```
+Plotting Aspect Scatter plot individually, then combining
 
 Zone-specific Plots
 
@@ -353,39 +383,6 @@ Point Plots
 
 \*\* not sure this is very helpful? Try putting regression lines on them.
 
-```{r}
-#making just a may dataframe
-treewell_aspect_dataframe <- treewell_zeroed %>%
-  filter(date == "2024-05-03")
-
-aspect_color <- c(
-  "d_edge_N" = "black",
-  "d_edge_E" = "orange",
-  "d_edge_S" = "red",
-  "d_edge_W" = "blue"
-)
-
-color_labels <- c(
-  "d_edge_N" = "North",
-  "d_edge_E" = "East",
-  "d_edge_S" = "South",
-  "d_edge_W" = "West"
-)
-  
-treewell_aspect_pointplot <- ggplot(data = treewell_aspect_dataframe) +
-  geom_point(aes(x = dbh, y = d_edge_N), color = "d_edge_N") +
-  geom_point(aes(x = dbh, y = d_edge_E), color = "d_edge_E") +
-  geom_point(aes(x = dbh, y = d_edge_S), color = "d_edge_S") +
-  geom_point(aes(x = dbh, y = d_edge_W), color = "d_edge_W") +
-  theme_bw() +
-  labs(title = "Well Diameter by Aspect and Tree Diameter on 2024-05-03", x = "Tree Diameter (cm)", y = "Well Diameter (cm)") +
-  theme_bw() +  # Use a minimal theme for a clean look
-  scale_color_manual(values = aspect_color, labels = color_labels) + 
-  facet_wrap(~site)
-
-treewell_aspect_pointplot 
-```
-
 \*\* can also plot snow depths with this, if needed?
 
 5/13 Histogram Plots
@@ -394,15 +391,29 @@ treewell_aspect_pointplot
 #creating dataframe for only may
 treewell_maydata <- treewell_zeroed %>%
   filter(date == "2024-05-03")
-  
+
+#treewell diameter histogram
 treewell_may_hist <- ggplot(data = treewell_maydata, aes(x = treewell_diameter)) +
-  geom_histogram(binwidth = 5, fill = "skyblue", color = "black") +
+  geom_histogram(binwidth = 5, fill = "#2166AC", color = "black") +
   labs(
-    title = "Histogram of Treewell Diameter in May",
-    x = "Treewell Diameter (cm)",
+    #title = "Histogram of Treewell Diameter in May",
+    x = "Full Treewell Diameter (cm)",
     y = "Frequency"
   ) +
-  facet_wrap(~site)
+  facet_wrap(~zone) +
+  theme_bw()
 
 print(treewell_may_hist)
+
+treediameter_hist <- ggplot(data = treewell_maydata, aes(x = dbh)) +
+  geom_histogram(binwidth = 5, fill = "#2166AC", color = "black") +
+  labs(
+    #title = "Histogram of Treewell Diameter in May",
+    x = "Tree Diameter (cm)",
+    y = "Frequency"
+  ) +
+  facet_wrap(~zone) +
+  theme_bw()
+
+print(treediameter_hist)
 ```
