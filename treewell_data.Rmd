@@ -14,7 +14,6 @@ library(broom) #Simplifies model outputs
 library(knitr) #Makes nice tables
 library(kableExtra) #Makes even nicer tables
 library(lubridate) #Makes working with dates easier
-library(ggthemes) #Makes plots prettier
 library(tidyr)
 library(readxl)#Makes multiple simultaneous models easier
 library(plotly)
@@ -171,6 +170,114 @@ treewell_w <- treewell_zeroed %>%
   select(c(tree_ID, site, date, tree_mort, dbh, treewell_diameter, d_edge_W, sd_tree_W, sd_1_W, sd_2_W, sd_3_W, increments_cm))
 ```
 
+\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
+
+Chunk of work from 9/9/24 - exported plots
+
+Exploring aspect comparison and site comparison
+
+```{r}
+#creating a long dataframe that is zeroed - making individual dataframes for aspects first, then joining
+treewell_n_long <- treewell_n %>%
+  pivot_longer(cols = starts_with("d_edge"), 
+    names_to = "measurement", 
+    values_to = "well_diameter",
+    values_drop_na = TRUE
+  ) %>%
+  mutate(aspect = "north") %>%
+  rename(treewell_diameter_full = treewell_diameter) %>%
+  select(tree_ID, site, date, tree_mort, aspect, dbh, treewell_diameter_full, measurement, well_diameter, increments_cm)
+
+treewell_e_long <- treewell_e %>%
+  pivot_longer(cols = starts_with("d_edge"), 
+    names_to = "measurement", 
+    values_to = "well_diameter",
+    values_drop_na = TRUE
+  ) %>%
+  mutate(aspect = "east") %>%
+  rename(treewell_diameter_full = treewell_diameter) %>%
+  select(tree_ID, site, date, tree_mort, aspect, dbh, treewell_diameter_full, measurement, well_diameter, increments_cm)
+
+treewell_s_long <- treewell_s %>%
+  pivot_longer(cols = starts_with("d_edge"), 
+    names_to = "measurement", 
+    values_to = "well_diameter",
+    values_drop_na = TRUE
+  ) %>%
+  mutate(aspect = "south") %>%
+  rename(treewell_diameter_full = treewell_diameter) %>%
+  select(tree_ID, site, date, tree_mort, aspect, dbh, treewell_diameter_full, measurement, well_diameter, increments_cm)
+
+treewell_w_long <- treewell_w %>%
+  pivot_longer(cols = starts_with("d_edge"), 
+    names_to = "measurement", 
+    values_to = "well_diameter",
+    values_drop_na = TRUE
+  ) %>%
+  mutate(aspect = "west") %>%
+  rename(treewell_diameter_full = treewell_diameter) %>%
+  select(tree_ID, site, date, tree_mort, aspect, dbh, treewell_diameter_full, measurement, well_diameter, increments_cm)
+```
+
+```{r}
+#full join of new dataframes
+treewell_long_may <- treewell_n_long %>%
+  full_join(treewell_e_long) %>%
+  full_join(treewell_s_long) %>%
+  full_join(treewell_w_long) %>%
+  filter(date == "2024-05-03")
+
+trans_treewell_long_aspect_may <- treewell_long_may %>%
+  filter( site == "transitional")
+
+pers_treewell_long_aspect_may <- treewell_long_may %>%
+  filter( site == "persistent")
+```
+
+```{r}
+#plotting aspect in points
+##transitional
+trans_treewell_aspect_may_plot <- ggplot(data = trans_treewell_long_aspect_may) +
+  geom_point(aes(x = dbh, y = well_diameter)) +
+  theme_bw() +
+  geom_smooth(aes(x = dbh, y = well_diameter), method = 'lm', se = TRUE, color = "blue") +
+  labs(title = "Transitional", x = "Tree Diameter (cm)", y = "Well Diameter (cm)") +
+  theme_bw() +  # Use a minimal theme for a clean look
+  scale_color_manual(values = aspect_color, labels = color_labels) + 
+  facet_wrap(~aspect) +
+  coord_cartesian(ylim = c(0, 85), xlim = c(0,30))
+
+trans_treewell_aspect_may_plot
+
+##persistent
+pers_treewell_aspect_may_plot <- ggplot(data = pers_treewell_long_aspect_may) +
+  geom_point(aes(x = dbh, y = well_diameter)) +
+  theme_bw() +
+  geom_smooth(aes(x = dbh, y = well_diameter), method = 'lm', se = TRUE, color = "blue") +
+  labs(title = "Persistent", x = "Tree Diameter (cm)", y = "Well Diameter (cm)") +
+  theme_bw() +  # Use a minimal theme for a clean look
+  scale_color_manual(values = aspect_color, labels = color_labels) + 
+  facet_wrap(~aspect) +
+  coord_cartesian(ylim = c(0, 85), xlim = c(0,30))
+
+pers_treewell_aspect_may_plot
+
+```
+
+```{r}
+library(ggpubr)
+#arranging plots
+comb_treewell_aspect_plot <- ggarrange(pers_treewell_aspect_may_plot, trans_treewell_aspect_may_plot, ncol = 2, nrow = 1, common.legend = TRUE, legend = "right")
+
+comb_treewell_aspect_plot
+```
+
+```{r}
+"Well Diameter by Aspect and Tree Diameter on 2024-05-03"
+```
+
+\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
+
 Plotting Aspect Scatterplot individually, then combining
 
 \*\* should I just do the may date for these?
@@ -251,18 +358,51 @@ Point Plots
 treewell_aspect_dataframe <- treewell_zeroed %>%
   filter(date == "2024-05-03")
 
-aspect_color <- 
+aspect_color <- c(
+  "d_edge_N" = "black",
+  "d_edge_E" = "orange",
+  "d_edge_S" = "red",
+  "d_edge_W" = "blue"
+)
+
+color_labels <- c(
+  "d_edge_N" = "North",
+  "d_edge_E" = "East",
+  "d_edge_S" = "South",
+  "d_edge_W" = "West"
+)
   
 treewell_aspect_pointplot <- ggplot(data = treewell_aspect_dataframe) +
-  geom_point(aes(x = dbh, y = d_edge_N), color = "black") +
-  geom_point(aes(x = dbh, y = d_edge_E), color = "orange") +
-  geom_point(aes(x = dbh, y = d_edge_S), color = "red") +
-  geom_point(aes(x = dbh, y = d_edge_W), color = "blue") +
+  geom_point(aes(x = dbh, y = d_edge_N), color = "d_edge_N") +
+  geom_point(aes(x = dbh, y = d_edge_E), color = "d_edge_E") +
+  geom_point(aes(x = dbh, y = d_edge_S), color = "d_edge_S") +
+  geom_point(aes(x = dbh, y = d_edge_W), color = "d_edge_W") +
   theme_bw() +
   labs(title = "Well Diameter by Aspect and Tree Diameter on 2024-05-03", x = "Tree Diameter (cm)", y = "Well Diameter (cm)") +
+  theme_bw() +  # Use a minimal theme for a clean look
+  scale_color_manual(values = aspect_color, labels = color_labels) + 
   facet_wrap(~site)
 
 treewell_aspect_pointplot 
 ```
 
 \*\* can also plot snow depths with this, if needed?
+
+5/13 Histogram Plots
+
+```{r}
+#creating dataframe for only may
+treewell_maydata <- treewell_zeroed %>%
+  filter(date == "2024-05-03")
+  
+treewell_may_hist <- ggplot(data = treewell_maydata, aes(x = treewell_diameter)) +
+  geom_histogram(binwidth = 5, fill = "skyblue", color = "black") +
+  labs(
+    title = "Histogram of Treewell Diameter in May",
+    x = "Treewell Diameter (cm)",
+    y = "Frequency"
+  ) +
+  facet_wrap(~site)
+
+print(treewell_may_hist)
+```
