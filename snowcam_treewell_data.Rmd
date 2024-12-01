@@ -1,0 +1,255 @@
+---
+title: "snowcam_treewell_data"
+output: html_document
+date: "2024-12-01"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse) # Package with dplyr, tibble, readr, and others to help clean coding
+library(knitr) #Makes nice tables
+library(kableExtra) #Makes even nicer tables
+library(lubridate) #Makes working with dates easier
+library(tidyr)
+library(readxl)#Makes multiple simultaneous models easier
+library(plotly)
+library(rstatix)
+library(ggpubr)
+library(ggpmisc)
+
+setwd("/Volumes/wcnr-network/Research/Kampf/Private/field_data")
+```
+
+Loading in Data
+
+```{r}
+snowcam_105E_transb_tw_data_edited <- read_csv("nsf/treewell_data/snowcam_treewell_data/105E_transb_tree_well_diams_edited.csv")
+
+#this has original data with different tree diameters per date
+snowcam_105E_transb_tw_data_full <- read_csv("nsf/treewell_data/snowcam_treewell_data/105E_transb_tree_well_diams.csv")
+
+snowcam_LP_highmort_persb_tw_data_edited <- read_csv("nsf/treewell_data/snowcam_treewell_data/LP_highmort_persb_tree_well_diams_edited.csv")
+
+#don't have this dataset done yet, so not ready to be loaded
+snowcam_LP_lowmort_persb_tw_data_edited <- read_csv("nsf/treewell_data/snowcam_treewell_data/LP_lowmort_persb_tree_well_diams_edited.csv")
+```
+
+Data Wrangling
+
+```{r}
+#this is the version that has only one diameter per tree id
+snowcam_transb_tw_edited <- snowcam_105E_transb_tw_data %>%
+  mutate(date = mdy(date)) %>%
+  mutate(well_diam_cm = as.numeric(well_diam_cm), tree_diam_cm = as.numeric(tree_diam_cm)) %>%  # Convert to numeric
+  mutate(well_diam_cm = replace_na(well_diam_cm, 0)) %>%
+  mutate(tree_diam_size = case_when(
+    tree_diam_cm >= 20 ~ "large",
+    tree_diam_cm >= 10 & tree_diam_cm < 20 ~ "medium",
+    tree_diam_cm < 10 ~ "small",
+    TRUE ~ NA_character_  # Handles cases where tree_diam_cm is NA
+  ))
+```
+
+```{r}
+#this is the version that is applying variable tree diameters per tree
+snowcam_transb_tw_full <- snowcam_105E_transb_tw_data_full %>%
+  mutate(date = mdy(date)) %>%
+  mutate(well_diam_cm = as.numeric(well_diam_cm), tree_diam_cm = as.numeric(tree_diam_cm)) %>%  # Convert to numeric
+  mutate(well_diam_cm = replace_na(well_diam_cm, 0)) %>%
+  #making a column for tree diameter size - large = >20, medium = 10-20, small = <10
+  mutate(tree_diam_size = case_when(
+    tree_diam_cm >= 20 ~ "large",
+    tree_diam_cm >= 10 & tree_diam_cm < 20 ~ "medium",
+    tree_diam_cm < 10 ~ "small",
+    TRUE ~ NA_character_  # Handles cases where tree_diam_cm is NA
+  ))
+```
+
+### Data Exploration
+
+Full Dataset with tree diams per date
+
+```{r}
+#making a dataframe that only has data for when there is snow at all trees
+transb_snowon_treewell_data <- snowcam_transb_tw_full %>%
+  filter(date <= as.Date("2024-04-23"))
+
+#creating dataframes by tree_id
+transb_snowon_treeid1_data <- snowcam_transb_tw_full %>%
+  filter(tree_id == "tree_1") %>%
+  filter(date <= as.Date("2024-04-23"))
+
+transb_snowon_treeid2_data <- snowcam_transb_tw_full %>%
+  filter(tree_id == "tree_2") %>%
+  filter(date <= as.Date("2024-04-23"))
+
+transb_snowon_treeid3_data <- snowcam_transb_tw_full %>%
+  filter(tree_id == "tree_3") %>%
+  filter(date <= as.Date("2024-04-23"))
+
+transb_snowon_treeid4_data <- snowcam_transb_tw_full %>%
+  filter(tree_id == "tree_4") %>%
+  filter(date <= as.Date("2024-04-23"))
+```
+
+```{r}
+lm_model <- lm(well_diam_cm ~ tree_diam_cm, data = transb_snowon_treewell_data)
+
+r_squared <- summary(lm_model)$r.squared
+```
+
+```{r}
+lm_model_treeid1 <- lm(well_diam_cm ~ tree_diam_cm, data = transb_snowon_treeid1_data)
+
+r_squared_treeid1 <- summary(lm_model_treeid1)$r.squared
+```
+
+```{r}
+lm_model_treeid2 <- lm(well_diam_cm ~ tree_diam_cm, data = transb_snowon_treeid2_data)
+
+r_squared_treeid2 <- summary(lm_model_treeid2)$r.squared
+```
+
+```{r}
+lm_model_treeid3 <- lm(well_diam_cm ~ tree_diam_cm, data = transb_snowon_treeid3_data)
+
+r_squared_treeid3 <- summary(lm_model_treeid3)$r.squared
+```
+
+```{r}
+lm_model_treeid4 <- lm(well_diam_cm ~ tree_diam_cm, data = transb_snowon_treeid4_data)
+
+r_squared_treeid4 <- summary(lm_model_treeid4)$r.squared
+```
+
+```{r}
+#scatterplot by tree diameter and well diameter
+
+trans_tree_well_full_scatterplot <- ggplot(transb_snowon_treewell_data, aes(x = tree_diam_cm, y = well_diam_cm)) +
+  geom_point(aes(color = tree_id), size = 3, alpha = 0.7) +  # Color by tree_id
+  geom_smooth(method = "lm", color = "grey", se = TRUE) +  # Best-fit line with shaded CI
+  annotate("text", x = 25, y = 10, label = paste("R² = ", round(r_squared, 2)), size = 5, color = "black") +# Add R² value
+  #facet_wrap(~tree_diam_size) +
+  labs(
+    title = "Trans Burned Tree Diameter vs Well Diameter",
+    x = "Tree Diameter (cm)",
+    y = "Well Diameter (cm)"
+  ) +
+  theme_minimal() +
+  scale_color_viridis_d()  # Optionally, use a color palette for the tree_id
+
+# Display the plot
+trans_tree_well_full_scatterplot
+
+```
+
+Scatter plot by individual tree id - to see if R\^2 is better that way
+
+```{r}
+#treeid_1
+trans_tree_well_treeid1_scatterplot <- ggplot(transb_snowon_treeid1_data) +
+  geom_point(aes(x = tree_diam_cm, y = well_diam_cm, color = tree_id), color = "purple4", size = 3, alpha = 0.7) +  # Color by tree_id
+  geom_smooth(method = "lm", aes(x = tree_diam_cm, y = well_diam_cm),  color = "grey", se = TRUE) +  # Best-fit line with shaded CI
+  annotate("text", x = 25, y = 30, label = paste("R² = ", round(r_squared_treeid1, 2)), size = 5, color = "black") +# Add R² value
+  #facet_wrap(~tree_diam_size) +
+  labs(
+    title = "Tree id 1",
+    x = "Tree Diameter (cm)",
+    y = "Well Diameter (cm)"
+  ) +
+  theme_bw() +
+  scale_x_continuous(
+    limits = c(19, 27))
+
+# Display the plot
+trans_tree_well_treeid1_scatterplot
+```
+
+```{r}
+#treeid_2
+trans_tree_well_treeid2_scatterplot <- ggplot(transb_snowon_treeid2_data, aes(x = tree_diam_cm, y = well_diam_cm)) +
+ geom_point(aes(color = tree_id), color = "gold", size = 3, alpha = 0.7) +
+  geom_smooth(method = "lm", aes(x = tree_diam_cm, y = well_diam_cm),  color = "grey", se = TRUE) +  # Best-fit line with shaded CI
+  annotate("text", x = 12, y = 15, label = paste("R² = ", round(r_squared_treeid2, 2)), size = 5, color = "black") +# Add R² value
+  #facet_wrap(~tree_diam_size) +
+  labs(
+    title = "Tree id 1",
+    x = "Tree Diameter (cm)",
+    y = "Well Diameter (cm)"
+  ) +
+  theme_bw() +
+  scale_x_continuous(
+    limits = c(10, 15))
+
+# Display the plot
+trans_tree_well_treeid2_scatterplot
+```
+
+```{r}
+trans_tree_well_treeid3_scatterplot <- ggplot(transb_snowon_treeid3_data, aes(x = tree_diam_cm, y = well_diam_cm)) +
+ geom_point(aes(color = tree_id), color = "blue2", size = 3, alpha = 0.7) +
+  geom_smooth(method = "lm", color = "grey", se = TRUE) +  # Best-fit line with shaded CI
+  annotate("text", x = 10, y = 8, label = paste("R² = ", round(r_squared_treeid3, 2)), size = 5, color = "black") +# Add R² value
+  #facet_wrap(~tree_diam_size) +
+  labs(
+    title = "Tree id 3",
+    x = "Tree Diameter (cm)",
+    y = "Well Diameter (cm)"
+  ) +
+  theme_bw() +
+  scale_x_continuous(limits = c(7, 11))
+
+# Display the plot
+trans_tree_well_treeid3_scatterplot
+```
+
+```{r}
+trans_tree_well_treeid4_scatterplot <- ggplot(transb_snowon_treeid4_data, aes(x = tree_diam_cm, y = well_diam_cm)) +
+  geom_point(aes(color = tree_id), color = "green4", size = 3, alpha = 0.7) +
+  geom_smooth(method = "lm", color = "grey", se = TRUE) +  # Best-fit line with shaded CI
+  annotate("text", x = 20, y = 20, label = paste("R² = ", round(r_squared_treeid4, 2)), size = 5, color = "black") +  # Add R² value
+  labs(
+    title = "Tree id 4",  # Corrected the title to match the tree id
+    x = "Tree Diameter (cm)",
+    y = "Well Diameter (cm)"
+  ) +
+  theme_bw() + 
+  scale_x_continuous(limits = c(14, 22)) +
+  scale_y_continuous() # Correctly added '+' before this line
+
+# Display the plot
+trans_tree_well_treeid4_scatterplot
+```
+
+```{r}
+#patching all the tree_id plots together
+transb_comb_bytreeid_scatterplot <- ggarrange(trans_tree_well_treeid1_scatterplot, trans_tree_well_treeid2_scatterplot, trans_tree_well_treeid3_scatterplot, trans_tree_well_treeid4_scatterplot, nrow = 2, ncol = 2)
+
+transb_comb_bytreeid_scatterplot
+```
+
+Set tree diams by tree id - this doesn't make sense to do, because all the tree diams are the same per tree_id, which doesn't give me a scatterplot
+
+```{r}
+transb_snowon_treewell_edited_data <- snowcam_transb_tw_edited %>%
+  filter(date <= as.Date("2024-04-23")
+```
+
+```{r}
+trans_tree_well_edited_lineplot <- ggplot(transb_snowon_treewell_edited_data) +
+  geom_line(aes(x = date, y = well_diam_cm, color = tree_id), linewidth = 0.8, alpha = 0.7) +  # Color by tree_id
+  labs(
+    title = "Trans Burned Treewell Developement",
+    x = "Date",
+    y = "Well Diameter (cm)"
+  ) +
+  theme_minimal() +
+  scale_color_viridis_d()  # Optionally, use a color palette for the tree_id
+
+# Display the plot
+trans_tree_well_edited_lineplot
+
+```
