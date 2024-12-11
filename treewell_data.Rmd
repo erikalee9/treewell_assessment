@@ -1057,3 +1057,141 @@ alternative hypothesis: true correlation is not equal to 0
 95 percent confidence interval: -0.1421718 0.7008553
 
 sample estimates: cor 0.3477826
+
+## Snow Camera Treewell Data
+
+Data Download
+
+```{r}
+transb_snowcam_treewell_data = read_csv("nsf/treewell_data/snowcam_data/105E_transb_tree_well_diams_V2.csv")
+
+persb_highmort_snowcam_treewell_data = read_csv("nsf/treewell_data/snowcam_data/LP_highmort_persb_tree_well_diams_V2.csv")
+
+persb_lowmort_snowcam_treewell_data = read_csv("nsf/treewell_data/snowcam_data/LP_lowmort_persb_tree_well_diams_V2.csv")
+```
+
+### Data Wrangling
+
+```{r}
+transb_snowcam_treewell_data_edited <- transb_snowcam_treewell_data %>%
+  mutate(date = as.Date(date, format = "%m/%d/%y")) %>%
+  mutate(mortality = "mixed") %>%
+  select(date, zone, burn_status, mortality, tree_id, tree_diam_cm, well_diam_cm)
+
+persb_highmort_snowcam_treewell_data_edited <- persb_highmort_snowcam_treewell_data %>%
+  mutate(date = as.Date(date, format = "%m/%d/%y")) %>%
+  select(date, zone, burn_status, mortality, tree_id, tree_diam_cm, well_diam_cm)
+
+persb_lowmort_snowcam_treewell_data_edited <- persb_lowmort_snowcam_treewell_data %>%
+  mutate(date = as.Date(date, format = "%m/%d/%y")) %>%
+  select(date, zone, burn_status, mortality, everything()) %>%
+  select(date, zone, burn_status, mortality, tree_id, tree_diam_cm, well_diam_cm)
+```
+
+```{r}
+#combined dataframe 
+
+full_snowcam_treewell_data <- rbind(persb_highmort_snowcam_treewell_data_edited, persb_lowmort_snowcam_treewell_data_edited, transb_snowcam_treewell_data_edited)
+```
+
+### Data Exploration
+
+```{r}
+#scatterplot of well vs tree diam, for all data
+
+full_tree_well_scatterplot <- ggplot(full_snowcam_treewell_data, aes(x = tree_diam_cm, y = well_diam_cm)) +
+  geom_point(aes(color = zone), size = 3, alpha = 0.7) +  # Color by tree_id
+  geom_smooth(method = "lm", color = "grey", se = TRUE) +  # Best-fit line with shaded CI
+  #annotate("text", x = 25, y = 10, label = paste("R² = ", round(r_squared, 2)), size = 5, color = "black") +# Add R² value
+  #facet_wrap(~tree_diam_size) +
+  labs(
+    title = "Trans Burned Tree Diameter vs Well Diameter",
+    x = "Tree Diameter (cm)",
+    y = "Well Diameter (cm)"
+  ) +
+  theme_minimal() +
+  scale_color_viridis_d()  # Optionally, use a color palette for the tree_id
+
+# Display the plot
+full_tree_well_scatterplot
+```
+
+```{r}
+#trans scatterplot
+
+transb_tree_well_scatterplot <- ggplot(transb_snowcam_treewell_data, aes(x = tree_diam_cm, y = well_diam_cm)) +
+  geom_point(aes(color = zone), size = 3, alpha = 0.7) +  # Color by tree_id
+  geom_smooth(method = "lm", color = "grey", se = TRUE) +  # Best-fit line with shaded CI
+  #annotate("text", x = 25, y = 10, label = paste("R² = ", round(r_squared, 2)), size = 5, color = "black") +# Add R² value
+  facet_wrap(~tree_id) +
+  labs(
+    title = "Trans Burned Tree Diameter vs Well Diameter",
+    x = "Tree Diameter (cm)",
+    y = "Well Diameter (cm)"
+  ) +
+  theme_minimal() +
+  scale_color_viridis_d()  # Optionally, use a color palette for the tree_id
+
+# Display the plot
+transb_tree_well_scatterplot
+```
+
+```{r}
+#plot by date vs treewell
+transb_tree_well_lineplot <- ggplot(transb_snowcam_treewell_data_edited) +
+  geom_line(aes(x = date, y = well_diam_cm)) +
+ # geom_point(aes(color = zone), size = 3, alpha = 0.7) +  # Color by tree_id
+  #geom_smooth(method = "lm", color = "grey", se = TRUE) +  # Best-fit line with shaded CI
+  #annotate("text", x = 25, y = 10, label = paste("R² = ", round(r_squared, 2)), size = 5, color = "black") +# Add R² value
+  facet_wrap(~tree_id) +
+  labs(
+    title = "Trans Burned Tree Diameter vs Well Diameter",
+    x = "Date",
+    y = "Well Diameter (cm)"
+  ) +
+  theme_minimal() +
+  scale_color_viridis_d()  # Optionally, use a color palette for the tree_id
+
+# Display the plot
+transb_tree_well_lineplot
+```
+
+```{r}
+#persb_highmort
+persb_highmort_tree_well_lineplot <- ggplot(persb_highmort_snowcam_treewell_data_edited) +
+  geom_line(aes(x = date, y = well_diam_cm)) +
+ # geom_point(aes(color = zone), size = 3, alpha = 0.7) +  # Color by tree_id
+  #geom_smooth(method = "lm", color = "grey", se = TRUE) +  # Best-fit line with shaded CI
+  #annotate("text", x = 25, y = 10, label = paste("R² = ", round(r_squared, 2)), size = 5, color = "black") +# Add R² value
+  facet_wrap(~tree_id) +
+  labs(
+    title = "Trans Burned Tree Diameter vs Well Diameter",
+    x = "Date",
+    y = "Well Diameter (cm)"
+  ) +
+  theme_minimal() +
+  scale_color_viridis_d()  # Optionally, use a color palette for the tree_id
+
+# Display the plot
+persb_highmort_tree_well_lineplot
+```
+
+```{r}
+#persb_highmort
+persb_lowmort_tree_well_lineplot <- ggplot(persb_lowmort_snowcam_treewell_data_edited) +
+  geom_line(aes(x = date, y = well_diam_cm)) +
+ # geom_point(aes(color = zone), size = 3, alpha = 0.7) +  # Color by tree_id
+  #geom_smooth(method = "lm", color = "grey", se = TRUE) +  # Best-fit line with shaded CI
+  #annotate("text", x = 25, y = 10, label = paste("R² = ", round(r_squared, 2)), size = 5, color = "black") +# Add R² value
+  facet_wrap(~tree_id) +
+  labs(
+    title = "Trans Burned Tree Diameter vs Well Diameter",
+    x = "Date",
+    y = "Well Diameter (cm)"
+  ) +
+  theme_minimal() +
+  scale_color_viridis_d()  # Optionally, use a color palette for the tree_id
+
+# Display the plot
+persb_lowmort_tree_well_lineplot
+```
