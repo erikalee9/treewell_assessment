@@ -253,3 +253,185 @@ trans_tree_well_edited_lineplot <- ggplot(transb_snowon_treewell_edited_data) +
 trans_tree_well_edited_lineplot
 
 ```
+
+## V2 Data - processed by me
+
+Download Data
+
+```{r}
+transb_snowcam_treewell_data = read_csv("nsf/treewell_data/snowcam_data/105E_transb_tree_well_diams_V2.csv")
+
+persb_highmort_snowcam_treewell_data = read_csv("nsf/treewell_data/snowcam_data/LP_highmort_persb_tree_well_diams_V2.csv")
+
+persb_lowmort_snowcam_treewell_data = read_csv("nsf/treewell_data/snowcam_data/LP_lowmort_persb_tree_well_diams_V2.csv")
+```
+
+```{r}
+#snowcamera snow depth data
+transb_snowcam_depth_data = read_csv("nsf/camera_snowdepths/2024_105E_transb_snowdepths.csv")
+
+persb_highmort_snowcam_depth_data = read_csv("nsf/camera_snowdepths/2024_persb_lp_highmort_east_snowdepths.csv")
+
+persb_lowmort_snowcam_depth_data = read_csv("nsf/camera_snowdepths/2024_persb_lp_lowmort_snowdepths.csv")
+```
+
+### Data Wrangling
+
+```{r}
+#edited snowcam data to match the timeline of the well data
+transb_snowcam_depth_edited <- transb_snowcam_depth_data %>%
+  filter(date >= "2024-04-01" & date <= "2024-05-09") %>%
+  rename(burn_status = "mortality") %>%
+  select(date, burn_status, zone, "maximum_depth(cm)", treewell_developed, conditions) %>%
+  mutate(zone = "TSZ") %>%
+  rename(max_depth_cm = "maximum_depth(cm)")
+
+persb_highmort_snowcam_depth_edited <- persb_highmort_snowcam_depth_data %>%
+  filter(date >= "2024-04-15" & date <= "2024-05-18") %>%
+  select(date, mortality, burn_status, zone, max_depth_cm, treewell_developement, conditions) %>%
+  mutate(zone = "PSZ") 
+
+persb_lowmort_snowcam_depth_edited <- persb_lowmort_snowcam_depth_data %>%
+  filter(date >= "2024-04-15" & date <= "2024-05-31") %>%
+  select(date, mortality, burn_status, zone, max_depth_cm, conditions) %>%
+  mutate(zone = "PSZ") 
+```
+
+```{r}
+#snowcam treewell data edited
+transb_snowcam_treewell_data_edited <- transb_snowcam_treewell_data %>%
+  mutate(date = as.Date(date, format = "%m/%d/%y")) %>%
+  mutate(mortality = "mixed") %>%
+  select(date, zone, burn_status, mortality, tree_id, tree_diam_cm, well_diam_cm)
+
+persb_highmort_snowcam_treewell_data_edited <- persb_highmort_snowcam_treewell_data %>%
+  mutate(date = as.Date(date, format = "%m/%d/%y")) %>%
+  select(date, zone, burn_status, mortality, tree_id, tree_diam_cm, well_diam_cm)
+
+persb_lowmort_snowcam_treewell_data_edited <- persb_lowmort_snowcam_treewell_data %>%
+  mutate(date = as.Date(date, format = "%m/%d/%y")) %>%
+  select(date, zone, burn_status, mortality, everything()) %>%
+  select(date, zone, burn_status, mortality, tree_id, tree_diam_cm, well_diam_cm)
+```
+
+```{r}
+#combined treewell dataframe 
+full_snowcam_treewell_data <- rbind(persb_highmort_snowcam_treewell_data_edited, persb_lowmort_snowcam_treewell_data_edited, transb_snowcam_treewell_data_edited)
+```
+
+### Data Exploration
+
+```{r}
+#setting constants for tree_id colors and burn status linetypes
+treeid_colors <- c(
+  "tree_1" = "#1B7837",
+  "tree_2" = "#D95F02",
+  "tree_3" = "#2166AC",
+  "tree_4" = "grey23"
+)
+
+burnstatus_linetype <- c("GB" = "solid", "DB" = "dashed")
+```
+
+```{r}
+#data frame filtering out any well values of zero
+transb_snowcam_treewell_data_nozeros <- transb_snowcam_treewell_data_edited %>%
+  filter(well_diam_cm != 0) %>%
+  mutate(burn_status = case_when(
+    tree_id == "tree_4" ~ "DB",
+    TRUE ~ burn_status))
+```
+
+```{r}
+#plot by date vs treewell
+##transitional
+transb_tree_well_lineplot <- ggplot() + 
+  geom_line(data = transb_snowcam_treewell_data_nozeros, aes(x = date, y = well_diam_cm, color = tree_id, linetype = burn_status), linewidth = 0.6) +
+  # Bar plot for snow depth with custom legend
+  geom_bar(data = transb_snowcam_depth_edited, 
+           aes(x = date, y = max_depth_cm, fill = "daily max snow depth (cm)"),
+           stat = "identity", color = NA, alpha = 0.3) + 
+  labs(
+    title = "Plot 1: Trans Burned",
+    x = "Date",
+    y = "Well Diameter (cm)"
+  ) +
+  theme_bw() +
+  scale_color_manual(values = treeid_colors) +
+  scale_linetype_manual(values = burnstatus_linetype) +
+  scale_fill_manual(name = "columns", values = c("daily max snow depth (cm)" = "grey32"))
+
+# Display the plot
+transb_tree_well_lineplot
+```
+
+```{r}
+persb_highmort_snowcam_treewell_data_nozeros <- persb_highmort_snowcam_treewell_data_edited %>%
+  filter(well_diam_cm != 0)
+```
+
+```{r}
+##persb high mort
+persb_highmort_tree_well_lineplot <- ggplot(persb_highmort_snowcam_treewell_data_nozeros) +
+  geom_line(aes(x = date, y = well_diam_cm, color = tree_id, linetype = burn_status), linewidth = 0.6) +
+   # Bar plot for snow depth with custom legend
+  geom_bar(data = persb_highmort_snowcam_depth_edited, 
+           aes(x = date, y = max_depth_cm, fill = "daily max snow depth (cm)"),
+           stat = "identity", color = NA, alpha = 0.3) +
+  labs(
+    title = "Plot 2: Pers Burned High Mort",
+    x = "Date",
+    y = "Well Diameter (cm)"
+  ) +
+  theme_bw() +
+  scale_color_manual(values = treeid_colors) +
+  scale_linetype_manual(values = burnstatus_linetype) + 
+  scale_fill_manual(name = "columns", values = c("daily max snow depth (cm)" = "grey32"))
+
+# Display the plot
+persb_highmort_tree_well_lineplot
+```
+
+```{r}
+persb_lowmort_snowcam_treewell_data_nozeros <- persb_lowmort_snowcam_treewell_data_edited %>%
+  filter(well_diam_cm != 0)
+```
+
+```{r}
+##persb low mort
+persb_lowmort_tree_well_lineplot <- ggplot(persb_lowmort_snowcam_treewell_data_nozeros) +
+  geom_line(aes(x = date, y = well_diam_cm, color = tree_id, linetype = burn_status), linewidth = 0.6) +
+    # Bar plot for snow depth with custom legend
+  geom_bar(data = persb_lowmort_snowcam_depth_edited, 
+           aes(x = date, y = max_depth_cm, fill = "daily max snow depth (cm)"),
+           stat = "identity", color = NA, alpha = 0.3) +
+  labs(
+    title = "Plot 3: Pers Burned Low Mort",
+    x = "Date",
+    y = "Well Diameter (cm)"
+  ) +
+  theme_bw() + 
+  scale_color_manual(values = treeid_colors) +
+  scale_linetype_manual(values = burnstatus_linetype) + 
+  scale_fill_manual(name = "columns", values = c("daily max snow depth (cm)" = "grey32"))
+
+# Display the plot
+persb_lowmort_tree_well_lineplot
+```
+
+```{r}
+#combined dataframes
+combined_treewell_lineplots <- ggarrange(transb_tree_well_lineplot, persb_highmort_tree_well_lineplot, persb_lowmort_tree_well_lineplot, nrow = 2, ncol = 2, common.legend = TRUE, legend = "right")
+
+combined_treewell_lineplots
+```
+
+\*\* this data shows a pattern during the ablation periods of these three different sites, but those time periods are different at each site
+
+-   Once the snow is mostly all melted, the well data is more sporadic, not as easy to see a signal between the date and well diameter
+
+-   Correlation between snow depth and well depth and date for sure. As snow depth decreases, tree well depth increases.
+
+\*\* Consider plotting net Radiation with these as well?
+
+-   might make the most sense to ONLY show the peak ablation periods, and a bit of time before hand, since once the snow is mostly gone the signal gets weird.
