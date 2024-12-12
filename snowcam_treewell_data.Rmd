@@ -321,6 +321,8 @@ full_snowcam_treewell_data <- rbind(persb_highmort_snowcam_treewell_data_edited,
 
 ### Data Exploration
 
+#### Line Plots
+
 ```{r}
 #setting constants for tree_id colors and burn status linetypes
 treeid_colors <- c(
@@ -435,3 +437,290 @@ combined_treewell_lineplots
 \*\* Consider plotting net Radiation with these as well?
 
 -   might make the most sense to ONLY show the peak ablation periods, and a bit of time before hand, since once the snow is mostly gone the signal gets weird.
+
+#### Scatterplots
+
+```{r}
+#making dataframes that just have one tree ID per zone, so that we can do an R^2 assessment
+transb_snowcam_treewell_data_id1 <- transb_snowcam_treewell_data_nozeros %>%
+  filter(tree_id== "tree_1")
+
+transb_snowcam_treewell_data_id2 <- transb_snowcam_treewell_data_nozeros %>%
+  filter(tree_id== "tree_2")
+
+transb_snowcam_treewell_data_id3 <- transb_snowcam_treewell_data_nozeros %>%
+  filter(tree_id== "tree_3")
+
+transb_snowcam_treewell_data_id4 <- transb_snowcam_treewell_data_nozeros %>%
+  filter(tree_id== "tree_4")
+```
+
+```{r}
+#treeid_1
+trans_tree_well_id1_scatterplot_V2 <- ggplot(transb_snowcam_treewell_data_id1, aes(x = tree_diam_cm, y = well_diam_cm)) +
+ geom_point(aes(color = tree_id), size = 3, alpha = 0.7) +
+  geom_smooth(method = "lm", aes(x = tree_diam_cm, y = well_diam_cm),  color = "grey", se = TRUE) +  # Best-fit line with shaded CI
+  #annotate("text", x = 12, y = 15, label = paste("R² = ", round(r_squared_treeid2, 2)), size = 5, color = "black") +# Add R² value
+  #facet_wrap(~tree_diam_size) +
+  labs(
+    title = "Tree id 1",
+    x = "Tree Diameter (cm)",
+    y = "Well Diameter (cm)"
+  ) +
+  theme_bw()
+  #scale_x_continuous(
+    #limits = c(10, 15))
+
+# Display the plot
+trans_tree_well_id1_scatterplot_V2
+```
+
+```{r}
+#treeid_2
+trans_tree_well_id2_scatterplot_V2 <- ggplot(transb_snowcam_treewell_data_id2, aes(x = tree_diam_cm, y = well_diam_cm)) +
+ geom_point(aes(color = tree_id), size = 3, alpha = 0.7) +
+  geom_smooth(method = "lm", aes(x = tree_diam_cm, y = well_diam_cm),  color = "grey", se = TRUE) +  # Best-fit line with shaded CI
+  #annotate("text", x = 12, y = 15, label = paste("R² = ", round(r_squared_treeid2, 2)), size = 5, color = "black") +# Add R² value
+  #facet_wrap(~tree_diam_size) +
+  labs(
+    title = "Tree id 2",
+    x = "Tree Diameter (cm)",
+    y = "Well Diameter (cm)"
+  ) +
+  theme_bw()
+  #scale_x_continuous(
+    #limits = c(10, 15))
+
+# Display the plot
+trans_tree_well_id2_scatterplot_V2
+```
+
+```{r}
+trans_tree_well_id3_scatterplot_V2 <- ggplot(transb_snowcam_treewell_data_id3, aes(x = tree_diam_cm, y = well_diam_cm)) +
+ geom_point(aes(color = tree_id), size = 3, alpha = 0.7) +
+  geom_smooth(method = "lm", aes(x = tree_diam_cm, y = well_diam_cm),  color = "grey", se = TRUE) +  # Best-fit line with shaded CI
+  #annotate("text", x = 12, y = 15, label = paste("R² = ", round(r_squared_treeid2, 2)), size = 5, color = "black") +# Add R² value
+  #facet_wrap(~tree_diam_size) +
+  labs(
+    title = "Tree id 3",
+    x = "Tree Diameter (cm)",
+    y = "Well Diameter (cm)"
+  ) +
+  theme_bw()
+  #scale_x_continuous(
+    #limits = c(10, 15))
+
+# Display the plot
+trans_tree_well_id3_scatterplot_V2
+```
+
+```{r}
+trans_tree_well_id4_scatterplot_V2 <- ggplot(transb_snowcam_treewell_data_id4, aes(x = tree_diam_cm, y = well_diam_cm)) +
+ geom_point(aes(color = tree_id), size = 3, alpha = 0.7) +
+  geom_smooth(method = "lm", aes(x = tree_diam_cm, y = well_diam_cm),  color = "grey", se = TRUE) +
+  labs(
+    title = "Tree id 4",
+    x = "Tree Diameter (cm)",
+    y = "Well Diameter (cm)"
+  ) +
+  theme_bw()
+
+# Display the plot
+trans_tree_well_id4_scatterplot_V2
+```
+
+```{r}
+#all points - trans burned 
+trans_tree_well_alltrees_scatterplot <- ggplot(transb_snowcam_treewell_data_nozeros, aes(x = tree_diam_cm, y = well_diam_cm)) +
+ geom_point(aes(color = tree_id, shape = burn_status), size = 3, alpha = 0.7) +
+  geom_smooth(method = "lm", aes(x = tree_diam_cm, y = well_diam_cm),  color = "grey", se = TRUE) +
+  labs(
+    title = "Plot 1: Trans Burned",
+    x = "Tree Diameter (cm)",
+    y = "Well Diameter (cm)"
+  ) +
+  theme_bw() + 
+  scale_color_manual(values = treeid_colors) + 
+  scale_shape_manual(values = c("DB" = 15, "GB" = 16))  # Star = 8, Dot = 16
+
+trans_tree_well_alltrees_scatterplot
+```
+
+```{r}
+#all points - pers burned high mort
+persb_highmort_tree_well_alltrees_scatterplot <- ggplot(persb_highmort_snowcam_treewell_data_nozeros, aes(x = tree_diam_cm, y = well_diam_cm)) +
+ geom_point(aes(color = tree_id, shape = burn_status), size = 3, alpha = 0.7) +
+  geom_smooth(method = "lm", aes(x = tree_diam_cm, y = well_diam_cm),  color = "grey", se = TRUE) +
+  labs(
+    title = "Plot 2: Pers Burned High Mort",
+    x = "Tree Diameter (cm)",
+    y = "Well Diameter (cm)"
+  ) +
+  theme_bw() + 
+  scale_color_manual(values = treeid_colors) + 
+  scale_shape_manual(values = c("DB" = 15, "GB" = 16))  # Star = 8, Dot = 16
+
+persb_highmort_tree_well_alltrees_scatterplot
+```
+
+```{r}
+#all points - pers burned low mort
+persb_lowmort_tree_well_alltrees_scatterplot <- ggplot(persb_lowmort_snowcam_treewell_data_nozeros, aes(x = tree_diam_cm, y = well_diam_cm)) +
+ geom_point(aes(color = tree_id, shape = burn_status), size = 3, alpha = 0.7) +
+  geom_smooth(method = "lm", aes(x = tree_diam_cm, y = well_diam_cm),  color = "grey", se = TRUE) +
+  #facet_wrap(~date) +
+  labs(
+    title = "Plot 3: Pers Burned Low Mort",
+    x = "Tree Diameter (cm)",
+    y = "Well Diameter (cm)"
+  ) +
+  theme_bw() + 
+  scale_color_manual(values = treeid_colors) + 
+  scale_shape_manual(values = c("DB" = 15, "GB" = 16))  # Star = 8, Dot = 16
+
+persb_lowmort_tree_well_alltrees_scatterplot
+```
+
+```{r}
+comb_allzones_scatterplots <- ggarrange(trans_tree_well_alltrees_scatterplot, persb_highmort_tree_well_alltrees_scatterplot, persb_lowmort_tree_well_alltrees_scatterplot, nrow = 2, ncol = 2, common.legend = TRUE, legend = "right")
+
+comb_allzones_scatterplots
+```
+
+Attempting to just do a short timeframe and see if there is a linear correlation then
+
+```{r}
+transb_april_1to5_data <- transb_snowcam_treewell_data_nozeros %>%
+  filter(date >= "2024-04-01" & date <= "2024-04-05")
+  
+trans_tree_well_1to5_scatterplot <- ggplot(transb_april_1to5_data, aes(x = tree_diam_cm, y = well_diam_cm)) +
+ geom_point(aes(color = tree_id), size = 3, alpha = 0.7) +
+  geom_smooth(method = "lm", aes(x = tree_diam_cm, y = well_diam_cm),  color = "grey", se = TRUE) +
+  labs(
+    title = "Trans Burned: April 1-5th, 2024",
+    x = "Tree Diameter (cm)",
+    y = "Well Diameter (cm)"
+  ) +
+  theme_bw()
+
+# Display the plot
+trans_tree_well_1to5_scatterplot
+```
+
+```{r}
+transb_april_6to10_data <- transb_snowcam_treewell_data_nozeros %>%
+  filter(date >= "2024-04-06" & date <= "2024-04-10")
+  
+trans_tree_well_6to10_scatterplot <- ggplot(transb_april_6to10_data, aes(x = tree_diam_cm, y = well_diam_cm)) +
+ geom_point(aes(color = tree_id), size = 3, alpha = 0.7) +
+  geom_smooth(method = "lm", aes(x = tree_diam_cm, y = well_diam_cm),  color = "grey", se = TRUE) +
+  labs(
+    title = "Trans Burned: April 6-10th, 2024",
+    x = "Tree Diameter (cm)",
+    y = "Well Diameter (cm)"
+  ) +
+  theme_bw()
+
+# Display the plot
+trans_tree_well_6to10_scatterplot
+```
+
+```{r}
+transb_april_11to15_data <- transb_snowcam_treewell_data_nozeros %>%
+  filter(date >= "2024-04-11" & date <= "2024-04-15")
+
+# Fit linear model
+lm_model_transb_4_11to15 <- lm(well_diam_cm ~ tree_diam_cm, data = transb_april_11to15_data)
+
+# Extract R-squared value
+r_squared_transb_4_11to15 <- summary(lm_model)$r.squared
+  
+trans_tree_well_11to15_scatterplot <- ggplot(transb_april_11to15_data, aes(x = tree_diam_cm, y = well_diam_cm)) +
+ geom_point(aes(color = tree_id), size = 3, alpha = 0.7) +
+  geom_smooth(method = "lm", aes(x = tree_diam_cm, y = well_diam_cm),  color = "grey", se = TRUE) +
+  labs(
+    title = "Trans Burned: April 11-15th, 2024",
+    x = "Tree Diameter (cm)",
+    y = "Well Diameter (cm)"
+  ) +
+  theme_bw() + 
+  # Annotate with R-squared value
+  annotate("text", x = max(transb_april_11to15_data$tree_diam_cm) * 0.7, 
+           y = max(transb_april_11to15_data$well_diam_cm) * 0.9, 
+           label = paste("R² = ", round(r_squared, 2)), 
+           size = 5, 
+           color = "black")
+
+# Display the plot
+trans_tree_well_11to15_scatterplot
+```
+
+Peak Ablation Period Scatter Plots, facet wrapped by day
+
+```{r}
+#ablation period ONLY scatterplot
+
+transb_peakablation_data <- transb_snowcam_treewell_data_nozeros %>%
+  filter(date >= "2024-04-01" & date <= "2024-04-15")
+
+trans_tree_well_peakablation_scatterplot_bydate <- ggplot(transb_peakablation_data, aes(x = tree_diam_cm, y = well_diam_cm)) +
+ geom_point(aes(color = tree_id, shape = burn_status), size = 3, alpha = 0.7) +
+  geom_smooth(method = "lm", aes(x = tree_diam_cm, y = well_diam_cm),  color = "grey", se = TRUE) +
+  facet_wrap(~date) +
+  labs(
+    title = "Trans Burned Peak Ablation: April 1-15th, 2024",
+    x = "Tree Diameter (cm)",
+    y = "Well Diameter (cm)"
+  ) +
+  theme_bw() +
+  scale_color_manual(values = treeid_colors) +
+  scale_shape_manual(values = c("DB" = 15, "GB" = 16))
+
+trans_tree_well_peakablation_scatterplot_bydate
+```
+
+```{r}
+#persb_highmort_peak ablation ONLY scatterplot
+persb_highmort_peakablation_data <- persb_highmort_snowcam_treewell_data_nozeros %>%
+  filter(date >= "2024-05-01" & date <= "2024-05-15")
+
+persb_highmort_tree_well_peakablation_scatterplot_bydate <- ggplot(persb_highmort_peakablation_data, aes(x = tree_diam_cm, y = well_diam_cm)) +
+ geom_point(aes(color = tree_id, shape = burn_status), size = 3, alpha = 0.7) +
+  geom_smooth(method = "lm", aes(x = tree_diam_cm, y = well_diam_cm),  color = "grey", se = TRUE) +
+  facet_wrap(~date) +
+  labs(
+    title = "Pers Burned High Mort Peak Ablation: May 1-15th, 2024",
+    x = "Tree Diameter (cm)",
+    y = "Well Diameter (cm)"
+  ) +
+  theme_bw() +
+  scale_color_manual(values = treeid_colors) +
+  scale_shape_manual(values = c("DB" = 15, "GB" = 16))
+
+persb_highmort_tree_well_peakablation_scatterplot_bydate
+```
+
+```{r}
+#persb_highmort_peak ablation ONLY scatterplot
+persb_lowmort_peakablation_data <- persb_lowmort_snowcam_treewell_data_nozeros %>%
+  filter(date >= "2024-05-01" & date <= "2024-05-15")
+
+persb_lowmort_tree_well_peakablation_scatterplot_bydate <- ggplot(persb_lowmort_peakablation_data, aes(x = tree_diam_cm, y = well_diam_cm)) +
+ geom_point(aes(color = tree_id, shape = burn_status), size = 3, alpha = 0.7) +
+  geom_smooth(method = "lm", aes(x = tree_diam_cm, y = well_diam_cm),  color = "grey", se = TRUE) +
+  facet_wrap(~date) +
+  labs(
+    title = "Pers Burned Low Mort Peak Ablation: May 1-15th, 2024",
+    x = "Tree Diameter (cm)",
+    y = "Well Diameter (cm)"
+  ) +
+  theme_bw() +
+  scale_color_manual(values = treeid_colors) +
+  scale_shape_manual(values = c("DB" = 15, "GB" = 16))
+
+persb_lowmort_tree_well_peakablation_scatterplot_bydate
+```
+
+\*\* splitting it by day shows that there is a correlation between diameter and well size, but that can only really be seen consistently on a day to day basis between different trees.
+
+\*\* waiting on response from Stephanie before continuing to do this processing or adding it to my thesis!
