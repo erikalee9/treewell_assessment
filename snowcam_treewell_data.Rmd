@@ -440,6 +440,8 @@ combined_treewell_lineplots
 
 #### Scatterplots
 
+##### Tree vs Well Diameters
+
 ```{r}
 #making dataframes that just have one tree ID per zone, so that we can do an R^2 assessment
 transb_snowcam_treewell_data_id1 <- transb_snowcam_treewell_data_nozeros %>%
@@ -655,72 +657,263 @@ trans_tree_well_11to15_scatterplot <- ggplot(transb_april_11to15_data, aes(x = t
 trans_tree_well_11to15_scatterplot
 ```
 
-Peak Ablation Period Scatter Plots, facet wrapped by day
+##### Peak Ablation Period Scatter Plots, facet wrapped by day
 
 ```{r}
 #ablation period ONLY scatterplot
 
 transb_peakablation_data <- transb_snowcam_treewell_data_nozeros %>%
-  filter(date >= "2024-04-01" & date <= "2024-04-15")
+  filter(date >= "2024-04-06" & date <= "2024-04-25")
 
-trans_tree_well_peakablation_scatterplot_bydate <- ggplot(transb_peakablation_data, aes(x = tree_diam_cm, y = well_diam_cm)) +
+trans_tree_well_peakablation_scatterplot_bydate <- ggplot(transb_peakablation_well_snowdepth_data, aes(x = tree_diam_cm, y = well_diam_cm)) +
  geom_point(aes(color = tree_id, shape = burn_status), size = 3, alpha = 0.7) +
   geom_smooth(method = "lm", aes(x = tree_diam_cm, y = well_diam_cm),  color = "grey", se = TRUE) +
   facet_wrap(~date) +
   labs(
-    title = "Trans Burned Peak Ablation: April 1-15th, 2024",
+    title = "b) TSZ",
     x = "Tree Diameter (cm)",
     y = "Well Diameter (cm)"
   ) +
   theme_bw() +
-  scale_color_manual(values = treeid_colors) +
-  scale_shape_manual(values = c("DB" = 15, "GB" = 16))
+  scale_color_manual(values = treeid_colors,
+    name = "Tree ID",               # Set the legend title for color
+    labels = c("DB" = "Dead Burn", "GB" = "Green Burn") # Set custom labels for color
+  ) +
+  scale_shape_manual(values = c("DB" = 15, "GB" = 16),
+    name = "Burn Status",          # Set the legend title for shape
+    labels = c("DB" = "Dead Burn", "GB" = "Green Burn")  # Set custom labels for shape
+  )
 
 trans_tree_well_peakablation_scatterplot_bydate
 ```
 
 ```{r}
-#persb_highmort_peak ablation ONLY scatterplot
-persb_highmort_peakablation_data <- persb_highmort_snowcam_treewell_data_nozeros %>%
-  filter(date >= "2024-05-01" & date <= "2024-05-15")
+#persb combined peak ablation ONLY scatterplot - tree_4 from high mort, all the rest from low mort
+## use this plot!
 
-persb_highmort_tree_well_peakablation_scatterplot_bydate <- ggplot(persb_highmort_peakablation_data, aes(x = tree_diam_cm, y = well_diam_cm)) +
+persb_tree_well_peakablation_scatterplot_bydate <- ggplot(persb_peakablation_well_snowdepth_data, aes(x = tree_diam_cm, y = well_diam_cm)) +
  geom_point(aes(color = tree_id, shape = burn_status), size = 3, alpha = 0.7) +
   geom_smooth(method = "lm", aes(x = tree_diam_cm, y = well_diam_cm),  color = "grey", se = TRUE) +
   facet_wrap(~date) +
   labs(
-    title = "Pers Burned High Mort Peak Ablation: May 1-15th, 2024",
+    title = "a) PSZ ",
     x = "Tree Diameter (cm)",
     y = "Well Diameter (cm)"
   ) +
   theme_bw() +
-  scale_color_manual(values = treeid_colors) +
-  scale_shape_manual(values = c("DB" = 15, "GB" = 16))
+ scale_color_manual(values = treeid_colors,
+    name = "Tree ID",               # Set the legend title for color
+    labels = c("DB" = "Dead Burn", "GB" = "Green Burn") # Set custom labels for color
+  ) +
+  scale_shape_manual(values = c("DB" = 15, "GB" = 16),
+    name = "Burn Status",          # Set the legend title for shape
+    labels = c("DB" = "Dead Burn", "GB" = "Green Burn")  # Set custom labels for shape
+  )
+  #Annotate R² values
+  #geom_text(data = persb_treevswell_r2_values, 
+           # aes(x = Inf, y = Inf, label = paste0("R² = ", round(r2, 2))), 
+          #  hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 4)
 
-persb_highmort_tree_well_peakablation_scatterplot_bydate
+persb_tree_well_peakablation_scatterplot_bydate
 ```
 
 ```{r}
-#persb_highmort_peak ablation ONLY scatterplot
-persb_lowmort_peakablation_data <- persb_lowmort_snowcam_treewell_data_nozeros %>%
-  filter(date >= "2024-05-01" & date <= "2024-05-15")
+#combining the by-date datasets for tree vs well scatterplots
+## USING THIS COMBINED PLOT, OR INDIVIDUAL ONES ABOVE AND COMBINING ON PAGE!
+comb_tree_well_scatterplot <- ggarrange(persb_tree_well_peakablation_scatterplot_bydate, trans_tree_well_peakablation_scatterplot_bydate, nrow = 2, common.legend = TRUE, legend = "right")
 
-persb_lowmort_tree_well_peakablation_scatterplot_bydate <- ggplot(persb_lowmort_peakablation_data, aes(x = tree_diam_cm, y = well_diam_cm)) +
- geom_point(aes(color = tree_id, shape = burn_status), size = 3, alpha = 0.7) +
-  geom_smooth(method = "lm", aes(x = tree_diam_cm, y = well_diam_cm),  color = "grey", se = TRUE) +
-  facet_wrap(~date) +
-  labs(
-    title = "Pers Burned Low Mort Peak Ablation: May 1-15th, 2024",
-    x = "Tree Diameter (cm)",
-    y = "Well Diameter (cm)"
-  ) +
-  theme_bw() +
-  scale_color_manual(values = treeid_colors) +
-  scale_shape_manual(values = c("DB" = 15, "GB" = 16))
-
-persb_lowmort_tree_well_peakablation_scatterplot_bydate
+comb_tree_well_scatterplot
 ```
 
 \*\* splitting it by day shows that there is a correlation between diameter and well size, but that can only really be seen consistently on a day to day basis between different trees.
 
-\*\* waiting on response from Stephanie before continuing to do this processing or adding it to my thesis!
+##### Snow Depth vs Well Development
+
+```{r}
+transb_peakablation_snowdepth_data <- transb_snowcam_depth_data %>%
+  filter(date >= "2024-04-06" & date <= "2024-04-25") %>%
+  select(date, zone, `maximum_depth(cm)`, conditions) %>%
+  rename(max_depth_cm = 'maximum_depth(cm)', condition = conditions) %>%
+  mutate(zone = "TSZ")
+
+#joining ablation well & snowdepth data
+transb_peakablation_well_snowdepth_data <- transb_peakablation_data %>%
+  left_join(transb_peakablation_snowdepth_data)
+```
+
+```{r}
+transb_r2_values <- transb_peakablation_well_snowdepth_data %>%
+  group_by(tree_id) %>%
+  summarise(r2 = summary(lm(well_diam_cm ~ max_depth_cm))$r.squared)
+```
+
+```{r}
+transb_well_snowdepth_peakablation_scatterplot <- ggplot(transb_peakablation_well_snowdepth_data, aes(x = max_depth_cm, y = well_diam_cm)) +
+ geom_point(aes(color = tree_id, shape = burn_status), size = 3, alpha = 0.7) +
+  geom_smooth(method = "lm", aes(x = max_depth_cm, y = well_diam_cm),  color = "grey", se = TRUE) +
+  facet_wrap(~tree_id, nrow = 1) +
+  labs(
+    title = "b) TSZ",
+    x = "Daily Max Snow Depth (cm)",
+    y = "Well Diameter (cm)"
+  ) +
+  theme_bw() +
+ scale_color_manual(values = treeid_colors,
+    name = "Tree ID",               # Set the legend title for color
+    labels = c("DB" = "Dead Burn", "GB" = "Green Burn") # Set custom labels for color
+  ) +
+  scale_shape_manual(values = c("DB" = 15, "GB" = 16),
+    name = "Burn Status",          # Set the legend title for shape
+    labels = c("DB" = "Dead Burn", "GB" = "Green Burn")  # Set custom labels for shape
+  ) +
+  #Annotate R² values
+  geom_text(data = transb_r2_values, 
+            aes(x = Inf, y = Inf, label = paste0("R² = ", round(r2, 2))), 
+            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 4)
+
+transb_well_snowdepth_peakablation_scatterplot
+```
+
+Pers Burned High Mort - don't use these plots
+
+```{r}
+persb_highmort_peakablation_snowdepth_data <- persb_highmort_snowcam_depth_data %>%
+  filter(date >= "2024-05-06" & date <= "2024-05-25") %>%
+  select(date, zone, max_depth_cm, conditions) %>%
+  rename(condition = conditions) %>%
+  mutate(zone = "PSZ")
+
+#joining ablation well & snowdepth data
+persb_highmort_peakablation_well_snowdepth_data <- persb_highmort_peakablation_data %>%
+  left_join(persb_highmort_peakablation_snowdepth_data) %>%
+  filter(tree_id !="tree_2")
+```
+
+```{r}
+#NOT USING
+persb_highmort_r2_values <- persb_highmort_peakablation_well_snowdepth_data %>%
+  group_by(tree_id) %>%
+  summarise(r2 = summary(lm(well_diam_cm ~ max_depth_cm))$r.squared)
+```
+
+```{r}
+#NOT USING
+persb_highmort_well_snowdepth_peakablation_scatterplot <- ggplot(persb_highmort_peakablation_well_snowdepth_data, aes(x = max_depth_cm, y = well_diam_cm)) +
+ geom_point(aes(color = tree_id, shape = burn_status), size = 3, alpha = 0.7) +
+  geom_smooth(method = "lm", aes(x = max_depth_cm, y = well_diam_cm),  color = "grey", se = TRUE) +
+  facet_wrap(~tree_id, nrow = 1) +
+  labs(
+    title = "b)",
+    x = NULL,
+    y = "Well Diameter (cm)"
+  ) +
+  theme_bw() +
+  scale_color_manual(values = treeid_colors) +
+  scale_shape_manual(values = c("DB" = 15, "GB" = 16)) +
+  #Annotate R² values
+  geom_text(data = persb_highmort_r2_values, 
+            aes(x = Inf, y = Inf, label = paste0("R² = ", round(r2, 2))), 
+            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 4)
+
+persb_highmort_well_snowdepth_peakablation_scatterplot
+```
+
+Pers Burned Low Mort - don't use these plots
+
+```{r}
+persb_lowmort_peakablation_snowdepth_data <- persb_lowmort_snowcam_depth_data %>%
+  filter(date >= "2024-05-06" & date <= "2024-05-25") %>%
+  select(date, zone, max_depth_cm, conditions) %>%
+  rename(condition = conditions) %>%
+  mutate(zone = "PSZ")
+
+#joining ablation well & snowdepth data
+persb_lowmort_peakablation_well_snowdepth_data <- persb_lowmort_peakablation_data %>%
+  left_join(persb_highmort_peakablation_snowdepth_data)
+  #filter(tree_id !="tree_2")
+```
+
+```{r}
+#NOT USING
+persb_lowmort_r2_values <- persb_lowmort_peakablation_well_snowdepth_data %>%
+  group_by(tree_id) %>%
+  summarise(r2 = summary(lm(well_diam_cm ~ max_depth_cm))$r.squared)
+```
+
+```{r}
+#NOT USING
+persb_lowmort_well_snowdepth_peakablation_scatterplot <- ggplot(persb_lowmort_peakablation_well_snowdepth_data, aes(x = max_depth_cm, y = well_diam_cm)) +
+  geom_point(aes(color = tree_id, shape = burn_status), size = 3, alpha = 0.7) +
+  geom_smooth(method = "lm", color = "grey", se = TRUE) +
+  facet_wrap(~tree_id, nrow = 1) +
+  labs(
+    title = "c)",
+    x = "Daily Max Snow Depth (cm)",
+    y = "Well Diameter (cm)"
+  ) +
+  theme_bw() +
+  scale_color_manual(values = treeid_colors) +
+  scale_shape_manual(values = c("DB" = 15, "GB" = 16)) +
+  #Annotate R² values
+  geom_text(data = persb_lowmort_r2_values, 
+            aes(x = Inf, y = Inf, label = paste0("R² = ", round(r2, 2))), 
+            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 4)
+
+persb_lowmort_well_snowdepth_peakablation_scatterplot
+```
+
+Combining two PSZ datasets so I have 4 tree_id's including 1 DB data
+
+-   persb_lowmort treeid 1-3, persb_highmort treeid 4
+
+```{r}
+persb_peakablation_well_snowdepth_data_V1 <-
+  persb_highmort_peakablation_well_snowdepth_data %>%
+  filter(tree_id == "tree_4")
+
+persb_peakablation_well_snowdepth_data <- rbind(persb_peakablation_well_snowdepth_data_V1, persb_lowmort_peakablation_well_snowdepth_data) %>%
+  filter(date >= "2024-05-06" & date <= "2024-05-25")
+```
+
+```{r}
+persb_r2_values <- persb_peakablation_well_snowdepth_data %>%
+  group_by(tree_id) %>%
+  summarise(r2 = summary(lm(well_diam_cm ~ max_depth_cm))$r.squared)
+```
+
+```{r}
+persb_well_snowdepth_peakablation_scatterplot <- ggplot(persb_peakablation_well_snowdepth_data, aes(x = max_depth_cm, y = well_diam_cm)) +
+  geom_point(aes(color = tree_id, shape = burn_status), size = 3, alpha = 0.7) +
+  geom_smooth(method = "lm", color = "grey", se = TRUE) +
+  facet_wrap(~tree_id, nrow = 1) +
+  labs(
+    title = "a) PSZ",
+    x = "Daily Max Snow Depth (cm)",
+    y = "Well Diameter (cm)"
+  ) +
+  theme_bw() +
+  scale_color_manual(values = treeid_colors,
+    name = "Tree ID",               # Set the legend title for color
+    labels = c("DB" = "Dead Burn", "GB" = "Green Burn") # Set custom labels for color
+  ) +
+  scale_shape_manual(values = c("DB" = 15, "GB" = 16),
+    name = "Burn Status",          # Set the legend title for shape
+    labels = c("DB" = "Dead Burn", "GB" = "Green Burn")  # Set custom labels for shape
+  ) +
+  #annotated R^2 value
+  geom_text(data = persb_r2_values, 
+            aes(x = Inf, y = Inf, label = paste0("R² = ", round(r2, 2))), 
+            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 4)
+
+persb_well_snowdepth_peakablation_scatterplot
+```
+
+Combined Plots
+
+```{r}
+comb_ablation_well_snowdepth_scatterplot <- ggarrange(persb_well_snowdepth_peakablation_scatterplot, transb_well_snowdepth_peakablation_scatterplot, nrow = 2, ncol = 1, common.legend = TRUE, legend = "right", align = "v")
+
+comb_ablation_well_snowdepth_scatterplot
+```
+
+\*\* use the above plot!
