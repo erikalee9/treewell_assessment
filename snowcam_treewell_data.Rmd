@@ -23,6 +23,11 @@ library(ggpmisc)
 setwd("/Volumes/wcnr-network/Research/Kampf/Private/field_data")
 ```
 
+```{r}
+#clear prior environment
+rm(list = ls())
+```
+
 Loading in Data
 
 ```{r}
@@ -31,10 +36,10 @@ snowcam_105E_transb_tw_data_edited <- read_csv("nsf/treewell_data/snowcam_treewe
 #this has original data with different tree diameters per date
 snowcam_105E_transb_tw_data_full <- read_csv("nsf/treewell_data/snowcam_treewell_data/105E_transb_tree_well_diams.csv")
 
-snowcam_LP_highmort_persb_tw_data_edited <- read_csv("nsf/treewell_data/snowcam_treewell_data/LP_highmort_persb_tree_well_diams_edited.csv")
+snowcam_LP_highmort_persb_tw_data_edited <- read_csv("nsf/treewell_data/snowcam_treewell_data/LP_highmort_persb_tree_well_diams_V2.csv")
 
 #don't have this dataset done yet, so not ready to be loaded
-snowcam_LP_lowmort_persb_tw_data_edited <- read_csv("nsf/treewell_data/snowcam_treewell_data/LP_lowmort_persb_tree_well_diams_edited.csv")
+snowcam_LP_lowmort_persb_tw_data_edited <- read_csv("nsf/treewell_data/snowcam_treewell_data/LP_lowmort_persb_tree_well_diams_V2.csv")
 ```
 
 Data Wrangling
@@ -321,6 +326,143 @@ full_snowcam_treewell_data <- rbind(persb_highmort_snowcam_treewell_data_edited,
 
 ### Data Exploration
 
+```{r}
+transb_wx_15min_r <- read_csv('nsf/trans_burned/trans_burned_wx_15min_r.csv') %>%
+  mutate(datetime = as.POSIXct(datetime, format=("%Y-%m-%d %H:%M:%S")),
+                               datetime = with_tz(datetime, tz = 'MST'))
+
+transub_wx_15min_r <- read_csv('nsf/trans_unburned/trans_unburned_wx_15min_r.csv') %>%
+  mutate(datetime = as.POSIXct(datetime, format=("%Y-%m-%d %H:%M:%S")),
+                               datetime = with_tz(datetime, tz = 'MST'))
+
+persb_wx_hourly_r <- read_csv('nsf/pers_burned/pers_burned_wx_hourly_r.csv') %>%
+  mutate(datetime = as.POSIXct(datetime, format=("%Y-%m-%d %H:%M:%S")),
+                               datetime = with_tz(datetime, tz = 'MST'))
+
+#persub_wx_15min_r <- read_csv('nsf/pers_unburned/pers_unburned_wx_15min_r.csv') %>%
+  #mutate(datetime = as.POSIXct(datetime, format=("%Y-%m-%d %H:%M:%S")),
+                       #        datetime = with_tz(datetime, tz = 'MST'))
+
+#use hourly unburned and burned for PSZ
+persub_wx_hourly_r <- read_csv('nsf/pers_unburned/pers_unburned_wx_hourly_r.csv') %>%
+  mutate(datetime = as.POSIXct(datetime, format=("%Y-%m-%d %H:%M:%S")),
+                               datetime = with_tz(datetime, tz = 'MST'))
+  
+p_b_solar_times <- read_csv("nsf/treetemp_data/p_b_solar_times.csv") %>%
+  mutate(
+    sunrise = as.POSIXct(sunrise, format = "%Y-%m-%d %H:%M:%S", tz = "UTC"), # Assuming data is in UTC
+    sunset = as.POSIXct(sunset, format = "%Y-%m-%d %H:%M:%S", tz = "UTC"),
+    sunrise = with_tz(sunrise, "MST"),  # Convert to MST timezone
+    sunset = with_tz(sunset, "MST")     # Convert to MST timezone
+  )
+```
+
+```{r}
+#filtered weather data to the datetime range that we need and added phase and NR_Avg_calcs
+filtered_transb_wx_15min <- transb_wx_15min_r %>%
+  mutate(day = as.Date.POSIXct(datetime, tz = "MST"),
+    month = as.numeric(format(datetime, "%m")),
+    datetime = with_tz(datetime, tzone = "MST")) %>%
+  filter(datetime >= as.POSIXct("2024-02-02 00:00:00", tz = "MST") & 
+         datetime < as.POSIXct("2024-07-01 00:00:00", tz = "MST")) %>%
+  inner_join(p_b_solar_times, by = "day") %>%
+  #creating a phase column that parses by daily sunrise/sunset times
+  mutate(
+    phase = case_when(
+      datetime >= sunrise & datetime < sunset ~ "day",
+      datetime < sunrise ~ "night",
+      datetime >= sunset ~ "night",
+      TRUE ~ NA_character_)) %>%
+  mutate(zone = "TSZ", burn_status = "burned") %>%
+  filter(!is.nan(SWin_Avg)) %>%
+  #adding in my own calculated NR_Avg column
+  mutate(NR_Avg_new = (SWin_Avg - SWout_Avg) + (LWin_Avg - LWout_Avg)) %>%
+  select(datetime, day, month, phase, zone, burn_status, NR_Avg_new, everything())
+```
+
+```{r}
+filtered_transub_wx_15min <- transub_wx_15min_r %>%
+  mutate(day = as.Date.POSIXct(datetime, tz = "MST"),
+    month = as.numeric(format(datetime, "%m")),
+    datetime = with_tz(datetime, tzone = "MST")) %>%
+  filter(datetime >= as.POSIXct("2024-02-02 00:00:00", tz = "MST") & 
+         datetime < as.POSIXct("2024-07-01 00:00:00", tz = "MST")) %>%
+  inner_join(p_b_solar_times, by = "day") %>%
+  #creating a phase column that parses by daily sunrise/sunset times
+  mutate(
+    phase = case_when(
+      datetime >= sunrise & datetime < sunset ~ "day",
+      datetime < sunrise ~ "night",
+      datetime >= sunset ~ "night",
+      TRUE ~ NA_character_)) %>%
+  mutate(zone = "TSZ", burn_status = "unburned") %>%
+  #adding in my own calculated NR_Avg column
+  mutate(NR_Avg_new = (SWin_Avg - SWout_Avg) + (LWin_Avg - LWout_Avg)) %>%
+  select(datetime, day, month, phase, zone, burn_status, NR_Avg_new, everything())
+```
+
+```{r}
+filtered_persub_wx_hourly <- persub_wx_hourly_r %>%
+  mutate(day = as.Date.POSIXct(datetime, tz = "MST"),
+    month = as.numeric(format(datetime, "%m")),
+    datetime = with_tz(datetime, tzone = "MST")) %>%
+  filter(datetime >= as.POSIXct("2024-02-02 00:00:00", tz = "MST") & 
+         datetime < as.POSIXct("2024-07-01 00:00:00", tz = "MST")) %>%
+  inner_join(p_b_solar_times, by = "day") %>%
+  #creating a phase column that parses by daily sunrise/sunset times
+  mutate(
+    phase = case_when(
+      datetime >= sunrise & datetime < sunset ~ "day",
+      datetime < sunrise ~ "night",
+      datetime >= sunset ~ "night",
+      TRUE ~ NA_character_)) %>%
+  mutate(zone = "PSZ", burn_status = "unburned") %>%
+  #adding in my own calculated NR_Avg column
+  mutate(NR_Avg_new = (SWin_Avg - SWout_Avg) + (LWin_Avg - LWout_Avg)) %>%
+  select(datetime, day, month, phase, zone, burn_status, NR_Avg_new, everything())
+```
+
+```{r}
+filtered_persb_wx_hourly <- persb_wx_hourly_r %>%
+  mutate(day = as.Date.POSIXct(datetime, tz = "MST"),
+    month = as.numeric(format(datetime, "%m")),
+    datetime = with_tz(datetime, tzone = "MST")) %>%
+  filter(datetime >= as.POSIXct("2024-02-02 00:00:00", tz = "MST") & 
+         datetime < as.POSIXct("2024-07-01 00:00:00", tz = "MST")) %>%
+  inner_join(p_b_solar_times, by = "day") %>%
+  #creating a phase column that parses by daily sunrise/sunset times
+  mutate(
+    phase = case_when(
+      datetime >= sunrise & datetime < sunset ~ "day",
+      datetime < sunrise ~ "night",
+      datetime >= sunset ~ "night",
+      TRUE ~ NA_character_)) %>%
+  mutate(zone = "PSZ", burn_status = "burned") %>%
+ #adding in my own calculated NR_Avg column
+  mutate(NR_Avg_new = (SWin_Avg - SWout_Avg) + (LWin_Avg - LWout_Avg)) %>%
+  select(datetime, day, month, phase, zone, burn_status, NR_Avg_new, everything())
+```
+
+```{r}
+mean_dt_persb_wx <- filtered_persb_wx_hourly %>%
+  filter(phase == "day") %>%
+  group_by(day, month, phase, zone, burn_status) %>%
+  summarize(SnowDepth_m = mean(SnowDepth_m), AirTC_Avg = mean(AirTC_Avg), SWin_Avg = mean(SWin_Avg), SWout_Avg = mean(SWout_Avg), LWin_Avg = mean(LWin_Avg), LWout_Avg = mean(LWout_Avg), NR_Avg_wperm2 = mean(NR_Avg_new)) %>%
+  #creating a MJ/day mean value column for NR
+  mutate(NR_Avg_MJperd = (NR_Avg_wperm2 * 86400)/1000000) %>%
+  filter(day >= "2024-04-15" & day <= "2024-05-31")
+```
+
+```{r}
+mean_dt_transb_wx <- filtered_transb_wx_15min %>%
+  filter(phase == "day") %>%
+  group_by(day, month, phase, zone, burn_status) %>%
+  summarize(SnowDepth_m = mean(SnowDepth_m), AirTC_Avg = mean(AirTC_Avg), SWin_Avg = mean(SWin_Avg), SWout_Avg = mean(SWout_Avg), LWin_Avg = mean(LWin_Avg), LWout_Avg = mean(LWout_Avg), NR_Avg_wperm2 = mean(NR_Avg_new)) %>%
+  #creating a MJ/day mean value column for NR
+  mutate(NR_Avg_MJperd = (NR_Avg_wperm2 * 86400)/1000000) %>%
+  filter(day >= "2024-04-01" & day <= "2024-05-09")
+```
+
 #### Line Plots
 
 ```{r}
@@ -348,23 +490,48 @@ transb_snowcam_treewell_data_nozeros <- transb_snowcam_treewell_data_edited %>%
 #plot by date vs treewell
 ##transitional
 transb_tree_well_lineplot <- ggplot() + 
-  geom_line(data = transb_snowcam_treewell_data_nozeros, aes(x = date, y = well_diam_cm, color = tree_id, linetype = burn_status), linewidth = 0.6) +
-  # Bar plot for snow depth with custom legend
+  # Net radiation data
+  geom_col(data = mean_dt_transb_wx, 
+           aes(x = day, y = NR_Avg_MJperd * 10, fill = "net radiation"), # Adjust scaling for clarity
+           position = "stack", alpha = 0.6) +
+   # Bar plot for snow depth with custom legend
   geom_bar(data = transb_snowcam_depth_edited, 
            aes(x = date, y = max_depth_cm, fill = "daily max snow depth (cm)"),
            stat = "identity", color = NA, alpha = 0.3) + 
+  # Combine data and map tree_id to color
+  geom_line(data = transb_snowcam_treewell_data_nozeros, 
+            aes(x = date, y = well_diam_cm, color = tree_id, linetype = burn_status), 
+            linewidth = 0.6) +
   labs(
-    title = "Plot 1: Trans Burned",
+    title = "b) TSZ",
     x = "Date",
     y = "Well Diameter (cm)"
   ) +
   theme_bw() +
-  scale_color_manual(values = treeid_colors) +
-  scale_linetype_manual(values = burnstatus_linetype) +
-  scale_fill_manual(name = "columns", values = c("daily max snow depth (cm)" = "grey32"))
+  scale_color_manual(
+    name = "tree id",
+    values = c("tree_1" = "#1B7837", "tree_2" = "#D95F02", "tree_3" = "#2166AC", "tree_4" = "grey23")
+  ) +
+  scale_linetype_manual(
+    name = "burn status", 
+    values = c("DB" = "dashed", "GB" = "solid"),
+    labels = c("DB" = "DB", "GB" = "GB")
+  ) +
+  scale_fill_manual(
+    name = "Radiation & Snow Depth", 
+    values = c("net radiation" = "orange", "daily max snow depth (cm)" = "grey32")
+  ) +
+  scale_y_continuous(
+    name = "Well Diameter & Snow Depth (cm)", 
+    sec.axis = sec_axis(~ . / 10, name = "Net Radiation (MJ/day)")
+  )
 
 # Display the plot
 transb_tree_well_lineplot
+```
+
+```{r}
+
 ```
 
 ```{r}
@@ -374,6 +541,7 @@ persb_highmort_snowcam_treewell_data_nozeros <- persb_highmort_snowcam_treewell_
 
 ```{r}
 ##persb high mort
+## dont use this plot!
 persb_highmort_tree_well_lineplot <- ggplot(persb_highmort_snowcam_treewell_data_nozeros) +
   geom_line(aes(x = date, y = well_diam_cm, color = tree_id, linetype = burn_status), linewidth = 0.6) +
    # Bar plot for snow depth with custom legend
@@ -400,22 +568,53 @@ persb_lowmort_snowcam_treewell_data_nozeros <- persb_lowmort_snowcam_treewell_da
 ```
 
 ```{r}
+persb_highmort_db_tree <- persb_highmort_snowcam_treewell_data_nozeros %>%
+  filter(burn_status == "DB")
+```
+
+```{r}
+persb_lowmort_snowcam_treewell_V2 <- rbind(persb_lowmort_snowcam_treewell_data_nozeros, persb_highmort_db_tree)
+```
+
+```{r}
 ##persb low mort
-persb_lowmort_tree_well_lineplot <- ggplot(persb_lowmort_snowcam_treewell_data_nozeros) +
-  geom_line(aes(x = date, y = well_diam_cm, color = tree_id, linetype = burn_status), linewidth = 0.6) +
-    # Bar plot for snow depth with custom legend
+#this plot has the lowmort GB data and high mort DB data combined... 
+persb_lowmort_tree_well_lineplot <- ggplot() + 
+  # Net radiation data
+  geom_col(data = mean_dt_persb_wx, 
+           aes(x = day, y = NR_Avg_MJperd * 10, fill = "net radiation"), # Adjust scaling for clarity
+           position = "stack", alpha = 0.6) +
+   # Bar plot for snow depth with custom legend
   geom_bar(data = persb_lowmort_snowcam_depth_edited, 
            aes(x = date, y = max_depth_cm, fill = "daily max snow depth (cm)"),
-           stat = "identity", color = NA, alpha = 0.3) +
+           stat = "identity", color = NA, alpha = 0.3) + 
+  geom_line(data = persb_lowmort_snowcam_treewell_V2, 
+            aes(x = date, y = well_diam_cm, color = tree_id, linetype = burn_status), 
+            linewidth = 0.6) +
   labs(
-    title = "Plot 3: Pers Burned Low Mort",
+    title = "a) PSZ",
     x = "Date",
-    y = "Well Diameter (cm)"
+    y = "Well Diameter & Snow Depth (cm)",
+    fill = "Legend"
   ) +
-  theme_bw() + 
-  scale_color_manual(values = treeid_colors) +
-  scale_linetype_manual(values = burnstatus_linetype) + 
-  scale_fill_manual(name = "columns", values = c("daily max snow depth (cm)" = "grey32"))
+  theme_bw() +
+  scale_color_manual(
+    name = "Tree ID",
+    values = c("tree_1" = "#1B7837", "tree_2" = "#D95F02", "tree_3" = "#2166AC", "tree_4" = "grey23")
+  ) +
+  scale_linetype_manual(
+    name = "Burn Status", 
+    values = c("DB" = "dashed", "GB" = "solid"),
+    labels = c("DB" = "DB", "GB" = "GB")
+  ) +
+  scale_fill_manual(
+    name = "Radiation & Snow Depth", 
+    values = c("net radiation" = "orange", "daily max snow depth (cm)" = "grey32")
+  ) +
+  scale_y_continuous(
+    name = "Well Diameter & Snow Depth (cm)", 
+    sec.axis = sec_axis(~ . / 10, name = "Net Radiation (MJ/day)")
+  )
 
 # Display the plot
 persb_lowmort_tree_well_lineplot
@@ -423,7 +622,7 @@ persb_lowmort_tree_well_lineplot
 
 ```{r}
 #combined dataframes
-combined_treewell_lineplots <- ggarrange(transb_tree_well_lineplot, persb_highmort_tree_well_lineplot, persb_lowmort_tree_well_lineplot, nrow = 2, ncol = 2, common.legend = TRUE, legend = "right")
+combined_treewell_lineplots <- ggarrange(persb_lowmort_tree_well_lineplot, transb_tree_well_lineplot, nrow = 2, ncol = 1, common.legend = TRUE, legend = "right")
 
 combined_treewell_lineplots
 ```
