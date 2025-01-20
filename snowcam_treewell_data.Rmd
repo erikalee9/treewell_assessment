@@ -924,6 +924,25 @@ comb_tree_well_scatterplot <- ggarrange(persb_tree_well_peakablation_scatterplot
 comb_tree_well_scatterplot
 ```
 
+```{r}
+# calculating mean R^2 values for the above daily plots
+trans_r2_values <- transb_peakablation_well_snowdepth_data %>%
+  group_by(date) %>%
+  summarise(
+    r_squared = summary(lm(well_diam_cm ~ tree_diam_cm))$r.squared
+  )
+
+trans_mean_r2 <- mean(trans_r2_values$r_squared, na.rm = TRUE)
+
+pers_r2_values <- persb_peakablation_well_snowdepth_data %>%
+  group_by(date) %>%
+  summarise(
+    r_squared = summary(lm(well_diam_cm ~ tree_diam_cm))$r.squared
+  )
+
+pers_mean_r2 <- mean(pers_r2_values$r_squared, na.rm = TRUE)
+```
+
 \*\* splitting it by day shows that there is a correlation between diameter and well size, but that can only really be seen consistently on a day to day basis between different trees.
 
 ##### Snow Depth vs Well Development
