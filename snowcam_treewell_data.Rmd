@@ -531,10 +531,6 @@ transb_tree_well_lineplot
 ```
 
 ```{r}
-
-```
-
-```{r}
 persb_highmort_snowcam_treewell_data_nozeros <- persb_highmort_snowcam_treewell_data_edited %>%
   filter(well_diam_cm != 0)
 ```
@@ -876,12 +872,13 @@ trans_tree_well_peakablation_scatterplot_bydate <- ggplot(transb_peakablation_we
   theme_bw() +
   scale_color_manual(values = treeid_colors,
     name = "Tree ID",               # Set the legend title for color
-    labels = c("DB" = "Dead Burn", "GB" = "Green Burn") # Set custom labels for color
+    labels = c("DB" = "DB", "GB" = "GB") # Set custom labels for color
   ) +
   scale_shape_manual(values = c("DB" = 15, "GB" = 16),
     name = "Burn Status",          # Set the legend title for shape
-    labels = c("DB" = "Dead Burn", "GB" = "Green Burn")  # Set custom labels for shape
-  )
+    labels = c("DB" = "DB", "GB" = "GB")  # Set custom labels for shape
+  ) + 
+  guides(color = "none", shape = guide_legend(title = "Burn Status"))
 
 trans_tree_well_peakablation_scatterplot_bydate
 ```
@@ -889,29 +886,25 @@ trans_tree_well_peakablation_scatterplot_bydate
 ```{r}
 #persb combined peak ablation ONLY scatterplot - tree_4 from high mort, all the rest from low mort
 ## use this plot!
-
 persb_tree_well_peakablation_scatterplot_bydate <- ggplot(persb_peakablation_well_snowdepth_data, aes(x = tree_diam_cm, y = well_diam_cm)) +
  geom_point(aes(color = tree_id, shape = burn_status), size = 3, alpha = 0.7) +
   geom_smooth(method = "lm", aes(x = tree_diam_cm, y = well_diam_cm),  color = "grey", se = TRUE) +
   facet_wrap(~date) +
   labs(
     title = "a) PSZ ",
-    x = "Tree Diameter (cm)",
+    x = NULL,
     y = "Well Diameter (cm)"
   ) +
   theme_bw() +
  scale_color_manual(values = treeid_colors,
     name = "Tree ID",               # Set the legend title for color
-    labels = c("DB" = "Dead Burn", "GB" = "Green Burn") # Set custom labels for color
+    labels = c("DB" = "DB", "GB" = "GB") # Set custom labels for color
   ) +
   scale_shape_manual(values = c("DB" = 15, "GB" = 16),
     name = "Burn Status",          # Set the legend title for shape
-    labels = c("DB" = "Dead Burn", "GB" = "Green Burn")  # Set custom labels for shape
-  )
-  #Annotate R² values
-  #geom_text(data = persb_treevswell_r2_values, 
-           # aes(x = Inf, y = Inf, label = paste0("R² = ", round(r2, 2))), 
-          #  hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 4)
+    labels = c("DB" = "DB", "GB" = "GB")  # Set custom labels for shape
+  ) + 
+  guides(color = "none", shape = guide_legend(title = "Burn Status"))
 
 persb_tree_well_peakablation_scatterplot_bydate
 ```
@@ -968,26 +961,29 @@ transb_r2_values <- transb_peakablation_well_snowdepth_data %>%
 ```{r}
 transb_well_snowdepth_peakablation_scatterplot <- ggplot(transb_peakablation_well_snowdepth_data, aes(x = max_depth_cm, y = well_diam_cm)) +
  geom_point(aes(color = tree_id, shape = burn_status), size = 3, alpha = 0.7) +
-  geom_smooth(method = "lm", aes(x = max_depth_cm, y = well_diam_cm),  color = "grey", se = TRUE) +
+  geom_smooth(method = "lm", color = "grey", se = TRUE) +
   facet_wrap(~tree_id, nrow = 1) +
   labs(
     title = "b) TSZ",
-    x = "Daily Max Snow Depth (cm)",
-    y = "Well Diameter (cm)"
-  ) +
+    x = "Max Daily Snow Depth (cm)",
+    y = "Well Diameter (cm)") +
   theme_bw() +
- scale_color_manual(values = treeid_colors,
+  scale_color_manual(values = treeid_colors,
     name = "Tree ID",               # Set the legend title for color
-    labels = c("DB" = "Dead Burn", "GB" = "Green Burn") # Set custom labels for color
+    labels = c("DB" = "DB", "GB" = "GB") # Set custom labels for color
   ) +
   scale_shape_manual(values = c("DB" = 15, "GB" = 16),
     name = "Burn Status",          # Set the legend title for shape
-    labels = c("DB" = "Dead Burn", "GB" = "Green Burn")  # Set custom labels for shape
+    labels = c("DB" = "DB", "GB" = "GB")  # Set custom labels for shape
   ) +
-  #Annotate R² values
-  geom_text(data = transb_r2_values, 
+  # Annotated R^2 value
+  geom_text(data = persb_r2_values, 
             aes(x = Inf, y = Inf, label = paste0("R² = ", round(r2, 2))), 
-            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 4)
+            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 4) +
+  scale_y_continuous(limits = c(20, 200)) +
+  scale_x_continuous(limits = c(0, 100)) +
+  # Remove tree_id from the legend
+  guides(color = "none", shape = guide_legend(title = "Burn Status"))
 
 transb_well_snowdepth_peakablation_scatterplot
 ```
@@ -1106,30 +1102,35 @@ persb_well_snowdepth_peakablation_scatterplot <- ggplot(persb_peakablation_well_
   facet_wrap(~tree_id, nrow = 1) +
   labs(
     title = "a) PSZ",
-    x = "Daily Max Snow Depth (cm)",
+    x = NULL,
     y = "Well Diameter (cm)"
   ) +
   theme_bw() +
   scale_color_manual(values = treeid_colors,
     name = "Tree ID",               # Set the legend title for color
-    labels = c("DB" = "Dead Burn", "GB" = "Green Burn") # Set custom labels for color
+    labels = c("DB" = "DB", "GB" = "GB") # Set custom labels for color
   ) +
   scale_shape_manual(values = c("DB" = 15, "GB" = 16),
     name = "Burn Status",          # Set the legend title for shape
-    labels = c("DB" = "Dead Burn", "GB" = "Green Burn")  # Set custom labels for shape
+    labels = c("DB" = "DB", "GB" = "GB")  # Set custom labels for shape
   ) +
-  #annotated R^2 value
+  # Annotated R^2 value
   geom_text(data = persb_r2_values, 
             aes(x = Inf, y = Inf, label = paste0("R² = ", round(r2, 2))), 
-            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 4)
+            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 4) +
+  scale_y_continuous(limits = c(20, 200)) +
+  scale_x_continuous(limits = c(0, 100)) +
+  # Remove tree_id from the legend
+  guides(color = "none", shape = guide_legend(title = "Burn Status"))
 
 persb_well_snowdepth_peakablation_scatterplot
+
 ```
 
 Combined Plots
 
 ```{r}
-comb_ablation_well_snowdepth_scatterplot <- ggarrange(persb_well_snowdepth_peakablation_scatterplot, transb_well_snowdepth_peakablation_scatterplot, nrow = 2, ncol = 1, common.legend = TRUE, legend = "right", align = "v")
+comb_ablation_well_snowdepth_scatterplot <- ggarrange(persb_well_snowdepth_peakablation_scatterplot, transb_well_snowdepth_peakablation_scatterplot, nrow = 2, ncol = 1, common.legend = TRUE, legend = "bottom", align = "v")
 
 comb_ablation_well_snowdepth_scatterplot
 ```
