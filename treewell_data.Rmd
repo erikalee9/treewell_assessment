@@ -407,7 +407,7 @@ treewell_alldates_plot
 
 ```{r}
 treewell_exploration_plot <- ggplot(data = treewell_Tapril_Pmay) +
-  geom_point(aes(x = dbh, y = treewell_diameter, color = as.character(date))) +  # Convert date to character
+  geom_point(aes(x = dbh, y = treewell_diameter, color = as.character(date)), size = 3) +  # Convert date to character
   geom_smooth(aes(x = dbh, y = treewell_diameter), method = 'lm', se = TRUE, color = "grey") +
   labs(
     #title = "Tree Diameter vs Well Size", 
@@ -418,14 +418,16 @@ treewell_exploration_plot <- ggplot(data = treewell_Tapril_Pmay) +
   scale_color_manual(name = "Observation Date", values = c(
     "2024-04-12" = "#2166AC",
     "2024-05-03" = "#D95F02")) +
-  theme(legend.position = "right") +
+  theme(legend.position = "bottom") +
   stat_regline_equation(
     aes(x = dbh, y = treewell_diameter, label = ..rr.label..),
     label.x = 10,  # Adjust x position of the label as needed
     label.y = 150,  # Adjust y position of the label as needed
     size = 4,      # Size of the text
     color = "black"
-  )
+  ) +
+    theme(
+    legend.text = element_text(size = 11))
 
 treewell_exploration_plot
 ```
