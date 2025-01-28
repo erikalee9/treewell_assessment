@@ -977,7 +977,7 @@ transb_well_snowdepth_peakablation_scatterplot <- ggplot(transb_peakablation_wel
     labels = c("DB" = "DB", "GB" = "GB")  # Set custom labels for shape
   ) +
   # Annotated R^2 value
-  geom_text(data = persb_r2_values, 
+  geom_text(data = transb_r2_values, 
             aes(x = Inf, y = Inf, label = paste0("R² = ", round(r2, 2))), 
             hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 4) +
   scale_y_continuous(limits = c(20, 200)) +
