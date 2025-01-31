@@ -863,7 +863,7 @@ transb_peakablation_data <- transb_snowcam_treewell_data_nozeros %>%
 trans_tree_well_peakablation_scatterplot_bydate <- ggplot(transb_peakablation_well_snowdepth_data, aes(x = tree_diam_cm, y = well_diam_cm)) +
  geom_point(aes(color = tree_id, shape = burn_status), size = 3, alpha = 0.7) +
   geom_smooth(method = "lm", aes(x = tree_diam_cm, y = well_diam_cm),  color = "grey", se = TRUE) +
-  facet_wrap(~date) +
+  facet_wrap(~date, ncol = 5) +
   labs(
     title = "b) TSZ",
     x = "Tree Diameter (cm)",
@@ -881,6 +881,16 @@ trans_tree_well_peakablation_scatterplot_bydate <- ggplot(transb_peakablation_we
   guides(color = "none", shape = guide_legend(title = "Burn Status"))
 
 trans_tree_well_peakablation_scatterplot_bydate
+```
+
+```{r}
+ggsave(
+  filename = "trans_tree_well_peakablation_scatterplot_bydate.png",  # File name
+  plot = trans_tree_well_peakablation_scatterplot_bydate,           # The arranged plot object
+  #width = ,                                          # Adjust width as needed
+  #height = 18,                                         # Adjust height as needed
+  dpi = 600                                            # High resolution
+)
 ```
 
 ```{r}
@@ -907,6 +917,16 @@ persb_tree_well_peakablation_scatterplot_bydate <- ggplot(persb_peakablation_wel
   guides(color = "none", shape = guide_legend(title = "Burn Status"))
 
 persb_tree_well_peakablation_scatterplot_bydate
+```
+
+```{r}
+ggsave(
+  filename = "persb_tree_well_peakablation_scatterplot_bydate.png",  # File name
+  plot = persb_tree_well_peakablation_scatterplot_bydate,           # The arranged plot object
+  #width = ,                                          # Adjust width as needed
+  #height = 18,                                         # Adjust height as needed
+  dpi = 600                                            # High resolution
+)
 ```
 
 ```{r}
@@ -1133,6 +1153,16 @@ Combined Plots
 comb_ablation_well_snowdepth_scatterplot <- ggarrange(persb_well_snowdepth_peakablation_scatterplot, transb_well_snowdepth_peakablation_scatterplot, nrow = 2, ncol = 1, common.legend = TRUE, legend = "bottom", align = "v")
 
 comb_ablation_well_snowdepth_scatterplot
+```
+
+```{r}
+ggsave(
+  filename = "comb_ablation_well_snowdepth_scatterplot.png",  # File name
+  plot = comb_ablation_well_snowdepth_scatterplot,           # The arranged plot object
+  #width = ,                                          # Adjust width as needed
+  #height = 18,                                         # Adjust height as needed
+  dpi = 600                                            # High resolution
+)
 ```
 
 \*\* use the above plot!
