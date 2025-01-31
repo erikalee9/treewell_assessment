@@ -407,7 +407,7 @@ treewell_alldates_plot
 
 ```{r}
 treewell_exploration_plot <- ggplot(data = treewell_Tapril_Pmay) +
-  geom_point(aes(x = dbh, y = treewell_diameter, color = as.character(date)), size = 3) +  # Convert date to character
+  geom_point(aes(x = dbh, y = treewell_diameter, color = as.character(date)), size = 2) +  # Convert date to character
   geom_smooth(aes(x = dbh, y = treewell_diameter), method = 'lm', se = TRUE, color = "grey") +
   labs(
     #title = "Tree Diameter vs Well Size", 
@@ -430,6 +430,16 @@ treewell_exploration_plot <- ggplot(data = treewell_Tapril_Pmay) +
     legend.text = element_text(size = 11))
 
 treewell_exploration_plot
+```
+
+```{r}
+ggsave(
+  filename = "tree_vs_well_diam_manuelmeasurements_scatterplot.png",  # File name
+  plot = treewell_exploration_plot,           # The arranged plot object
+  #width = ,                                          # Adjust width as needed
+  #height = 18,                                         # Adjust height as needed
+  dpi = 600                                            # High resolution
+)
 ```
 
 ## Aspect Data Exploration
