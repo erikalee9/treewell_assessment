@@ -407,7 +407,7 @@ treewell_alldates_plot
 
 ```{r}
 treewell_exploration_plot <- ggplot(data = treewell_Tapril_Pmay) +
-  geom_point(aes(x = dbh, y = treewell_diameter, color = as.character(date)), size = 2) +  # Convert date to character
+  geom_point(aes(x = dbh, y = treewell_diameter, color = as.character(date), shape = tree_mort), size = 3) +  # Convert date to character
   geom_smooth(aes(x = dbh, y = treewell_diameter), method = 'lm', se = TRUE, color = "grey") +
   labs(
     #title = "Tree Diameter vs Well Size", 
@@ -417,7 +417,13 @@ treewell_exploration_plot <- ggplot(data = treewell_Tapril_Pmay) +
   facet_wrap(~ zone, strip.position = "top") + 
   scale_color_manual(name = "Observation Date", values = c(
     "2024-04-12" = "#2166AC",
-    "2024-05-03" = "#D95F02")) +
+    "2024-05-03" = "#D95F02"),
+    guide = "none"
+) +
+  scale_shape_manual(values = c("db" = 15, "gb" = 16),
+    name = "Burn Status",          # Set the legend title for shape
+    labels = c("DB" = "db", "GB" = "gb")  # Set custom labels for shape
+  ) +
   theme(legend.position = "bottom") +
   stat_regline_equation(
     aes(x = dbh, y = treewell_diameter, label = ..rr.label..),
@@ -434,7 +440,7 @@ treewell_exploration_plot
 
 ```{r}
 ggsave(
-  filename = "tree_vs_well_diam_manuelmeasurements_scatterplot.png",  # File name
+  filename = "tree_vs_well_diam_manuelmeasurements_scatterplot_V2.png",  # File name
   plot = treewell_exploration_plot,           # The arranged plot object
   #width = ,                                          # Adjust width as needed
   #height = 18,                                         # Adjust height as needed
