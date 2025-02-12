@@ -1166,3 +1166,74 @@ ggsave(
 ```
 
 \*\* use the above plot!
+
+## New Tree Well Analysis
+
+Full season analysis, as of 2025-02-12
+
+```{r}
+transb_treewell_diams_fullseason <- read_csv("nsf/treewell_data/snowcam_treewell_data/transb_treewell_diams_fullseason.csv") %>%
+  filter(date <= "2024-05-08")
+```
+
+```{r}
+#pivoting the well and tree diam columns to be long format
+long_transb_treewell_diams_fullseason <- transb_treewell_diams_fullseason %>%
+  pivot_longer(cols = starts_with("tree_diam_") | starts_with("well_diam_"), 
+               names_to = c(".value", "tree_id"), 
+               names_pattern = "(.*)_(\\d+)_cm") %>%
+  mutate(tree_id = as.integer(tree_id))
+```
+
+```{r}
+filtered_daily_transb_wx_15min_r <- filtered_transb_wx_15min %>%
+  filter(day >= "2024-02-01" & day <= "2024-05-08") %>%
+  filter(phase == "day") %>%
+  group_by(date) %>%
+  summarize(
+    AirTC_Avg = mean(AirTC_Avg, na.rm = TRUE), 
+    WS_ms_Avg = mean(WS_ms_Avg, na.rm = TRUE), 
+    SWin_Avg = mean(SWin_Avg, na.rm = TRUE), 
+    SWout_Avg = mean(SWout_Avg, na.rm = TRUE), 
+    LWin_Avg = mean(LWin_Avg, na.rm = TRUE), 
+    LWout_Avg = mean(LWout_Avg, na.rm = TRUE), 
+    SWnet_Avg = mean(SWnet_Avg, na.rm = TRUE), 
+    LWnet_Avg = mean(LWnet_Avg, na.rm = TRUE), 
+    NR_Avg = mean(NR_Avg, na.rm = TRUE)
+  )
+```
+
+Plotting tree well diams + weather
+
+```{r}
+scaling_factor <- 0.18
+```
+
+```{r}
+transb_fullseason_treewell_diams_plot <- ggplot() +
+  # Tree well diameter lines
+  geom_line(data = long_transb_treewell_diams_fullseason, 
+            aes(x = date, y = well_diam, color = factor(tree_id))) +
+  # Shortwave and longwave incoming radiation as bars
+  geom_col(data = filtered_daily_transb_wx_15min_r, 
+           aes(x = date, y = SWin_Avg * scaling_factor), fill = "orange", alpha = 0.5) + 
+  #geom_col(data = filtered_daily_transb_wx_15min_r, 
+          # aes(x = date, y = LWin_Avg), fill = "blue", alpha = 0.5) + 
+  
+  # Air temperature as a line
+ # geom_line(data = filtered_daily_transb_wx_15min_r, 
+           # aes(x = date, y = AirTC_Avg), color = "black", size = 1) +
+  
+  # Scale for primary and secondary axes
+  scale_y_continuous(
+    name = "Well Diameter (cm)", 
+    sec.axis = sec_axis(~ . / scaling_factor, name = "Radiation (W/m²)")
+  ) +
+  
+  scale_color_manual(values = c("1" = "red", "2" = "blue", "3" = "green", "4" = "purple")) +  
+  labs(x = "Date", color = "Tree ID") +
+  theme_minimal()
+
+
+transb_fullseason_treewell_diams_plot
+```
