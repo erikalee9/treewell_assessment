@@ -1174,6 +1174,21 @@ Full season analysis, as of 2025-02-12
 ```{r}
 transb_treewell_diams_fullseason <- read_csv("nsf/treewell_data/snowcam_treewell_data/transb_treewell_diams_fullseason.csv") %>%
   filter(date <= "2024-05-08")
+
+transb_treewell_diams_fullseason_V2 <- read_csv("nsf/treewell_data/snowcam_treewell_data/transb_treewell_diams_fullseason_V2.csv") %>%
+  filter(date <= "2024-05-08")
+```
+
+```{r}
+persb_high_treewell_diams_fullseason <- read_csv("nsf/treewell_data/snowcam_treewell_data/persb_highmort_treewell_diams_fullseason.csv") %>%
+  filter(date >= "2024-02-02" & date <= "2024-05-23")
+
+persb_high_treewell_diams_fullseason_V2 <- read_csv("nsf/treewell_data/snowcam_treewell_data/persb_highmort_treewell_diams_fullseason_V2.csv")  
+```
+
+```{r}
+persb_low_treewell_diams_fullseason <- read_csv("nsf/treewell_data/snowcam_treewell_data/persb_lowmort_treewell_diams_fullseason.csv") %>%
+  filter(date >= "2024-02-02" & date <= "2024-05-30")
 ```
 
 ```{r}
@@ -1192,14 +1207,90 @@ long_transb_treewell_diams_fullseason <- transb_treewell_diams_fullseason %>%
 ```
 
 ```{r}
+long_transb_treewell_diams_fullseason_V2 <- transb_treewell_diams_fullseason_V2 %>%
+  pivot_longer(cols = starts_with("tree_diam_") | starts_with("well_diam_"), 
+               names_to = c(".value", "tree_id"), 
+               names_pattern = "(.*)_(\\d+)_cm") %>%
+  mutate(tree_id = as.integer(tree_id)) %>%
+  #adding burn status to long dataframe per tree
+  mutate(burn_status = case_when(
+    tree_id %in% c(1, 2, 3) ~ "GB",
+    tree_id == 4 ~ "DB",
+    TRUE ~ NA_character_  # Handles any unexpected values
+  ))
+```
+
+```{r}
+long_persb_high_treewell_diams_fullseason_V2 <- persb_high_treewell_diams_fullseason_V2 %>%
+  pivot_longer(cols = starts_with("tree_diam_") | starts_with("well_diam_"), 
+               names_to = c(".value", "tree_id"), 
+               names_pattern = "(.*)_(\\d+)_cm") %>%
+  mutate(tree_id = as.integer(tree_id)) %>%
+  mutate(date = as.Date(date)) %>%
+  # Adding burn status to long dataframe per tree
+  mutate(burn_status = case_when(
+    tree_id %in% c(1, 2, 3) ~ "GB",
+    tree_id == 4 ~ "DB",
+    TRUE ~ NA_character_  # Handles any unexpected values
+  )) %>%
+  select(date, time_mst, zone, burn_status, maximum_depth_cm, 
+         conditions, treewell_developed, reset, tree_id, tree_diam, well_diam)
+```
+
+```{r}
+long_persb_low_treewell_diams_fullseason <- persb_low_treewell_diams_fullseason %>%
+  pivot_longer(cols = starts_with("tree_diam_") | starts_with("well_diam_"), 
+               names_to = c(".value", "tree_id"), 
+               names_pattern = "(.*)_(\\d+)_cm") %>%
+  mutate(tree_id = as.integer(tree_id)) %>%
+  mutate(burn_status = "GB") %>%
+  select(date, time_mst, zone, burn_status, maximum_depth_cm, conditions, treewell_developed, reset, tree_id, tree_diam, well_diam)
+```
+
+```{r}
+#combining persb_high and persb_low to get ONLY the DB of pers_high and GB of pers_low
+DB_long_persb_high_treewell_diam_fullseason <- long_persb_high_treewell_diams_fullseason %>%
+  filter(burn_status == "DB")
+
+GB_long_persb_low_treewell_diams_fullseason <- 
+  long_persb_low_treewell_diams_fullseason
+```
+
+```{r}
 #dataframe for when treewell's reset
 transb_treewell_reset_dataframe <- long_transb_treewell_diams_fullseason %>%
+  filter(reset == "Yes", tree_id == "1")
+
+transb_treewell_reset_dataframe_V2 <- long_transb_treewell_diams_fullseason_V2 %>%
+  filter(reset == "Yes", tree_id == "1")
+
+persb_treewell_reset_dataframe <- long_persb_high_treewell_diams_fullseason %>%
+  filter(reset == "Yes", tree_id == "1")
+
+persb_treewell_reset_dataframe_V2 <- long_persb_high_treewell_diams_fullseason_V2 %>%
   filter(reset == "Yes", tree_id == "1")
 ```
 
 ```{r}
 filtered_daily_transb_wx_15min_r <- filtered_transb_wx_15min %>%
-  filter(day >= "2024-02-01" & day <= "2024-05-08") %>%
+  filter(day >= "2024-02-01" & day <= "2024-05-23") %>%
+  filter(phase == "day") %>%
+  group_by(date) %>%
+  summarize(
+    AirTC_Avg = mean(AirTC_Avg, na.rm = TRUE), 
+    WS_ms_Avg = mean(WS_ms_Avg, na.rm = TRUE), 
+    SWin_Avg = mean(SWin_Avg, na.rm = TRUE), 
+    SWout_Avg = mean(SWout_Avg, na.rm = TRUE), 
+    LWin_Avg = mean(LWin_Avg, na.rm = TRUE), 
+    LWout_Avg = mean(LWout_Avg, na.rm = TRUE), 
+    SWnet_Avg = mean(SWnet_Avg, na.rm = TRUE), 
+    LWnet_Avg = mean(LWnet_Avg, na.rm = TRUE), 
+    NR_Avg = mean(NR_Avg, na.rm = TRUE))
+```
+
+```{r}
+filtered_daily_persb_wx_hourly_r <- filtered_persb_wx_hourly %>%
+  filter(day >= "2024-02-01" & day <= "2024-05-23") %>%
   filter(phase == "day") %>%
   group_by(date) %>%
   summarize(
@@ -1223,17 +1314,17 @@ scaling_factor_SW <- 0.3
 ```{r}
 transb_fullseason_well_SW_plot <- ggplot() +
   # Vertical lines for when wells were reset
-  geom_vline(data = transb_treewell_reset_dataframe, 
+  geom_vline(data = transb_treewell_reset_dataframe_V2, 
              aes(xintercept = as.numeric(date)), 
              color = "grey23", linetype = "solid", size = 0.5, alpha = 0.7) +
   # Shortwave in 
   geom_col(data = filtered_daily_transb_wx_15min_r, 
-           aes(x = date, y = SWin_Avg * scaling_factor_SW), fill = "orange", alpha = 0.5) + 
-# Shortwave out
+           aes(x = date, y = SWin_Avg * scaling_factor_SW, fill = "SWin"), alpha = 0.5) + 
+  # Shortwave out
   geom_col(data = filtered_daily_transb_wx_15min_r, 
-           aes(x = date, y = SWout_Avg * scaling_factor_SW), fill = "red", alpha = 0.4) + 
-     # Tree well diameter lines
-  geom_line(data = long_transb_treewell_diams_fullseason, 
+           aes(x = date, y = SWout_Avg * scaling_factor_SW, fill = "SWout"), alpha = 0.4) + 
+  # Tree well diameter lines
+  geom_line(data = long_transb_treewell_diams_fullseason_V2, 
             aes(x = date, y = well_diam, color = factor(tree_id), linetype = burn_status), linewidth = 0.8) +  
   # Y-axis scaling
   scale_y_continuous(
@@ -1241,15 +1332,69 @@ transb_fullseason_well_SW_plot <- ggplot() +
     sec.axis = sec_axis(~ . / scaling_factor_SW, name = "Radiation (W/m²)")
   ) +
   # Corrected color and linetype mappings
+  scale_fill_manual(name = "Radiation Component", 
+    values = c("SWin" = "orange", "SWout" = "red")) +  
   scale_color_manual(name = "Tree ID", 
     values = c("1" = "red", "2" = "blue", "3" = "green", "4" = "purple")) +  
   scale_linetype_manual(name = "Burn Status", 
     values = c("GB" = "solid", "DB" = "dashed")) +  
   # Labels and theme
-  labs(x = "Date", color = "Tree ID", linetype = "Burn Status") +
+  labs(title = "b) TSZ", 
+       x = "Date", 
+       fill = "Radiation Component", 
+       color = "Tree ID", 
+       linetype = "Burn Status") +
   theme_bw()
 
 transb_fullseason_well_SW_plot
+```
+
+```{r}
+persb_fullseason_well_SW_plot <- ggplot() +
+  # Shortwave in 
+  geom_col(data = filtered_daily_persb_wx_hourly_r, 
+           aes(x = date, y = SWin_Avg * scaling_factor_SW, fill = "SWin"), alpha = 0.5) + 
+  # Shortwave out
+  geom_col(data = filtered_daily_persb_wx_hourly_r, 
+           aes(x = date, y = SWout_Avg * scaling_factor_SW, fill = "SWout"), alpha = 0.4) + 
+  # Vertical lines for when wells were reset
+  geom_vline(data = persb_treewell_reset_dataframe_V2, 
+             aes(xintercept = as.numeric(date)), 
+             color = "grey23", linetype = "solid", size = 0.5, alpha = 0.7) +
+  # Tree well diameter lines
+  geom_line(data = long_persb_high_treewell_diams_fullseason_V2, 
+            aes(x = date, y = well_diam, color = factor(tree_id), linetype = burn_status), linewidth = 0.8) +
+  # Y-axis scaling
+  scale_y_continuous(
+    name = "Well Diameter (cm)", 
+    sec.axis = sec_axis(~ . / scaling_factor_SW, name = "Radiation (W/m²)")
+  ) +
+  # Corrected color and linetype mappings
+  scale_fill_manual(name = "Radiation Component", 
+    values = c("SWin" = "orange", "SWout" = "red")) +  
+  scale_color_manual(name = "Tree ID", 
+    values = c("1" = "red", "2" = "blue", "3" = "green", "4" = "purple")) +  
+  scale_linetype_manual(name = "Burn Status", 
+    values = c("GB" = "solid", "DB" = "dashed")) +  
+  # Labels and theme
+  labs(title = "a) PSZ", 
+       x = "Date", 
+       fill = "Radiation Component", 
+       color = "Tree ID", 
+       linetype = "Burn Status") +
+  theme_bw()
+
+persb_fullseason_well_SW_plot
+```
+
+```{r}
+ggsave("nsf/persb_fullseason_well_SW_plot.png", 
+       plot = persb_fullseason_well_SW_plot, width = 13, height = 7, dpi = 600)
+```
+
+```{r}
+ggsave("nsf/transb_fullseason_well_SW_plot.png", 
+       plot = transb_fullseason_well_SW_plot, width = 13, height = 7, dpi = 600)
 ```
 
 LWin/out
@@ -1260,17 +1405,17 @@ scaling_factor_LW <- 0.5
 
 ```{r}
 transb_fullseason_well_LW_plot <- ggplot() +
-  # Vertical lines for when wells were reset
+  # Longwave in 
+  geom_col(data = filtered_daily_transb_wx_15min_r, 
+           aes(x = date, y = LWin_Avg * scaling_factor_LW, fill = "LWin"), alpha = 0.5) + 
+  # Longwave out
+  geom_col(data = filtered_daily_transb_wx_15min_r, 
+           aes(x = date, y = LWout_Avg * scaling_factor_LW, fill = "LWout"), alpha = 0.4) + 
+   # Vertical lines for when wells were reset
   geom_vline(data = transb_treewell_reset_dataframe, 
              aes(xintercept = as.numeric(date)), 
              color = "grey23", linetype = "solid", size = 0.5, alpha = 0.7) +
-  # Shortwave in 
-  geom_col(data = filtered_daily_transb_wx_15min_r, 
-           aes(x = date, y = LWin_Avg * scaling_factor_LW), fill = "dodgerblue1", alpha = 0.5) + 
-# Shortwave out
-  geom_col(data = filtered_daily_transb_wx_15min_r, 
-           aes(x = date, y = LWout_Avg * scaling_factor_LW), fill = "dodgerblue3", alpha = 0.4) + 
-     # Tree well diameter lines
+  # Tree well diameter lines
   geom_line(data = long_transb_treewell_diams_fullseason, 
             aes(x = date, y = well_diam, color = factor(tree_id), linetype = burn_status), linewidth = 0.8) +  
   # Y-axis scaling
@@ -1279,15 +1424,69 @@ transb_fullseason_well_LW_plot <- ggplot() +
     sec.axis = sec_axis(~ . / scaling_factor_LW, name = "Radiation (W/m²)")
   ) +
   # Corrected color and linetype mappings
+  scale_fill_manual(name = "Radiation Component", 
+    values = c("LWin" = "dodgerblue1", "LWout" = "dodgerblue3")) +  
   scale_color_manual(name = "Tree ID", 
     values = c("1" = "red", "2" = "blue", "3" = "green", "4" = "purple")) +  
   scale_linetype_manual(name = "Burn Status", 
     values = c("GB" = "solid", "DB" = "dashed")) +  
   # Labels and theme
-  labs(x = "Date", color = "Tree ID", linetype = "Burn Status") +
+  labs(title = "b) TSZ", 
+    x = "Date", 
+       fill = "Radiation Component", 
+       color = "Tree ID", 
+       linetype = "Burn Status") +
   theme_bw()
 
 transb_fullseason_well_LW_plot
+```
+
+```{r}
+persb_fullseason_well_LW_plot <- ggplot() +
+  # Longwave in 
+  geom_col(data = filtered_daily_persb_wx_hourly_r, 
+           aes(x = date, y = LWin_Avg * scaling_factor_LW, fill = "LWin"), alpha = 0.5) + 
+  # Longwave out
+  geom_col(data = filtered_daily_persb_wx_hourly_r, 
+           aes(x = date, y = LWout_Avg * scaling_factor_LW, fill = "LWout"), alpha = 0.4) + 
+   # Vertical lines for when wells were reset
+  geom_vline(data = persb_treewell_reset_dataframe_V2, 
+             aes(xintercept = as.numeric(date)), 
+             color = "grey23", linetype = "solid", size = 0.5, alpha = 0.7) +
+  # Tree well diameter lines
+  geom_line(data = long_persb_high_treewell_diams_fullseason_V2, 
+            aes(x = date, y = well_diam, color = factor(tree_id), linetype = burn_status), linewidth = 0.8) +  
+  # Y-axis scaling
+  scale_y_continuous(
+    name = "Well Diameter (cm)", 
+    sec.axis = sec_axis(~ . / scaling_factor_LW, name = "Radiation (W/m²)")
+  ) +
+  # Corrected color and linetype mappings
+  scale_fill_manual(name = "Radiation Component", 
+    values = c("LWin" = "dodgerblue1", "LWout" = "dodgerblue3")) +  
+  scale_color_manual(name = "Tree ID", 
+    values = c("1" = "red", "2" = "blue", "3" = "green", "4" = "purple")) +  
+  scale_linetype_manual(name = "Burn Status", 
+    values = c("GB" = "solid", "DB" = "dashed")) +  
+  # Labels and theme
+  labs(title = "a) PSZ",
+    x = "Date", 
+       fill = "Radiation Component", 
+       color = "Tree ID", 
+       linetype = "Burn Status") +
+  theme_bw()
+
+persb_fullseason_well_LW_plot
+```
+
+```{r}
+ggsave("nsf/persb_fullseason_well_LW_plot.png", 
+       plot = persb_fullseason_well_LW_plot, width = 13, height = 7, dpi = 600)
+```
+
+```{r}
+ggsave("nsf/transb_fullseason_well_LW_plot.png", 
+       plot = transb_fullseason_well_LW_plot, width = 13, height = 7, dpi = 600)
 ```
 
 NR Avg plot
@@ -1299,10 +1498,10 @@ scaling_factor_NR <- 2
 ```{r}
 transb_fullseason_well_LW_plot <- ggplot() +
   # Tree well diameter lines
-  geom_line(data = long_transb_treewell_diams_fullseason, 
+  geom_line(data = long_transb_treewell_diams_fullseason_V2, 
             aes(x = date, y = well_diam, color = factor(tree_id), linetype = burn_status), linewidth = 0.8) +  
   # Vertical lines for when wells were reset
-  geom_vline(data = transb_treewell_reset_dataframe, 
+  geom_vline(data = transb_treewell_reset_dataframe_V2, 
              aes(xintercept = as.numeric(date)), 
              color = "grey23", linetype = "solid", size = 0.5, alpha = 0.7) +
   # Longwave in 
@@ -1330,47 +1529,103 @@ Air Temp
 \*\* I like this option below the most, so far! But need to mess around with reset notation/visual more
 
 ```{r}
-scaling_factor_airT <- 25
+scaling_factor_airT <- 10
 ```
 
 ```{r}
 transb_fullseason_well_airTCRad_plot <- ggplot() +
-  # Vertical lines for when wells were reset
- # geom_vline(data = transb_treewell_reset_dataframe, 
-            # aes(xintercept = as.numeric(date)), 
-            # color = "grey23", linetype = "solid", size = 0.5, alpha = 0.7) +
-  # NR Avg
+  # NR Avg (Radiation)
   geom_col(data = filtered_daily_transb_wx_15min_r, 
-           aes(x = date, y = NR_Avg), fill = "orange", alpha = 0.5) + 
-    # Air Temp 
+           aes(x = date, y = NR_Avg, fill = "Total Net Radiation"), alpha = 0.5) + 
+  # Vertical lines for when wells were reset
+  geom_vline(data = transb_treewell_reset_dataframe_V2, 
+            aes(xintercept = as.numeric(date)), color = "grey23", linetype = "solid", size = 0.5, alpha = 0.7) +
+  # Air Temp
   geom_line(data = filtered_daily_transb_wx_15min_r, 
-           aes(x = date, y = AirTC_Avg * scaling_factor_airT), color = "dodgerblue3", linewidth = 0.8, alpha = 0.8) + 
+           aes(x = date, y = AirTC_Avg * scaling_factor_airT, color = "Air Temp"), linewidth = 0.8, alpha = 0.8) + 
   # Tree well diameter lines
-  geom_line(data = long_transb_treewell_diams_fullseason, 
+  geom_line(data = long_transb_treewell_diams_fullseason_V2, 
             aes(x = date, y = well_diam, color = factor(tree_id), linetype = burn_status), linewidth = 0.8) +  
-    #points for treewell resets
-  geom_point(data = transb_treewell_reset_dataframe, 
-           aes(x = date, y = well_diam), 
-           shape = 16, color = "black", size = 1.5) + 
   # Y-axis scaling
   scale_y_continuous(
     name = "Well Diameter (cm) & Radiation (W/m²)", 
     sec.axis = sec_axis(~ . / scaling_factor_airT, name = "Air Temp (°C)")
   ) +
-  
   # Corrected color and linetype mappings
-  scale_color_manual(name = "Tree ID", 
-    values = c("1" = "red", "2" = "blue", "3" = "green", "4" = "purple")) +  
+  scale_color_manual(name = "Tree ID & Wx Station Component", 
+    values = c("1" = "red", "2" = "blue", "3" = "green", "4" = "purple", "Air Temp" = "dodgerblue3")) +  
+  scale_fill_manual(name = "Radiation Component", 
+    values = c("Total Net Radiation" = "orange")) +  
   scale_linetype_manual(name = "Burn Status", 
     values = c("GB" = "solid", "DB" = "dashed")) +  
-  scale_shape_manual(
-    name = NULL,
-    values = c("Dates that wells were reset with new snow" = 16)) + 
-
   # Labels and theme
-  labs(x = "Date", color = "Tree ID", linetype = "Burn Status") +
+  labs(title = "b) TSZ", 
+       x = "Date", 
+       color = "Legend", 
+       linetype = "Burn Status") +
   theme_bw()
 
 transb_fullseason_well_airTCRad_plot
+```
 
+```{r}
+persb_fullseason_well_airTCRad_plot <- ggplot() +
+  # NR Avg (Radiation)
+  geom_col(data = filtered_daily_persb_wx_hourly_r, 
+           aes(x = date, y = NR_Avg, fill = "Total Net Radiation"), alpha = 0.5) + 
+  # Vertical lines for when wells were reset
+  geom_vline(data = persb_treewell_reset_dataframe_V2, 
+            aes(xintercept = as.numeric(date)), color = "grey23", linetype = "solid", size = 0.5, alpha = 0.7) +
+  # Air Temp
+  geom_line(data = filtered_daily_persb_wx_hourly_r, 
+           aes(x = date, y = AirTC_Avg * scaling_factor_airT, color = "Air Temp"), linewidth = 0.8, alpha = 0.8) + 
+  # Tree well diameter lines
+  geom_line(data = long_persb_high_treewell_diams_fullseason_V2, 
+            aes(x = date, y = well_diam, color = factor(tree_id), linetype = burn_status), linewidth = 0.8) +  
+  # Y-axis scaling
+  scale_y_continuous(
+    name = "Well Diameter (cm) & Radiation (W/m²)", 
+    sec.axis = sec_axis(~ . / scaling_factor_airT, name = "Air Temp (°C)")
+  ) +
+  # Corrected color and linetype mappings
+  scale_color_manual(name = "Tree ID & Wx Station Component", 
+    values = c("1" = "red", "2" = "blue", "3" = "green", "4" = "purple", "Air Temp" = "dodgerblue3")) +  
+  scale_fill_manual(name = "Radiation Component", 
+    values = c("Total Net Radiation" = "orange")) +  
+  scale_linetype_manual(name = "Burn Status", 
+    values = c("GB" = "solid", "DB" = "dashed")) +  
+  # Labels and theme
+  labs(title = "a) PSZ", 
+       x = "Date", 
+       color = "Legend", 
+       linetype = "Burn Status") +
+  theme_bw()
+
+persb_fullseason_well_airTCRad_plot
+```
+
+Combining Plots
+
+```{r}
+comb_fullseason_well_airTRAD_plot <- ggarrange(persb_fullseason_well_airTCRad_plot, transb_fullseason_well_airTCRad_plot, nrow = 2, ncol = 1, common.legend = TRUE, legend = "bottom")
+
+comb_fullseason_well_airTRAD_plot
+```
+
+```{r}
+ggsave("nsf/comb_fullseason_well_airTRAD_plot.png", 
+       width = 12, height = 10,
+       plot = comb_fullseason_well_airTRAD_plot, dpi = 600)
+```
+
+Individually saving plots
+
+```{r}
+ggsave("nsf/persb_fullseason_well_airTCRad_plot.png", 
+       plot = persb_fullseason_well_airTCRad_plot, width = 13, height = 7, dpi = 600)
+```
+
+```{r}
+ggsave("nsf/transb_fullseason_well_airTCRad_plot.png", 
+       plot = transb_fullseason_well_airTCRad_plot, width = 13, height = 7, dpi = 600)
 ```
