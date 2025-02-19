@@ -2245,7 +2245,7 @@ persb_NetSW_corr_plot_V2 <- ggplot(persb_corr_data_V2, aes(x = SWnet_Avg, y = we
   ) +
   theme_bw() +
   scale_color_manual(values = c("1" = "red", "2" = "blue", "3" = "orange", "4" = "purple")) +  # Fix color mapping
-  geom_text(data = p_NetSW_r2_values_V2, aes(x = Inf, y = Inf, label = R2_label), 
+  geom_text(data = p_NetSW_r2_values_V2, aes(x = Inf, y = Inf, label = R2_label),
             hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 5)
 
 persb_NetSW_corr_plot_V2
