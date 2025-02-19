@@ -1189,6 +1189,9 @@ persb_high_treewell_diams_fullseason_V2 <- read_csv("nsf/treewell_data/snowcam_t
 ```{r}
 persb_low_treewell_diams_fullseason <- read_csv("nsf/treewell_data/snowcam_treewell_data/persb_lowmort_treewell_diams_fullseason.csv") %>%
   filter(date >= "2024-02-02" & date <= "2024-05-30")
+
+persb_low_treewell_diams_fullseason_V2 <- read_csv("nsf/treewell_data/snowcam_treewell_data/persb_lowmort_treewell_diams_fullseason_V2.csv") %>%
+   filter(date >= "2024-02-02" & date <= "2024-05-23")
 ```
 
 ```{r}
@@ -1248,12 +1251,27 @@ long_persb_low_treewell_diams_fullseason <- persb_low_treewell_diams_fullseason 
 ```
 
 ```{r}
+long_persb_low_treewell_diams_fullseason_V2 <- persb_low_treewell_diams_fullseason_V2 %>%
+  pivot_longer(cols = starts_with("tree_diam_") | starts_with("well_diam_"), 
+               names_to = c(".value", "tree_id"), 
+               names_pattern = "(.*)_(\\d+)_cm") %>%
+  mutate(tree_id = as.integer(tree_id)) %>%
+  mutate(burn_status = "GB") %>%
+  select(date, time_mst, zone, burn_status, maximum_depth_cm, conditions, treewell_developed, reset, tree_id, tree_diam, well_diam)
+```
+
+```{r}
 #combining persb_high and persb_low to get ONLY the DB of pers_high and GB of pers_low
-DB_long_persb_high_treewell_diam_fullseason <- long_persb_high_treewell_diams_fullseason %>%
+DB_long_persb_high_treewell_diam_fullseason <- long_persb_high_treewell_diams_fullseason_V2 %>%
   filter(burn_status == "DB")
 
 GB_long_persb_low_treewell_diams_fullseason <- 
   long_persb_low_treewell_diams_fullseason
+```
+
+```{r}
+#combined dataframe with GB from low mort and DB from high mort
+comb_persb_treewell_diam_fullseason <- rbind( long_persb_low_treewell_diams_fullseason_V2, DB_long_persb_high_treewell_diam_fullseason)
 ```
 
 ```{r}
@@ -1362,7 +1380,7 @@ persb_fullseason_well_SW_plot <- ggplot() +
              aes(xintercept = as.numeric(date)), 
              color = "grey23", linetype = "solid", size = 0.5, alpha = 0.7) +
   # Tree well diameter lines
-  geom_line(data = long_persb_high_treewell_diams_fullseason_V2, 
+  geom_line(data = comb_persb_treewell_diam_fullseason, 
             aes(x = date, y = well_diam, color = factor(tree_id), linetype = burn_status), linewidth = 0.8) +
   # Y-axis scaling
   scale_y_continuous(
@@ -1454,7 +1472,7 @@ persb_fullseason_well_LW_plot <- ggplot() +
              aes(xintercept = as.numeric(date)), 
              color = "grey23", linetype = "solid", size = 0.5, alpha = 0.7) +
   # Tree well diameter lines
-  geom_line(data = long_persb_high_treewell_diams_fullseason_V2, 
+  geom_line(data = comb_persb_treewell_diam_fullseason, 
             aes(x = date, y = well_diam, color = factor(tree_id), linetype = burn_status), linewidth = 0.8) +  
   # Y-axis scaling
   scale_y_continuous(
@@ -1580,7 +1598,7 @@ persb_fullseason_well_airTCRad_plot <- ggplot() +
   geom_line(data = filtered_daily_persb_wx_hourly_r, 
            aes(x = date, y = AirTC_Avg * scaling_factor_airT, color = "Air Temp"), linewidth = 0.8, alpha = 0.8) + 
   # Tree well diameter lines
-  geom_line(data = long_persb_high_treewell_diams_fullseason_V2, 
+  geom_line(data = comb_persb_treewell_diam_fullseason, 
             aes(x = date, y = well_diam, color = factor(tree_id), linetype = burn_status), linewidth = 0.8) +  
   # Y-axis scaling
   scale_y_continuous(
