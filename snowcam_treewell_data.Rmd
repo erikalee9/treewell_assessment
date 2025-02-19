@@ -1647,3 +1647,606 @@ ggsave("nsf/persb_fullseason_well_airTCRad_plot.png",
 ggsave("nsf/transb_fullseason_well_airTCRad_plot.png", 
        plot = transb_fullseason_well_airTCRad_plot, width = 13, height = 7, dpi = 600)
 ```
+
+Snow Depth
+
+```{r}
+sd_persb <- comb_persb_treewell_diam_fullseason %>%
+  filter(tree_id == "1")
+```
+
+```{r}
+scaling_factor_sd <- 1
+```
+
+```{r}
+persb_fullseason_well_sd_plot <- ggplot() +
+  # Snow depth on secondary y-axis
+  geom_col(data = sd_persb, 
+           aes(x = date, y = maximum_depth_cm * scaling_factor_sd, fill = "Snow Depth"), alpha = 0.5) + 
+  # Vertical lines for when wells were reset
+  geom_vline(data = persb_treewell_reset_dataframe_V2, 
+             aes(xintercept = as.numeric(date)), color = "grey23", 
+             linetype = "solid", size = 0.5, alpha = 0.7) +
+  # Tree well diameter lines (Primary y-axis)
+  geom_line(data = comb_persb_treewell_diam_fullseason, 
+            aes(x = date, y = well_diam, color = factor(tree_id), linetype = burn_status), 
+            linewidth = 0.8) +  
+  # Y-axis scaling
+  scale_y_continuous(
+    name = "Well Diameter (cm)", 
+    sec.axis = sec_axis(~ . / scaling_factor_sd, name = "Snow Depth (cm)")
+  ) +
+  # Corrected color and linetype mappings
+  scale_color_manual(name = "Tree ID", 
+    values = c("1" = "red", "2" = "blue", "3" = "green", "4" = "purple")) +  
+  scale_fill_manual(name = NULL, values = c("Snow Depth" = "dodgerblue3")) +  
+  scale_linetype_manual(name = "Burn Status", 
+    values = c("GB" = "solid", "DB" = "dashed")) +  
+  # Labels and theme
+  labs(title = "a) PSZ", 
+       x = "Date", 
+       color = "Tree ID", 
+       linetype = "Burn Status", 
+       fill = "Snow Depth") +
+  theme_bw()
+
+persb_fullseason_well_sd_plot
+```
+
+```{r}
+sd_transb <- long_transb_treewell_diams_fullseason_V2 %>%
+  filter(tree_id == "1")
+```
+
+```{r}
+transb_fullseason_well_sd_plot <- ggplot() +
+  # Snow depth on secondary y-axis
+  geom_col(data = sd_transb, 
+           aes(x = date, y = maximum_depth_cm * scaling_factor_sd, fill = "Snow Depth"), alpha = 0.5) + 
+  # Vertical lines for when wells were reset
+  geom_vline(data = transb_treewell_reset_dataframe_V2, 
+             aes(xintercept = as.numeric(date)), color = "grey23", 
+             linetype = "solid", size = 0.5, alpha = 0.7) +
+  # Tree well diameter lines (Primary y-axis)
+  geom_line(data = long_transb_treewell_diams_fullseason_V2, 
+            aes(x = date, y = well_diam, color = factor(tree_id), linetype = burn_status), 
+            linewidth = 0.8) +  
+  # Y-axis scaling
+  scale_y_continuous(
+    name = "Well Diameter (cm)", 
+    sec.axis = sec_axis(~ . / scaling_factor_sd, name = "Snow Depth (cm)")
+  ) +
+  # Corrected color and linetype mappings
+  scale_color_manual(name = "Tree ID", 
+    values = c("1" = "red", "2" = "blue", "3" = "green", "4" = "purple")) +  
+  scale_fill_manual(name = NULL, 
+                    values = c("Snow Depth" = "dodgerblue3")) +
+  scale_linetype_manual(name = "Burn Status", 
+    values = c("GB" = "solid", "DB" = "dashed")) +  
+  # Labels and theme
+  labs(title = "b) TSZ", 
+       x = "Date", 
+       color = "Legend", 
+       linetype = "Burn Status") +
+  theme_bw()
+
+transb_fullseason_well_sd_plot
+```
+
+```{r}
+ggsave("nsf/persb_fullseason_well_sd_plot.png", 
+       plot = persb_fullseason_well_sd_plot, width = 13, height = 7, dpi = 600)
+```
+
+```{r}
+ggsave("nsf/transb_fullseason_well_sd_plot.png", 
+       plot = transb_fullseason_well_sd_plot, width = 13, height = 7, dpi = 600)
+```
+
+## Well & Weather Correlation
+
+### Data Wrangling
+
+```{r}
+#pulling in tree temp data and creating a mean daily average
+
+p_b_solar_times <- read_csv("nsf/treetemp_data/p_b_solar_times.csv") %>%
+  mutate(
+    sunrise = as.POSIXct(sunrise, format = "%Y-%m-%d %H:%M:%S", tz = "UTC"),
+    sunrise = with_tz(sunrise, tz = "MST")
+  ) %>%
+   mutate(
+    sunset = as.POSIXct(sunset, format = "%Y-%m-%d %H:%M:%S", tz = "UTC"),
+    sunset = with_tz(sunset, tz = "MST")
+  )
+
+full_15min_ns <- read_csv("nsf/treetemp_data/full_15min_ns.csv") %>%
+  mutate(datetime = as.POSIXct(datetime, format=("%Y-%m-%d %H:%M:%S")),
+                               datetime = with_tz(datetime, tz = 'MST')) %>%
+  mutate(day = as.Date(day, format = ("%Y-%m-%d"))) %>%
+  inner_join(p_b_solar_times, by = "day") %>%
+  #creating a phase column that parses by daily sunrise/sunset times
+  mutate(
+    phase = case_when(
+      datetime >= sunrise & datetime < sunset ~ "day",
+      datetime < sunrise ~ "night",
+      datetime >= sunset ~ "night",
+      TRUE ~ NA_character_)) %>%
+  select(datetime, day, month, phase, zone, snow_phase, burn_status, north_temp, south_temp, solarNoon, sunrise, sunset, dawn, dusk)
+```
+
+```{r}
+persb_daily_treetemp_data <- full_15min_ns %>%
+  filter(zone == "PSZ", phase == "day") %>%
+  rename(date = "day") %>%
+  group_by(date) %>%
+  summarize(mean_tree_temp = mean((north_temp + south_temp)/2))
+```
+
+```{r}
+transb_daily_treetemp_data <- full_15min_ns %>%
+  filter(zone == "TSZ", phase == "day") %>%
+  rename(date = "day") %>%
+  group_by(date) %>%
+  summarize(mean_tree_temp = mean((north_temp + south_temp)/2))
+```
+
+### Correlation Tests
+
+PSZ
+
+```{r}
+persb_corr_data <- comb_persb_treewell_diam_fullseason %>%
+  # Select relevant columns
+  #had to remove the burn_status and tree_diam columns because those values are different from tree to tree!
+  select(date, tree_id, zone, treewell_developed, reset, well_diam, maximum_depth_cm) %>%
+  # Pivot wider so each tree_id has its own well_diam column
+  pivot_wider(names_from = tree_id, values_from = well_diam, names_prefix = "well_diam_tree") %>%
+  # Join with weather data
+  inner_join(filtered_daily_persb_wx_hourly_r, by = "date") %>%
+  inner_join(persb_daily_treetemp_data, by = "date") %>%
+  # Compute differenced well diameter for each tree where max_depth increases
+  mutate(
+    well_diam_diff_tree1 = if_else(maximum_depth_cm >= lag(maximum_depth_cm), well_diam_tree1 - lag(well_diam_tree1), NA_real_),
+    well_diam_diff_tree2 = if_else(maximum_depth_cm >= lag(maximum_depth_cm), well_diam_tree2 - lag(well_diam_tree2), NA_real_),
+    well_diam_diff_tree3 = if_else(maximum_depth_cm >= lag(maximum_depth_cm), well_diam_tree3 - lag(well_diam_tree3), NA_real_),
+    well_diam_diff_tree4 = if_else(maximum_depth_cm >= lag(maximum_depth_cm), well_diam_tree4 - lag(well_diam_tree4), NA_real_)
+  ) %>%
+  # Remove rows where all well_diam_diff values are NA
+  filter(!if_all(starts_with("well_diam_diff"), is.na))
+```
+
+```{r}
+persb_corr_long <- persb_corr_data %>%
+  pivot_longer(cols = starts_with("well_diam_diff_tree"), 
+               names_to = "tree_id", 
+               values_to = "well_diam_diff") %>%
+  mutate(tree_id = str_replace(tree_id, "well_diam_diff_tree", "")) %>%
+  select(-c(well_diam_tree1, well_diam_tree2, well_diam_tree3, well_diam_tree4))
+```
+
+```{r}
+# AirTC Correlation
+# Compute R^2 for each tree_id
+p_AirTC_r2_values <- persb_corr_long %>%
+  drop_na(well_diam_diff, AirTC_Avg) %>%  # Remove rows where either column is NA
+  group_by(tree_id) %>%
+  summarize(R2 = cor(well_diam_diff, AirTC_Avg, use = "complete.obs")^2, .groups = "drop") %>%
+  mutate(R2_label = paste0("R² = ", round(R2, 3))) # Create label for plotting
+
+# Scatterplot with facet_wrap
+persb_AirTC_corr_plot <- ggplot(persb_corr_long, aes(x = AirTC_Avg, y = well_diam_diff, color = tree_id)) +
+  geom_point() +  # Scatter points
+  geom_smooth(method = "lm", color = "black", se = FALSE) +  # Trendline
+  facet_wrap(~ tree_id) +  # Separate by tree_id
+  labs(
+    title = "PSZ, Well Diameter Difference vs. Air Temperature",
+    y = "Air Temperature (°C)",
+    x = "Well Diameter Difference (cm)",
+    color = "Tree ID"
+  ) +
+  theme_bw() +
+  geom_text(data = p_AirTC_r2_values, aes(x = Inf, y = Inf, label = R2_label), 
+            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 5)
+
+persb_AirTC_corr_plot
+```
+
+```{r}
+# Tree Temp Correlation
+# Compute R^2 for each tree_id
+p_TreeTemp_r2_values <- persb_corr_long %>%
+  drop_na(well_diam_diff, mean_tree_temp) %>%  # Remove rows where either column is NA
+  group_by(tree_id) %>%
+  summarize(R2 = cor(well_diam_diff, mean_tree_temp, use = "complete.obs")^2, .groups = "drop") %>%
+  mutate(R2_label = paste0("R² = ", round(R2, 3))) # Create label for plotting
+
+# Scatterplot with facet_wrap
+persb_TreeTemp_corr_plot <- ggplot(persb_corr_long, aes(x = mean_tree_temp, y = well_diam_diff, color = tree_id)) +
+  geom_point() +  # Scatter points
+  geom_smooth(method = "lm", color = "black", se = FALSE) +  # Trendline
+  facet_wrap(~ tree_id) +  # Separate by tree_id
+  labs(
+    title = "PSZ, Well Diameter Difference vs. Tree Temperature",
+    x = "Tree Temperature (°C)",
+    y = "Well Diameter Difference (cm)",
+    color = "Tree ID"
+  ) +
+  theme_bw() +
+  geom_text(data = p_TreeTemp_r2_values, aes(x = Inf, y = Inf, label = R2_label), 
+            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 5)
+
+persb_TreeTemp_corr_plot
+```
+
+```{r}
+# SWin Correlation
+# Compute R^2 for each tree_id
+p_SWin_r2_values <- persb_corr_long %>%
+  drop_na(well_diam_diff, SWin_Avg) %>%  # Remove rows where either column is NA
+  group_by(tree_id) %>%
+  summarize(R2 = cor(well_diam_diff, SWin_Avg, use = "complete.obs")^2, .groups = "drop") %>%
+  mutate(R2_label = paste0("R² = ", round(R2, 3)))  # Create label for plotting
+
+# Scatterplot with facet_wrap
+persb_SWin_corr_plot <- ggplot(persb_corr_long, aes(x = SWin_Avg, y = well_diam_diff, color = tree_id)) +
+  geom_point() +  # Scatter points
+  geom_smooth(method = "lm", color = "black", se = FALSE) +  # Trendline
+  facet_wrap(~ tree_id) +  # Separate by tree_id
+  labs(
+    title = "PSZ, Well Diameter Difference vs. SWin",
+    x = "Daily Incoming SW (W/m^2))",
+    y = "Well Diameter Difference (cm)",
+    color = "Tree ID"
+  ) +
+  theme_bw() +
+  geom_text(data = p_SWin_r2_values, aes(x = Inf, y = Inf, label = R2_label), 
+            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 5)
+
+persb_SWin_corr_plot
+```
+
+```{r}
+# NetSW Correlation
+# Compute R^2 for each tree_id
+p_NetSW_r2_values <- persb_corr_long %>%
+  drop_na(well_diam_diff, SWnet_Avg) %>%  # Remove rows where either column is NA
+  group_by(tree_id) %>%
+  summarize(R2 = cor(well_diam_diff, SWnet_Avg, use = "complete.obs")^2, .groups = "drop") %>%
+  mutate(R2_label = paste0("R² = ", round(R2, 3)))  # Create label for plotting
+
+# Scatterplot with facet_wrap
+persb_NetSW_corr_plot <- ggplot(persb_corr_long, aes(x = SWnet_Avg, y = well_diam_diff, color = tree_id)) +
+  geom_point() +  # Scatter points
+  geom_smooth(method = "lm", color = "black", se = FALSE) +  # Trendline
+  facet_wrap(~ tree_id) +  # Separate by tree_id
+  labs(
+    title = "PSZ, Well Diameter Difference vs. Net SW",
+    x = "Daily Net SW (W/m^2))",
+    y = "Well Diameter Difference (cm)",
+    color = "Tree ID"
+  ) +
+  theme_bw() +
+  geom_text(data = p_NetSW_r2_values, aes(x = Inf, y = Inf, label = R2_label), 
+            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 5)
+
+persb_NetSW_corr_plot
+```
+
+```{r}
+# NetLW Correlation
+# Compute R^2 for each tree_id
+p_NetLW_r2_values <- persb_corr_long %>%
+  drop_na(well_diam_diff, LWnet_Avg) %>%  # Remove rows where either column is NA
+  group_by(tree_id) %>%
+  summarize(R2 = cor(well_diam_diff, LWnet_Avg, use = "complete.obs")^2, .groups = "drop") %>%
+  mutate(R2_label = paste0("R² = ", round(R2, 3)))  # Create label for plotting
+
+# Scatterplot with facet_wrap
+persb_NetLW_corr_plot <- ggplot(persb_corr_long, aes(x = LWnet_Avg, y = well_diam_diff, color = tree_id)) +
+  geom_point() +  # Scatter points
+  geom_smooth(method = "lm", color = "black", se = FALSE) +  # Trendline
+  facet_wrap(~ tree_id) +  # Separate by tree_id
+  labs(
+    title = "PSZ, Well Diameter Difference vs. Air Temperature",
+    x = "Daily Net LW (W/m^2))",
+    y = "Well Diameter Difference (cm)",
+    color = "Tree ID"
+  ) +
+  theme_bw() +
+  geom_text(data = p_NetLW_r2_values, aes(x = Inf, y = Inf, label = R2_label), 
+            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 5)
+
+persb_NetLW_corr_plot
+```
+
+```{r}
+# NetLW Correlation
+# Compute R^2 for each tree_id
+p_SD_r2_values <- persb_corr_long %>%
+  drop_na(well_diam_diff, maximum_depth_cm) %>%  # Remove rows where either column is NA
+  group_by(tree_id) %>%
+  summarize(R2 = cor(well_diam_diff, maximum_depth_cm, use = "complete.obs")^2, .groups = "drop") %>%
+  mutate(R2_label = paste0("R² = ", round(R2, 3)))  # Create label for plotting
+
+# Scatterplot with facet_wrap
+persb_SD_corr_plot <- ggplot(persb_corr_long, aes(y = maximum_depth_cm, x = well_diam_diff, color = tree_id)) +
+  geom_point() +  # Scatter points
+  geom_smooth(method = "lm", color = "black", se = FALSE) +  # Trendline
+  facet_wrap(~ tree_id) +  # Separate by tree_id
+  labs(
+    title = "PSZ, Well Diameter Difference vs. Snow Depth",
+    y = "Daily Max Snow Depth (cm)",
+    x = "Well Diameter Difference (cm)",
+    color = "Tree ID"
+  ) +
+  theme_bw() +
+  geom_text(data = p_SD_r2_values, aes(x = Inf, y = Inf, label = R2_label), 
+            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 5)
+
+persb_SD_corr_plot
+```
+
+TSZ
+
+```{r}
+transb_corr_data <- long_transb_treewell_diams_fullseason_V2 %>%
+  # Select relevant columns
+  #had to remove the burn_status and tree_diam columns because those values are different from tree to tree!
+  select(date, tree_id, zone, treewell_developed, reset, well_diam, maximum_depth_cm) %>%
+  # Pivot wider so each tree_id has its own well_diam column
+  pivot_wider(names_from = tree_id, values_from = well_diam, names_prefix = "well_diam_tree") %>%
+  # Join with weather data
+  inner_join(filtered_daily_transb_wx_15min_r, by = "date") %>%
+  inner_join(transb_daily_treetemp_data, by = "date") %>%
+  # Compute differenced well diameter for each tree where max_depth increases
+  mutate(
+    well_diam_diff_tree1 = if_else(maximum_depth_cm >= lag(maximum_depth_cm), well_diam_tree1 - lag(well_diam_tree1), NA_real_),
+    well_diam_diff_tree2 = if_else(maximum_depth_cm >= lag(maximum_depth_cm), well_diam_tree2 - lag(well_diam_tree2), NA_real_),
+    well_diam_diff_tree3 = if_else(maximum_depth_cm >= lag(maximum_depth_cm), well_diam_tree3 - lag(well_diam_tree3), NA_real_),
+    well_diam_diff_tree4 = if_else(maximum_depth_cm >= lag(maximum_depth_cm), well_diam_tree4 - lag(well_diam_tree4), NA_real_)
+  ) %>%
+  # Remove rows where all well_diam_diff values are NA
+  filter(!if_all(starts_with("well_diam_diff"), is.na))
+```
+
+```{r}
+transb_corr_long <- transb_corr_data %>%
+  pivot_longer(cols = starts_with("well_diam_diff_tree"), 
+               names_to = "tree_id", 
+               values_to = "well_diam_diff") %>%
+  mutate(tree_id = str_replace(tree_id, "well_diam_diff_tree", "")) %>%
+  select(-c(well_diam_tree1, well_diam_tree2, well_diam_tree3, well_diam_tree4))
+```
+
+```{r}
+# AirTC Correlation
+# Compute R^2 for each tree_id
+t_AirTC_r2_values <- transb_corr_long %>%
+  drop_na(well_diam_diff, AirTC_Avg) %>%  # Remove rows where either column is NA
+  group_by(tree_id) %>%
+  summarize(R2 = cor(well_diam_diff, AirTC_Avg, use = "complete.obs")^2, .groups = "drop") %>%
+  mutate(R2_label = paste0("R² = ", round(R2, 3))) # Create label for plotting
+
+# Scatterplot with facet_wrap
+transb_AirTC_corr_plot <- ggplot(transb_corr_long, aes(x = AirTC_Avg, y = well_diam_diff, color = tree_id)) +
+  geom_point() +  # Scatter points
+  geom_smooth(method = "lm", color = "black", se = FALSE) +  # Trendline
+  facet_wrap(~ tree_id) +  # Separate by tree_id
+  labs(
+    title = "TSZ, Well Diameter Difference vs. Air Temperature",
+    y = "Air Temperature (°C)",
+    x = "Well Diameter Difference (cm)",
+    color = "Tree ID"
+  ) +
+  theme_bw() +
+  geom_text(data = t_AirTC_r2_values, aes(x = Inf, y = Inf, label = R2_label), 
+            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 5)
+
+transb_AirTC_corr_plot
+```
+
+```{r}
+# Tree Temp Correlation
+# Compute R^2 for each tree_id
+t_TreeTemp_r2_values <-transb_corr_long %>%
+  drop_na(well_diam_diff, mean_tree_temp) %>%  # Remove rows where either column is NA
+  group_by(tree_id) %>%
+  summarize(R2 = cor(well_diam_diff, mean_tree_temp, use = "complete.obs")^2, .groups = "drop") %>%
+  mutate(R2_label = paste0("R² = ", round(R2, 3))) # Create label for plotting
+
+# Scatterplot with facet_wrap
+transb_TreeTemp_corr_plot <- ggplot(transb_corr_long, aes(x = mean_tree_temp, y = well_diam_diff, color = tree_id)) +
+  geom_point() +  # Scatter points
+  geom_smooth(method = "lm", color = "black", se = FALSE) +  # Trendline
+  facet_wrap(~ tree_id) +  # Separate by tree_id
+  labs(
+    title = "TSZ, Well Diameter Difference vs. Tree Temperature",
+    x = "Tree Temperature (°C)",
+    y = "Well Diameter Difference (cm)",
+    color = "Tree ID"
+  ) +
+  theme_bw() +
+  geom_text(data = t_TreeTemp_r2_values, aes(x = Inf, y = Inf, label = R2_label), 
+            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 5)
+
+transb_TreeTemp_corr_plot
+```
+
+```{r}
+# SWin Correlation
+# Compute R^2 for each tree_id
+t_SWin_r2_values <- transb_corr_long %>%
+  drop_na(well_diam_diff, SWin_Avg) %>%  # Remove rows where either column is NA
+  group_by(tree_id) %>%
+  summarize(R2 = cor(well_diam_diff, SWin_Avg, use = "complete.obs")^2, .groups = "drop") %>%
+  mutate(R2_label = paste0("R² = ", round(R2, 3)))  # Create label for plotting
+
+# Scatterplot with facet_wrap
+transb_SWin_corr_plot <- ggplot(transb_corr_long, aes(x = SWin_Avg, y = well_diam_diff, color = tree_id)) +
+  geom_point() +  # Scatter points
+  geom_smooth(method = "lm", color = "black", se = FALSE) +  # Trendline
+  facet_wrap(~ tree_id) +  # Separate by tree_id
+  labs(
+    title = "TSZ, Well Diameter Difference vs. SWin",
+    x = "Daily Incoming SW (W/m^2))",
+    y = "Well Diameter Difference (cm)",
+    color = "Tree ID"
+  ) +
+  theme_bw() +
+  geom_text(data = t_SWin_r2_values, aes(x = Inf, y = Inf, label = R2_label), 
+            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 5)
+
+transb_SWin_corr_plot
+```
+
+```{r}
+# Calculate overall R^2 for all points - NOT facet wrapping R^2 of plot!
+t_single_SWin_r2_value <- transb_corr_long %>%
+  drop_na(well_diam_diff, SWin_Avg) %>%  # Remove NA values
+  summarize(R2 = cor(well_diam_diff, SWin_Avg, use = "complete.obs")^2) %>%
+  mutate(R2_label = paste0("R² = ", round(R2, 3)))  # Create label for plotting
+
+# Scatterplot colored by tree_id (without facet_wrap)
+transb_single_SWin_corr_plot <- ggplot(transb_corr_long, aes(x = SWin_Avg, y = well_diam_diff, color = tree_id)) +
+  geom_point(alpha = 0.8) +  # Scatter points
+  geom_smooth(method = "lm", color = "black", se = FALSE) +  # Single trendline for all data
+  labs(
+    title = "TSZ, Well Diameter Difference vs. SWin",
+    x = "Daily Incoming SW (W/m^2)",
+    y = "Well Diameter Difference (cm)",
+    color = "Tree ID"
+  ) +
+  theme_bw() +
+  # Add R² label at the top-right corner
+  geom_text(data = t_single_SWin_r2_value, aes(x = Inf, y = Inf, label = R2_label),
+            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 5)
+
+transb_single_SWin_corr_plot
+```
+
+```{r}
+# Calculate overall R^2 for all points
+t_single_AirTC_r2_value <- transb_corr_long %>%
+  drop_na(well_diam_diff, AirTC_Avg) %>%  # Remove NA values
+  summarize(R2 = cor(well_diam_diff, AirTC_Avg, use = "complete.obs")^2) %>%
+  mutate(R2_label = paste0("R² = ", round(R2, 3)))  # Create label for plotting
+
+# Scatterplot colored by tree_id (without facet_wrap)
+transb_single_AirTC_corr_plot <- ggplot(transb_corr_long, aes(x = AirTC_Avg, y = well_diam_diff, color = tree_id)) +
+  geom_point(alpha = 0.8) +  # Scatter points
+  geom_smooth(method = "lm", color = "black", se = FALSE) +  # Single trendline for all data
+  labs(
+    title = "TSZ, Well Diameter Difference vs. Air Temp",
+    x = "Air Temperature (°C)",
+    y = "Well Diameter Difference (cm)",
+    color = "Tree ID"
+  ) +
+  theme_bw() +
+  # Add R² label at the top-right corner
+  geom_text(data = t_single_AirTC_r2_value, aes(x = Inf, y = Inf, label = R2_label),
+            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 5)
+
+transb_single_AirTC_corr_plot
+```
+
+##  New Approach
+
+-   seeing if I just correlate the daily well diameter with weather station variables changes the correlation results
+
+PSZ
+
+```{r}
+persb_corr_data_V2 <- comb_persb_treewell_diam_fullseason %>%
+  # Join with weather data
+  inner_join(filtered_daily_persb_wx_hourly_r, by = "date") %>%
+  inner_join(persb_daily_treetemp_data, by = "date") %>%
+  filter(date >= "2024-04-15")
+```
+
+```{r}
+# AirTC Correlation
+# Compute R^2 for each tree_id
+p_AirTC_r2_values_V2 <- persb_corr_data_V2 %>%
+  drop_na(well_diam, AirTC_Avg) %>%  # Remove rows where either column is NA
+  group_by(tree_id) %>%
+  summarize(R2 = cor(well_diam, AirTC_Avg, use = "complete.obs")^2, .groups = "drop") %>%
+  mutate(R2_label = paste0("R² = ", round(R2, 3))) # Create label for plotting
+
+# Scatterplot
+persb_AirTC_corr_plot_V2 <- ggplot(persb_corr_data_V2, aes(x = AirTC_Avg, y = well_diam, color = factor(tree_id))) +
+  geom_point() +  # Scatter points
+  geom_smooth(method = "lm", color = "black", se = FALSE) +  # Trendline
+  facet_wrap(~ tree_id) +  # Separate by tree_id
+  labs(
+    title = "PSZ, Well Diameter vs. Air Temperature",
+    y = "Air Temperature (°C)",
+    x = "Well Diameter (cm)",
+    color = "Tree ID"
+  ) +
+  theme_bw() +
+  scale_color_manual(values = c("1" = "red", "2" = "blue", "3" = "orange", "4" = "purple")) +  # Fix color mapping
+  geom_text(data = p_AirTC_r2_values_V2, aes(x = Inf, y = Inf, label = R2_label), 
+            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 5)
+
+persb_AirTC_corr_plot_V2
+```
+
+```{r}
+# AirTC Correlation
+# Compute R^2 for each tree_id
+p_TreeTemp_r2_values_V2 <- persb_corr_data_V2 %>%
+  drop_na(well_diam, mean_tree_temp) %>%  # Remove rows where either column is NA
+  group_by(tree_id) %>%
+  summarize(R2 = cor(well_diam, mean_tree_temp, use = "complete.obs")^2, .groups = "drop") %>%
+  mutate(R2_label = paste0("R² = ", round(R2, 3))) # Create label for plotting
+
+# Scatterplot
+persb_TreeTemp_corr_plot_V2 <- ggplot(persb_corr_data_V2, aes(x = mean_tree_temp, y = well_diam, color = factor(tree_id))) +
+  geom_point() +  # Scatter points
+  geom_smooth(method = "lm", color = "black", se = FALSE) +  # Trendline
+  facet_wrap(~ tree_id) +  # Separate by tree_id
+  labs(
+    title = "PSZ, Well Diameter vs. Tree Temperature",
+    y = "Tree Temperature (°C)",
+    x = "Well Diameter (cm)",
+    color = "Tree ID"
+  ) +
+  theme_bw() +
+  scale_color_manual(values = c("1" = "red", "2" = "blue", "3" = "orange", "4" = "purple")) +  # Fix color mapping
+  geom_text(data = p_TreeTemp_r2_values_V2, aes(x = Inf, y = Inf, label = R2_label), 
+            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 5)
+
+persb_TreeTemp_corr_plot_V2
+```
+
+\*\* when I include only ablation dates, the R\^2 value increases substantially
+
+```{r}
+# SWnet Correlation
+# Compute R^2 for each tree_id
+p_NetSW_r2_values_V2 <- persb_corr_data_V2 %>%
+  drop_na(well_diam, SWnet_Avg) %>%  # Remove rows where either column is NA
+  group_by(tree_id) %>%
+  summarize(R2 = cor(well_diam, SWnet_Avg, use = "complete.obs")^2, .groups = "drop") %>%
+  mutate(R2_label = paste0("R² = ", round(R2, 3))) # Create label for plotting
+
+# Scatterplot
+persb_NetSW_corr_plot_V2 <- ggplot(persb_corr_data_V2, aes(x = SWnet_Avg, y = well_diam, color = factor(tree_id))) +
+  geom_point() +  # Scatter points
+  geom_smooth(method = "lm", color = "black", se = FALSE) +  # Trendline
+  facet_wrap(~ tree_id) +  # Separate by tree_id
+  labs(
+    title = "PSZ, Well Diameter vs. Net SW",
+    y = "Net SW (W/m^2)",
+    x = "Well Diameter (cm)",
+    color = "Tree ID"
+  ) +
+  theme_bw() +
+  scale_color_manual(values = c("1" = "red", "2" = "blue", "3" = "orange", "4" = "purple")) +  # Fix color mapping
+  geom_text(data = p_NetSW_r2_values_V2, aes(x = Inf, y = Inf, label = R2_label), 
+            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 5)
+
+persb_NetSW_corr_plot_V2
+```
