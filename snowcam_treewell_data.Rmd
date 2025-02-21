@@ -1929,6 +1929,36 @@ persb_AirTC_corr_plot
 ggsave("persb_AirTC_corr_plot.png", plot = persb_AirTC_corr_plot, dpi = 600)
 ```
 
+Lagged results model
+
+```{r}
+#trying a lagged regression to see if day-before data is what causes change?
+
+persb_corr_lagged <- persb_corr_long %>%
+  arrange(tree_id, date) %>%  # Sorting by tree_id and date ensures correct lagging
+  group_by(tree_id) %>%
+  mutate(AirTC_Avg_lag1 = lag(AirTC_Avg, n = 1)) %>%  # Lag AirTC_Avg by 1 time step
+  ungroup()
+
+# Fit the lagged regression model for each tree_id
+lagged_results <- persb_corr_lagged %>%
+  drop_na(well_diam_diff, AirTC_Avg_lag1) %>%  # Remove NAs
+  group_by(tree_id) %>%
+  summarise(
+    model = list(lm(well_diam_diff ~ AirTC_Avg_lag1, data = cur_data())),  # Fit lagged regression
+    .groups = "drop"
+  )
+
+p_AirTC_r2_values_lag <- lagged_results %>%
+  mutate(R2 = map_dbl(model, ~ summary(.x)$r.squared)) %>%  # Extract R² from each model
+  mutate(R2_label = paste0("Lagged R² = ", round(R2, 3))) %>%
+  select(tree_id, R2, R2_label)
+
+p_AirTC_r2_values_lag 
+```
+
+\*\* lagged results seem to decrease Rsquared value.
+
 ```{r}
 # Tree Temp Correlation
 # Compute R^2 for each tree_id
