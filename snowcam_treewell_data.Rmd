@@ -1794,6 +1794,11 @@ transb_daily_treetemp_data <- full_15min_ns %>%
 
 ### Correlation Tests
 
+```{r}
+#colors for points
+treeid_colors <- c("1" = "#1B7837", "2" = "#D95F02", "3" = "#2166AC", "4" = "grey23")
+```
+
 PSZ
 
 ```{r}
@@ -1827,7 +1832,11 @@ persb_corr_long <- persb_corr_data_V2 %>%
                names_to = "tree_id", 
                values_to = "well_diam_diff") %>%
   mutate(tree_id = str_replace(tree_id, "well_diam_diff_tree", "")) %>%
-  select(-c(well_diam_tree1, well_diam_tree2, well_diam_tree3, well_diam_tree4))
+  select(-c(well_diam_tree1, well_diam_tree2, well_diam_tree3, well_diam_tree4)) %>%
+   mutate(burn_status = case_when(
+    tree_id %in% c(1, 2, 3) ~ "GB",  # Assign "GB" to tree_id 1, 2, 3
+    tree_id == 4 ~ "DB"              # Assign "DB" to tree_id 4
+  ))
 ```
 
 ```{r}
@@ -1849,8 +1858,8 @@ p_AirTC_r2_values <- persb_corr_long %>%
 
 # Scatterplot with facet_wrap
 persb_AirTC_corr_plot <- ggplot(persb_corr_long, aes(x = AirTC_Avg, y = well_diam_diff, color = tree_id)) +
-  geom_point() +  # Scatter points
-  geom_smooth(method = "lm", color = "black", se = FALSE) +  # Trendline
+  geom_point(aes(shape = burn_status), size = 2, alpha = 0.7) +
+  geom_smooth(method = "lm", color = "grey", se = TRUE) +
   facet_wrap(~ tree_id) +  # Separate by tree_id
   labs(
     title = "PSZ: Air Temperature",
@@ -1859,6 +1868,10 @@ persb_AirTC_corr_plot <- ggplot(persb_corr_long, aes(x = AirTC_Avg, y = well_dia
     color = "Tree ID"
   ) +
   theme_bw() +
+  scale_color_manual(values = treeid_colors) + 
+  #remove color legend 
+  guides(color = "none") +
+  scale_shape_manual(name = "Burn Status", values = c("GB" = 16, "DB" = 15)) +
   geom_text(data = p_AirTC_r2_values_accu, aes(x = Inf, y = Inf, label = R2_label), 
             hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 5)
 
@@ -1880,8 +1893,8 @@ p_TreeTemp_r2_values <- persb_corr_long %>%
 
 # Scatterplot with facet_wrap
 persb_TreeTemp_corr_plot <- ggplot(persb_corr_long, aes(x = mean_tree_temp, y = well_diam_diff, color = tree_id)) +
-  geom_point() +  # Scatter points
-  geom_smooth(method = "lm", color = "black", se = FALSE) +  # Trendline
+  geom_point(aes(shape = burn_status), size = 2, alpha = 0.7) +
+  geom_smooth(method = "lm", color = "grey", se = TRUE) +
   facet_wrap(~ tree_id) +  # Separate by tree_id
   labs(
     title = "PSZ: Tree Temperature",
@@ -1890,6 +1903,10 @@ persb_TreeTemp_corr_plot <- ggplot(persb_corr_long, aes(x = mean_tree_temp, y = 
     color = "Tree ID"
   ) +
   theme_bw() +
+  scale_color_manual(values = treeid_colors) + 
+  #remove color legend 
+  guides(color = "none") +
+  scale_shape_manual(name = "Burn Status", values = c("GB" = 16, "DB" = 15)) +
   geom_text(data = p_TreeTemp_r2_values, aes(x = Inf, y = Inf, label = R2_label), 
             hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 5)
 
@@ -1911,8 +1928,8 @@ p_SWin_r2_values <- persb_corr_long %>%
 
 # Scatterplot with facet_wrap
 persb_SWin_corr_plot <- ggplot(persb_corr_long, aes(x = SWin_Avg, y = well_diam_diff, color = tree_id)) +
-  geom_point() +  # Scatter points
-  geom_smooth(method = "lm", color = "black", se = FALSE) +  # Trendline
+  geom_point(aes(shape = burn_status), size = 2, alpha = 0.7) +
+  geom_smooth(method = "lm", color = "grey", se = TRUE) +
   facet_wrap(~ tree_id) +  # Separate by tree_id
   labs(
     title = "PSZ, SWin",
@@ -1921,6 +1938,10 @@ persb_SWin_corr_plot <- ggplot(persb_corr_long, aes(x = SWin_Avg, y = well_diam_
     color = "Tree ID"
   ) +
   theme_bw() +
+  scale_color_manual(values = treeid_colors) + 
+  #remove color legend 
+  guides(color = "none") +
+  scale_shape_manual(name = "Burn Status", values = c("GB" = 16, "DB" = 15)) +
   geom_text(data = p_SWin_r2_values, aes(x = Inf, y = Inf, label = R2_label), 
             hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 5)
 
@@ -1938,8 +1959,8 @@ p_NetSW_r2_values <- persb_corr_long %>%
 
 # Scatterplot with facet_wrap
 persb_NetSW_corr_plot <- ggplot(persb_corr_long, aes(x = SWnet_Avg, y = well_diam_diff, color = tree_id)) +
-  geom_point() +  # Scatter points
-  geom_smooth(method = "lm", color = "black", se = FALSE) +  # Trendline
+  geom_point(aes(shape = burn_status), size = 2, alpha = 0.7) +
+  geom_smooth(method = "lm", color = "grey", se = TRUE) +
   facet_wrap(~ tree_id) +  # Separate by tree_id
   labs(
     title = "PSZ: Net SW",
@@ -1948,6 +1969,10 @@ persb_NetSW_corr_plot <- ggplot(persb_corr_long, aes(x = SWnet_Avg, y = well_dia
     color = "Tree ID"
   ) +
   theme_bw() +
+  scale_color_manual(values = treeid_colors) + 
+  #remove color legend 
+  guides(color = "none") +
+  scale_shape_manual(name = "Burn Status", values = c("GB" = 16, "DB" = 15)) +
   geom_text(data = p_NetSW_r2_values, aes(x = Inf, y = Inf, label = R2_label), 
             hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 5)
 
@@ -1969,8 +1994,8 @@ p_NetLW_r2_values <- persb_corr_long %>%
 
 # Scatterplot with facet_wrap
 persb_NetLW_corr_plot <- ggplot(persb_corr_long, aes(x = LWnet_Avg, y = well_diam_diff, color = tree_id)) +
-  geom_point() +  # Scatter points
-  geom_smooth(method = "lm", color = "black", se = FALSE) +  # Trendline
+  geom_point(aes(shape = burn_status), size = 2, alpha = 0.7) +
+  geom_smooth(method = "lm", color = "grey", se = TRUE) +
   facet_wrap(~ tree_id) +  # Separate by tree_id
   labs(
     title = "PSZ: Net LW",
@@ -1979,6 +2004,10 @@ persb_NetLW_corr_plot <- ggplot(persb_corr_long, aes(x = LWnet_Avg, y = well_dia
     color = "Tree ID"
   ) +
   theme_bw() +
+  scale_color_manual(values = treeid_colors) + 
+  #remove color legend 
+  guides(color = "none") +
+  scale_shape_manual(name = "Burn Status", values = c("GB" = 16, "DB" = 15)) +
   geom_text(data = p_NetLW_r2_values, aes(x = Inf, y = Inf, label = R2_label), 
             hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 5)
 
@@ -2000,8 +2029,8 @@ p_NR_r2_values <- persb_corr_long %>%
 
 # Scatterplot with facet_wrap
 persb_NR_corr_plot <- ggplot(persb_corr_long, aes(x = NR_Avg, y = well_diam_diff, color = tree_id)) +
-  geom_point() +  # Scatter points
-  geom_smooth(method = "lm", color = "black", se = FALSE) +  # Trendline
+  geom_point(aes(shape = burn_status), size = 2, alpha = 0.7) +
+  geom_smooth(method = "lm", color = "grey", se = TRUE) +
   facet_wrap(~ tree_id) +  # Separate by tree_id
   labs(
     title = "PSZ: Total Net Radiation ",
@@ -2010,6 +2039,10 @@ persb_NR_corr_plot <- ggplot(persb_corr_long, aes(x = NR_Avg, y = well_diam_diff
     color = "Tree ID"
   ) +
   theme_bw() +
+  scale_color_manual(values = treeid_colors) + 
+  #remove color legend 
+  guides(color = "none") +
+  scale_shape_manual(name = "Burn Status", values = c("GB" = 16, "DB" = 15)) +
   geom_text(data = p_NR_r2_values, aes(x = Inf, y = Inf, label = R2_label), 
             hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 5)
 
@@ -2031,8 +2064,8 @@ p_SD_r2_values <- persb_corr_long %>%
 
 # Scatterplot with facet_wrap
 persb_SD_corr_plot <- ggplot(persb_corr_long, aes(x = maximum_depth_cm, y = well_diam_diff, color = tree_id)) +
-  geom_point() +  # Scatter points
-  geom_smooth(method = "lm", color = "black", se = FALSE) +  # Trendline
+  geom_point(aes(shape = burn_status), size = 2, alpha = 0.7) +
+  geom_smooth(method = "lm", color = "grey", se = TRUE) +
   facet_wrap(~ tree_id) +  # Separate by tree_id
   labs(
     title = "PSZ: Snow Depth",
@@ -2041,6 +2074,10 @@ persb_SD_corr_plot <- ggplot(persb_corr_long, aes(x = maximum_depth_cm, y = well
     color = "Tree ID"
   ) +
   theme_bw() +
+  scale_color_manual(values = treeid_colors) + 
+  #remove color legend 
+  guides(color = "none") +
+  scale_shape_manual(name = "Burn Status", values = c("GB" = 16, "DB" = 15)) +
   geom_text(data = p_SD_r2_values, aes(x = Inf, y = Inf, label = R2_label), 
             hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 5)
 
@@ -2084,7 +2121,11 @@ transb_corr_long <- transb_corr_data %>%
                names_to = "tree_id", 
                values_to = "well_diam_diff") %>%
   mutate(tree_id = str_replace(tree_id, "well_diam_diff_tree", "")) %>%
-  select(-c(well_diam_tree1, well_diam_tree2, well_diam_tree3, well_diam_tree4))
+  select(-c(well_diam_tree1, well_diam_tree2, well_diam_tree3, well_diam_tree4)) %>%
+  mutate(burn_status = case_when(
+    tree_id %in% c(1, 2, 3) ~ "GB",  # Assign "GB" to tree_id 1, 2, 3
+    tree_id == 4 ~ "DB"              # Assign "DB" to tree_id 4
+  ))
 ```
 
 ```{r}
@@ -2098,8 +2139,8 @@ t_AirTC_r2_values <- transb_corr_long %>%
 
 # Scatterplot with facet_wrap
 transb_AirTC_corr_plot <- ggplot(transb_corr_long, aes(x = AirTC_Avg, y = well_diam_diff, color = tree_id)) +
-  geom_point() +  # Scatter points
-  geom_smooth(method = "lm", color = "black", se = FALSE) +  # Trendline
+  geom_point(aes(shape = burn_status), size = 2, alpha = 0.7) +
+  geom_smooth(method = "lm", color = "grey", se = TRUE) +
   facet_wrap(~ tree_id) +  # Separate by tree_id
   labs(
     title = "TSZ: Air Temperature",
@@ -2108,6 +2149,10 @@ transb_AirTC_corr_plot <- ggplot(transb_corr_long, aes(x = AirTC_Avg, y = well_d
     color = "Tree ID"
   ) +
   theme_bw() +
+  scale_color_manual(values = treeid_colors) + 
+  #remove color legend 
+  guides(color = "none") +
+  scale_shape_manual(name = "Burn Status", values = c("GB" = 16, "DB" = 15)) +
   geom_text(data = t_AirTC_r2_values, aes(x = Inf, y = Inf, label = R2_label), 
             hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 5)
 
@@ -2129,8 +2174,8 @@ t_TreeTemp_r2_values <- transb_corr_long %>%
 
 # Scatterplot with facet_wrap
 transb_TreeTemp_corr_plot <- ggplot(transb_corr_long, aes(x = mean_tree_temp, y = well_diam_diff, color = tree_id)) +
-  geom_point() +  # Scatter points
-  geom_smooth(method = "lm", color = "black", se = FALSE) +  # Trendline
+  geom_point(aes(shape = burn_status), size = 2, alpha = 0.7) +
+  geom_smooth(method = "lm", color = "grey", se = TRUE) +
   facet_wrap(~ tree_id) +  # Separate by tree_id
   labs(
     title = "TSZ: Tree Temperature",
@@ -2139,6 +2184,10 @@ transb_TreeTemp_corr_plot <- ggplot(transb_corr_long, aes(x = mean_tree_temp, y 
     color = "Tree ID"
   ) +
   theme_bw() +
+  scale_color_manual(values = treeid_colors) + 
+  #remove color legend 
+  guides(color = "none") +
+  scale_shape_manual(name = "Burn Status", values = c("GB" = 16, "DB" = 15)) +
   geom_text(data = t_TreeTemp_r2_values, aes(x = Inf, y = Inf, label = R2_label), 
             hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 5)
 
@@ -2160,8 +2209,8 @@ t_NetSW_r2_values <- transb_corr_long %>%
 
 # Scatterplot with facet_wrap
 transb_NetSW_corr_plot <- ggplot(transb_corr_long, aes(x = SWnet_Avg, y = well_diam_diff, color = tree_id)) +
-  geom_point() +  # Scatter points
-  geom_smooth(method = "lm", color = "black", se = FALSE) +  # Trendline
+  geom_point(aes(shape = burn_status), size = 2, alpha = 0.7) +
+  geom_smooth(method = "lm", color = "grey", se = TRUE) +
   facet_wrap(~ tree_id) +  # Separate by tree_id
   labs(
     title = "TSZ: Net SW",
@@ -2170,6 +2219,10 @@ transb_NetSW_corr_plot <- ggplot(transb_corr_long, aes(x = SWnet_Avg, y = well_d
     color = "Tree ID"
   ) +
   theme_bw() +
+  scale_color_manual(values = treeid_colors) + 
+  #remove color legend 
+  guides(color = "none") +
+  scale_shape_manual(name = "Burn Status", values = c("GB" = 16, "DB" = 15)) +
   geom_text(data = t_NetSW_r2_values, aes(x = Inf, y = Inf, label = R2_label), 
             hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 5)
 
@@ -2191,8 +2244,8 @@ t_NetLW_r2_values <- transb_corr_long %>%
 
 # Scatterplot with facet_wrap
 transb_NetLW_corr_plot <- ggplot(transb_corr_long, aes(x = LWnet_Avg, y = well_diam_diff, color = tree_id)) +
-  geom_point() +  # Scatter points
-  geom_smooth(method = "lm", color = "black", se = FALSE) +  # Trendline
+  geom_point(aes(shape = burn_status), size = 2, alpha = 0.7) +
+  geom_smooth(method = "lm", color = "grey", se = TRUE) +
   facet_wrap(~ tree_id) +  # Separate by tree_id
   labs(
     title = "TSZ: Net LW",
@@ -2201,6 +2254,10 @@ transb_NetLW_corr_plot <- ggplot(transb_corr_long, aes(x = LWnet_Avg, y = well_d
     color = "Tree ID"
   ) +
   theme_bw() +
+  scale_color_manual(values = treeid_colors) + 
+  #remove color legend 
+  guides(color = "none") +
+  scale_shape_manual(name = "Burn Status", values = c("GB" = 16, "DB" = 15)) +
   geom_text(data = t_NetLW_r2_values, aes(x = Inf, y = Inf, label = R2_label), 
             hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 5)
 
@@ -2222,8 +2279,8 @@ t_NR_r2_values <- transb_corr_long %>%
 
 # Scatterplot with facet_wrap
 transb_NR_corr_plot <- ggplot(transb_corr_long, aes(x = NR_Avg, y = well_diam_diff, color = tree_id)) +
-  geom_point() +  # Scatter points
-  geom_smooth(method = "lm", color = "black", se = FALSE) +  # Trendline
+  geom_point(aes(shape = burn_status), size = 2, alpha = 0.7) +
+  geom_smooth(method = "lm", color = "grey", se = TRUE) +
   facet_wrap(~ tree_id) +  # Separate by tree_id
   labs(
     title = "TSZ: Total Net Radiation ",
@@ -2232,6 +2289,10 @@ transb_NR_corr_plot <- ggplot(transb_corr_long, aes(x = NR_Avg, y = well_diam_di
     color = "Tree ID"
   ) +
   theme_bw() +
+  scale_color_manual(values = treeid_colors) + 
+  #remove color legend 
+  guides(color = "none") +
+  scale_shape_manual(name = "Burn Status", values = c("GB" = 16, "DB" = 15)) +
   geom_text(data = t_NR_r2_values, aes(x = Inf, y = Inf, label = R2_label), 
             hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 5)
 
@@ -2253,8 +2314,8 @@ t_SD_r2_values <- transb_corr_long %>%
 
 # Scatterplot with facet_wrap
 transb_SD_corr_plot <- ggplot(transb_corr_long, aes(x = maximum_depth_cm, y = well_diam_diff, color = tree_id)) +
-  geom_point() +  # Scatter points
-  geom_smooth(method = "lm", color = "black", se = FALSE) +  # Trendline
+  geom_point(aes(shape = burn_status), size = 2, alpha = 0.7) +
+  geom_smooth(method = "lm", color = "grey", se = TRUE) +
   facet_wrap(~ tree_id) +  # Separate by tree_id
   labs(
     title = "TSZ: Snow Depth",
@@ -2263,6 +2324,10 @@ transb_SD_corr_plot <- ggplot(transb_corr_long, aes(x = maximum_depth_cm, y = we
     color = "Tree ID"
   ) +
   theme_bw() +
+  scale_color_manual(values = treeid_colors) + 
+  #remove color legend 
+  guides(color = "none") +
+  scale_shape_manual(name = "Burn Status", values = c("GB" = 16, "DB" = 15)) +
   geom_text(data = t_SD_r2_values, aes(x = Inf, y = Inf, label = R2_label), 
             hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 5)
 
@@ -2282,8 +2347,8 @@ t_single_SWin_r2_value <- transb_corr_long %>%
 
 # Scatterplot colored by tree_id (without facet_wrap)
 transb_single_SWin_corr_plot <- ggplot(transb_corr_long, aes(x = SWin_Avg, y = well_diam_diff, color = tree_id)) +
-  geom_point(alpha = 0.8) +  # Scatter points
-  geom_smooth(method = "lm", color = "black", se = FALSE) +  # Single trendline for all data
+  geom_point(aes(shape = burn_status), size = 2, alpha = 0.7) +
+  geom_smooth(method = "lm", color = "grey", se = TRUE) +
   labs(
     title = "TSZ, Well Diameter Difference vs. SWin",
     x = "Daily Incoming SW (W/m^2)",
@@ -2291,7 +2356,10 @@ transb_single_SWin_corr_plot <- ggplot(transb_corr_long, aes(x = SWin_Avg, y = w
     color = "Tree ID"
   ) +
   theme_bw() +
-  # Add R² label at the top-right corner
+  scale_color_manual(values = treeid_colors) + 
+  #remove color legend 
+  guides(color = "none") +
+  scale_shape_manual(name = "Burn Status", values = c("GB" = 16, "DB" = 15)) +
   geom_text(data = t_single_SWin_r2_value, aes(x = Inf, y = Inf, label = R2_label),
             hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 5)
 
@@ -2307,8 +2375,8 @@ t_single_AirTC_r2_value <- transb_corr_long %>%
 
 # Scatterplot colored by tree_id (without facet_wrap)
 transb_single_AirTC_corr_plot <- ggplot(transb_corr_long, aes(x = AirTC_Avg, y = well_diam_diff, color = tree_id)) +
-  geom_point(alpha = 0.8) +  # Scatter points
-  geom_smooth(method = "lm", color = "black", se = FALSE) +  # Single trendline for all data
+  geom_point(aes(shape = burn_status), size = 2, alpha = 0.7) +
+  geom_smooth(method = "lm", color = "grey", se = TRUE) +
   labs(
     title = "TSZ, Well Diameter Difference vs. Air Temp",
     x = "Air Temperature (°C)",
@@ -2316,7 +2384,10 @@ transb_single_AirTC_corr_plot <- ggplot(transb_corr_long, aes(x = AirTC_Avg, y =
     color = "Tree ID"
   ) +
   theme_bw() +
-  # Add R² label at the top-right corner
+  scale_color_manual(values = treeid_colors) + 
+  #remove color legend 
+  guides(color = "none") +
+  scale_shape_manual(name = "Burn Status", values = c("GB" = 16, "DB" = 15)) +
   geom_text(data = t_single_AirTC_r2_value, aes(x = Inf, y = Inf, label = R2_label),
             hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 5)
 
@@ -2356,8 +2427,8 @@ p_AirTC_r2_values_accu <- persb_corr_data_accu %>%
 
 # Scatterplot
 persb_AirTC_corr_plot_accu <- ggplot(persb_corr_data_accu, aes(x = AirTC_Avg, y = well_diam, color = factor(tree_id))) +
-  geom_point() +  # Scatter points
-  geom_smooth(method = "lm", color = "black", se = FALSE) +  # Trendline
+  geom_point(aes(shape = burn_status), size = 2, alpha = 0.7) +
+  geom_smooth(method = "lm", color = "grey", se = TRUE) +
   facet_wrap(~ tree_id) +  # Separate by tree_id
   labs(
     title = "PSZ: Accumulation, Air Temp",
@@ -2366,9 +2437,12 @@ persb_AirTC_corr_plot_accu <- ggplot(persb_corr_data_accu, aes(x = AirTC_Avg, y 
     color = "Tree ID"
   ) +
   theme_bw() +
-  scale_color_manual(values = c("1" = "red", "2" = "blue", "3" = "orange", "4" = "purple")) +  # Fix color mapping
+  scale_color_manual(values = treeid_colors) + 
+  #remove color legend 
+  guides(color = "none") +
+  scale_shape_manual(name = "Burn Status", values = c("GB" = 16, "DB" = 15)) +
   geom_text(data = p_AirTC_r2_values_accu, aes(x = Inf, y = Inf, label = R2_label), 
-            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 5)
+            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 4)
 
 persb_AirTC_corr_plot_accu
 ```
@@ -2387,8 +2461,8 @@ p_AirTC_r2_values_abla <- persb_corr_data_abla %>%
 
 # Scatterplot
 persb_AirTC_corr_plot_abla <- ggplot(persb_corr_data_abla, aes(x = AirTC_Avg, y = well_diam, color = factor(tree_id))) +
-  geom_point() +  # Scatter points
-  geom_smooth(method = "lm", color = "black", se = FALSE) +  # Trendline
+  geom_point(aes(shape = burn_status), size = 2, alpha = 0.7) +
+  geom_smooth(method = "lm", color = "grey", se = TRUE) +
   facet_wrap(~ tree_id) +  # Separate by tree_id
   labs(
     title = "PSZ: Ablation, Air Temp",
@@ -2397,9 +2471,12 @@ persb_AirTC_corr_plot_abla <- ggplot(persb_corr_data_abla, aes(x = AirTC_Avg, y 
     color = "Tree ID"
   ) +
   theme_bw() +
-  scale_color_manual(values = c("1" = "red", "2" = "blue", "3" = "orange", "4" = "purple")) +  # Fix color mapping
+  scale_color_manual(values = treeid_colors) + 
+  #remove color legend 
+  guides(color = "none") +
+  scale_shape_manual(name = "Burn Status", values = c("GB" = 16, "DB" = 15)) +
   geom_text(data = p_AirTC_r2_values_abla, aes(x = Inf, y = Inf, label = R2_label), 
-            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 5)
+            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 4)
 
 persb_AirTC_corr_plot_abla
 ```
@@ -2419,8 +2496,8 @@ p_TreeTemp_r2_values_accu <- persb_corr_data_accu %>%
 
 # Scatterplot
 persb_TreeTemp_corr_plot_accu <- ggplot(persb_corr_data_accu, aes(x = mean_tree_temp, y = well_diam, color = factor(tree_id))) +
-  geom_point() +  # Scatter points
-  geom_smooth(method = "lm", color = "black", se = FALSE) +  # Trendline
+  geom_point(aes(shape = burn_status), size = 2, alpha = 0.7) + 
+  geom_smooth(method = "lm", color = "grey", se = TRUE) +
   facet_wrap(~ tree_id) +  # Separate by tree_id
   labs(
     title = "PSZ: Accumulation, Tree Temperature",
@@ -2429,9 +2506,12 @@ persb_TreeTemp_corr_plot_accu <- ggplot(persb_corr_data_accu, aes(x = mean_tree_
     color = "Tree ID"
   ) +
   theme_bw() +
-  scale_color_manual(values = c("1" = "red", "2" = "blue", "3" = "orange", "4" = "purple")) +  # Fix color mapping
+  scale_color_manual(values = treeid_colors) + 
+  #remove color legend 
+  guides(color = "none") +
+  scale_shape_manual(name = "Burn Status", values = c("GB" = 16, "DB" = 15)) +
   geom_text(data = p_TreeTemp_r2_values_accu, aes(x = Inf, y = Inf, label = R2_label), 
-            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 5)
+            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 4)
 
 persb_TreeTemp_corr_plot_accu
 ```
@@ -2449,8 +2529,8 @@ p_TreeTemp_r2_values_abla <- persb_corr_data_abla %>%
 
 # Scatterplot
 persb_TreeTemp_corr_plot_abla <- ggplot(persb_corr_data_abla, aes(x = mean_tree_temp, y = well_diam, color = factor(tree_id))) +
-  geom_point() +  # Scatter points
-  geom_smooth(method = "lm", color = "black", se = FALSE) +  # Trendline
+  geom_point(aes(shape = burn_status), size = 2, alpha = 0.7) + 
+  geom_smooth(method = "lm", color = "grey", se = TRUE) +
   facet_wrap(~ tree_id) +  # Separate by tree_id
   labs(
     title = "PSZ: Ablation, Tree Temperature",
@@ -2459,9 +2539,12 @@ persb_TreeTemp_corr_plot_abla <- ggplot(persb_corr_data_abla, aes(x = mean_tree_
     color = "Tree ID"
   ) +
   theme_bw() +
-  scale_color_manual(values = c("1" = "red", "2" = "blue", "3" = "orange", "4" = "purple")) +  # Fix color mapping
+  scale_color_manual(values = treeid_colors) + 
+  #remove color legend 
+  guides(color = "none") +
+  scale_shape_manual(name = "Burn Status", values = c("GB" = 16, "DB" = 15)) +
   geom_text(data = p_TreeTemp_r2_values_abla, aes(x = Inf, y = Inf, label = R2_label), 
-            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 5)
+            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 4)
 
 persb_TreeTemp_corr_plot_abla
 ```
@@ -2483,8 +2566,8 @@ p_NetSW_r2_values_accu <- persb_corr_data_accu %>%
 
 # Scatterplot
 persb_NetSW_corr_plot_accu <- ggplot(persb_corr_data_accu, aes(x = SWnet_Avg, y = well_diam, color = factor(tree_id))) +
-  geom_point() +  # Scatter points
-  geom_smooth(method = "lm", color = "black", se = FALSE) +  # Trendline
+  geom_point(aes(shape = burn_status), size = 2, alpha = 0.7) + 
+  geom_smooth(method = "lm", color = "grey", se = TRUE) +
   facet_wrap(~ tree_id) +  # Separate by tree_id
   labs(
     title = "PSZ: Accumulation, Net SW",
@@ -2493,10 +2576,12 @@ persb_NetSW_corr_plot_accu <- ggplot(persb_corr_data_accu, aes(x = SWnet_Avg, y 
     color = "Tree ID"
   ) +
   theme_bw() +
-  scale_color_manual(values = c("1" = "red", "2" = "blue", "3" = "orange", "4" = "purple")) +  # Fix color mapping
-  geom_text(data = p_NetSW_r2_values_accu, aes(x = Inf, y = Inf, label = R2_label),
-            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 5)
-
+  scale_color_manual(values = treeid_colors) + 
+  #remove color legend 
+  guides(color = "none") +
+  scale_shape_manual(name = "Burn Status", values = c("GB" = 16, "DB" = 15)) +
+  geom_text(data = p_NetSW_r2_values_accu, aes(x = Inf, y = Inf, label = R2_label), 
+            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 4)
 persb_NetSW_corr_plot_accu
 ```
 
@@ -2515,8 +2600,8 @@ p_NetSW_r2_values_abla <- persb_corr_data_abla %>%
 
 # Scatterplot
 persb_NetSW_corr_plot_abla <- ggplot(persb_corr_data_abla, aes(x = SWnet_Avg, y = well_diam, color = factor(tree_id))) +
-  geom_point() +  # Scatter points
-  geom_smooth(method = "lm", color = "black", se = FALSE) +  # Trendline
+  geom_point(aes(shape = burn_status), size = 2, alpha = 0.7) + 
+  geom_smooth(method = "lm", color = "grey", se = TRUE) +
   facet_wrap(~ tree_id) +  # Separate by tree_id
   labs(
     title = "PSZ: Ablation, Net SW",
@@ -2525,9 +2610,12 @@ persb_NetSW_corr_plot_abla <- ggplot(persb_corr_data_abla, aes(x = SWnet_Avg, y 
     color = "Tree ID"
   ) +
   theme_bw() +
-  scale_color_manual(values = c("1" = "red", "2" = "blue", "3" = "orange", "4" = "purple")) +  # Fix color mapping
+  scale_color_manual(values = treeid_colors) + 
+  #remove color legend 
+  guides(color = "none") +
+  scale_shape_manual(name = "Burn Status", values = c("GB" = 16, "DB" = 15)) +
   geom_text(data = p_NetSW_r2_values_abla, aes(x = Inf, y = Inf, label = R2_label),
-            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 5)
+            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 4)
 
 persb_NetSW_corr_plot_abla
 ```
@@ -2547,8 +2635,8 @@ p_NetLW_r2_values_accu <- persb_corr_data_accu %>%
 
 # Scatterplot
 persb_NetLW_corr_plot_accu <- ggplot(persb_corr_data_accu, aes(x = LWnet_Avg, y = well_diam, color = factor(tree_id))) +
-  geom_point() +  # Scatter points
-  geom_smooth(method = "lm", color = "black", se = FALSE) +  # Trendline
+  geom_point(aes(shape = burn_status), size = 2, alpha = 0.7) + 
+  geom_smooth(method = "lm", color = "grey", se = TRUE) +
   facet_wrap(~ tree_id) +  # Separate by tree_id
   labs(
     title = "PSZ: Accumulation, Net LW",
@@ -2557,9 +2645,12 @@ persb_NetLW_corr_plot_accu <- ggplot(persb_corr_data_accu, aes(x = LWnet_Avg, y 
     color = "Tree ID"
   ) +
   theme_bw() +
-  scale_color_manual(values = c("1" = "red", "2" = "blue", "3" = "orange", "4" = "purple")) +  # Fix color mapping
+  scale_color_manual(values = treeid_colors) + 
+  #remove color legend 
+  guides(color = "none") +
+  scale_shape_manual(name = "Burn Status", values = c("GB" = 16, "DB" = 15)) +
   geom_text(data = p_NetLW_r2_values_accu, aes(x = Inf, y = Inf, label = R2_label),
-            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 5)
+            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 4)
 
 persb_NetLW_corr_plot_accu
 ```
@@ -2579,8 +2670,8 @@ p_NetLW_r2_values_abla <- persb_corr_data_abla %>%
 
 # Scatterplot
 persb_NetLW_corr_plot_abla <- ggplot(persb_corr_data_abla, aes(x = LWnet_Avg, y = well_diam, color = factor(tree_id))) +
-  geom_point() +  # Scatter points
-  geom_smooth(method = "lm", color = "black", se = FALSE) +  # Trendline
+  geom_point(aes(shape = burn_status), size = 2, alpha = 0.7) + 
+  geom_smooth(method = "lm", color = "grey", se = TRUE) +
   facet_wrap(~ tree_id) +  # Separate by tree_id
   labs(
     title = "PSZ: Ablation, Net LW",
@@ -2589,9 +2680,12 @@ persb_NetLW_corr_plot_abla <- ggplot(persb_corr_data_abla, aes(x = LWnet_Avg, y 
     color = "Tree ID"
   ) +
   theme_bw() +
-  scale_color_manual(values = c("1" = "red", "2" = "blue", "3" = "orange", "4" = "purple")) +  # Fix color mapping
+  scale_color_manual(values = treeid_colors) + 
+  #remove color legend 
+  guides(color = "none") +
+  scale_shape_manual(name = "Burn Status", values = c("GB" = 16, "DB" = 15)) +
   geom_text(data = p_NetLW_r2_values_abla, aes(x = Inf, y = Inf, label = R2_label),
-            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 5)
+            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 4)
 
 persb_NetLW_corr_plot_abla
 ```
@@ -2611,8 +2705,8 @@ p_NR_r2_values_accu <- persb_corr_data_accu %>%
 
 # Scatterplot
 persb_NR_corr_plot_accu <- ggplot(persb_corr_data_accu, aes(x = NR_Avg, y = well_diam, color = factor(tree_id))) +
-  geom_point() +  # Scatter points
-  geom_smooth(method = "lm", color = "black", se = FALSE) +  # Trendline
+  geom_point(aes(shape = burn_status), size = 2, alpha = 0.7) + 
+  geom_smooth(method = "lm", color = "grey", se = TRUE) +
   facet_wrap(~ tree_id) +  # Separate by tree_id
   labs(
     title = "PSZ: Accumulation, Total Net Rad",
@@ -2621,9 +2715,12 @@ persb_NR_corr_plot_accu <- ggplot(persb_corr_data_accu, aes(x = NR_Avg, y = well
     color = "Tree ID"
   ) +
   theme_bw() +
-  scale_color_manual(values = c("1" = "red", "2" = "blue", "3" = "orange", "4" = "purple")) +  # Fix color mapping
+  scale_color_manual(values = treeid_colors) + 
+  #remove color legend 
+  guides(color = "none") +
+  scale_shape_manual(name = "Burn Status", values = c("GB" = 16, "DB" = 15)) +
   geom_text(data = p_NR_r2_values_accu, aes(x = Inf, y = Inf, label = R2_label),
-            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 5)
+            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 4)
 
 persb_NR_corr_plot_accu
 ```
@@ -2643,8 +2740,8 @@ p_NR_r2_values_abla <- persb_corr_data_abla %>%
 
 # Scatterplot
 persb_NR_corr_plot_abla <- ggplot(persb_corr_data_abla, aes(x = NR_Avg, y = well_diam, color = factor(tree_id))) +
-  geom_point() +  # Scatter points
-  geom_smooth(method = "lm", color = "black", se = FALSE) +  # Trendline
+  geom_point(aes(shape = burn_status), size = 2, alpha = 0.7) + 
+  geom_smooth(method = "lm", color = "grey", se = TRUE) +
   facet_wrap(~ tree_id) +  # Separate by tree_id
   labs(
     title = "PSZ: Ablation, Total Net Rad",
@@ -2653,9 +2750,12 @@ persb_NR_corr_plot_abla <- ggplot(persb_corr_data_abla, aes(x = NR_Avg, y = well
     color = "Tree ID"
   ) +
   theme_bw() +
-  scale_color_manual(values = c("1" = "red", "2" = "blue", "3" = "orange", "4" = "purple")) +  # Fix color mapping
+  scale_color_manual(values = treeid_colors) + 
+  #remove color legend 
+  guides(color = "none") +
+  scale_shape_manual(name = "Burn Status", values = c("GB" = 16, "DB" = 15)) +
   geom_text(data = p_NR_r2_values_abla, aes(x = Inf, y = Inf, label = R2_label),
-            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 5)
+            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 4)
 
 persb_NR_corr_plot_abla
 ```
@@ -2675,8 +2775,8 @@ p_SD_r2_values_accu <- persb_corr_data_accu %>%
 
 # Scatterplot
 persb_SD_corr_plot_accu <- ggplot(persb_corr_data_accu, aes(x = maximum_depth_cm, y = well_diam, color = factor(tree_id))) +
-  geom_point() +  # Scatter points
-  geom_smooth(method = "lm", color = "black", se = FALSE) +  # Trendline
+  geom_point(aes(shape = burn_status), size = 2, alpha = 0.7) + 
+  geom_smooth(method = "lm", color = "grey", se = TRUE) +
   facet_wrap(~ tree_id) +  # Separate by tree_id
   labs(
     title = "PSZ: Accumulation, Snow Depth",
@@ -2685,9 +2785,12 @@ persb_SD_corr_plot_accu <- ggplot(persb_corr_data_accu, aes(x = maximum_depth_cm
     color = "Tree ID"
   ) +
   theme_bw() +
-  scale_color_manual(values = c("1" = "red", "2" = "blue", "3" = "orange", "4" = "purple")) +  # Fix color mapping
+  scale_color_manual(values = treeid_colors) + 
+  #remove color legend 
+  guides(color = "none") +
+  scale_shape_manual(name = "Burn Status", values = c("GB" = 16, "DB" = 15)) +
   geom_text(data = p_SD_r2_values_accu, aes(x = Inf, y = Inf, label = R2_label),
-            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 5)
+            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 4)
 
 persb_SD_corr_plot_accu
 ```
@@ -2707,8 +2810,8 @@ p_SD_r2_values_abla <- persb_corr_data_abla %>%
 
 # Scatterplot
 persb_SD_corr_plot_abla <- ggplot(persb_corr_data_abla, aes(x = maximum_depth_cm, y = well_diam, color = factor(tree_id))) +
-  geom_point() +  # Scatter points
-  geom_smooth(method = "lm", color = "black", se = FALSE) +  # Trendline
+  geom_point(aes(shape = burn_status), size = 2, alpha = 0.7) + 
+  geom_smooth(method = "lm", color = "grey", se = TRUE) +
   facet_wrap(~ tree_id) +  # Separate by tree_id
   labs(
     title = "PSZ: Ablation, Snow Depth",
@@ -2717,9 +2820,12 @@ persb_SD_corr_plot_abla <- ggplot(persb_corr_data_abla, aes(x = maximum_depth_cm
     color = "Tree ID"
   ) +
   theme_bw() +
-  scale_color_manual(values = c("1" = "red", "2" = "blue", "3" = "orange", "4" = "purple")) +  # Fix color mapping
+  scale_color_manual(values = treeid_colors) + 
+  #remove color legend 
+  guides(color = "none") +
+  scale_shape_manual(name = "Burn Status", values = c("GB" = 16, "DB" = 15)) +
   geom_text(data = p_SD_r2_values_abla, aes(x = Inf, y = Inf, label = R2_label),
-            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 5)
+            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 4)
 
 persb_SD_corr_plot_abla
 ```
@@ -2757,8 +2863,8 @@ t_AirTC_r2_values_accu <- transb_corr_data_accu %>%
 
 # Scatterplot
 transb_AirTC_corr_plot_accu <- ggplot(transb_corr_data_accu, aes(x = AirTC_Avg, y = well_diam, color = factor(tree_id))) +
-  geom_point() +  # Scatter points
-  geom_smooth(method = "lm", color = "black", se = FALSE) +  # Trendline
+  geom_point(aes(shape = burn_status), size = 2, alpha = 0.7) + 
+  geom_smooth(method = "lm", color = "grey", se = TRUE) +
   facet_wrap(~ tree_id) +  # Separate by tree_id
   labs(
     title = "TSZ: Accumulation, Air Temp",
@@ -2767,9 +2873,12 @@ transb_AirTC_corr_plot_accu <- ggplot(transb_corr_data_accu, aes(x = AirTC_Avg, 
     color = "Tree ID"
   ) +
   theme_bw() +
-  scale_color_manual(values = c("1" = "red", "2" = "blue", "3" = "orange", "4" = "purple")) +  # Fix color mapping
+  scale_color_manual(values = treeid_colors) + 
+  #remove color legend 
+  guides(color = "none") +
+  scale_shape_manual(name = "Burn Status", values = c("GB" = 16, "DB" = 15)) +
   geom_text(data = t_AirTC_r2_values_accu, aes(x = Inf, y = Inf, label = R2_label), 
-            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 5)
+            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 4)
 
 transb_AirTC_corr_plot_accu
 ```
@@ -2789,8 +2898,8 @@ t_AirTC_r2_values_abla <- transb_corr_data_abla %>%
 
 # Scatterplot
 transb_AirTC_corr_plot_abla <- ggplot(transb_corr_data_abla, aes(x = AirTC_Avg, y = well_diam, color = factor(tree_id))) +
-  geom_point() +  # Scatter points
-  geom_smooth(method = "lm", color = "black", se = FALSE) +  # Trendline
+  geom_point(aes(shape = burn_status), size = 2, alpha = 0.7) + 
+  geom_smooth(method = "lm", color = "grey", se = TRUE) +
   facet_wrap(~ tree_id) +  # Separate by tree_id
   labs(
     title = "TSZ: Ablation, Air Temp",
@@ -2799,9 +2908,12 @@ transb_AirTC_corr_plot_abla <- ggplot(transb_corr_data_abla, aes(x = AirTC_Avg, 
     color = "Tree ID"
   ) +
   theme_bw() +
-  scale_color_manual(values = c("1" = "red", "2" = "blue", "3" = "orange", "4" = "purple")) +  # Fix color mapping
+  scale_color_manual(values = treeid_colors) + 
+  #remove color legend 
+  guides(color = "none") +
+  scale_shape_manual(name = "Burn Status", values = c("GB" = 16, "DB" = 15)) +
   geom_text(data = t_AirTC_r2_values_abla, aes(x = Inf, y = Inf, label = R2_label), 
-            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 5)
+            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 4)
 
 transb_AirTC_corr_plot_abla
 ```
@@ -2821,8 +2933,8 @@ t_TreeTemp_r2_values_accu <- transb_corr_data_accu %>%
 
 # Scatterplot
 transb_TreeTemp_corr_plot_accu <- ggplot(transb_corr_data_accu, aes(x = mean_tree_temp, y = well_diam, color = factor(tree_id))) +
-  geom_point() +  # Scatter points
-  geom_smooth(method = "lm", color = "black", se = FALSE) +  # Trendline
+  geom_point(aes(shape = burn_status), size = 2, alpha = 0.7) + 
+  geom_smooth(method = "lm", color = "grey", se = TRUE) +
   facet_wrap(~ tree_id) +  # Separate by tree_id
   labs(
     title = "TSZ: Accumulation, Tree Temp",
@@ -2831,9 +2943,12 @@ transb_TreeTemp_corr_plot_accu <- ggplot(transb_corr_data_accu, aes(x = mean_tre
     color = "Tree ID"
   ) +
   theme_bw() +
-  scale_color_manual(values = c("1" = "red", "2" = "blue", "3" = "orange", "4" = "purple")) +  # Fix color mapping
+  scale_color_manual(values = treeid_colors) + 
+  #remove color legend 
+  guides(color = "none") +
+  scale_shape_manual(name = "Burn Status", values = c("GB" = 16, "DB" = 15)) +
   geom_text(data = t_TreeTemp_r2_values_accu, aes(x = Inf, y = Inf, label = R2_label), 
-            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 5)
+            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 4)
 
 transb_TreeTemp_corr_plot_accu
 ```
@@ -2853,8 +2968,8 @@ t_TreeTemp_r2_values_abla <- transb_corr_data_abla %>%
 
 # Scatterplot
 transb_TreeTemp_corr_plot_abla <- ggplot(transb_corr_data_abla, aes(x = mean_tree_temp, y = well_diam, color = factor(tree_id))) +
-  geom_point() +  # Scatter points
-  geom_smooth(method = "lm", color = "black", se = FALSE) +  # Trendline
+  geom_point(aes(shape = burn_status), size = 2, alpha = 0.7) + 
+  geom_smooth(method = "lm", color = "grey", se = TRUE) +
   facet_wrap(~ tree_id) +  # Separate by tree_id
   labs(
     title = "TSZ: Ablation, Tree Temp",
@@ -2863,9 +2978,12 @@ transb_TreeTemp_corr_plot_abla <- ggplot(transb_corr_data_abla, aes(x = mean_tre
     color = "Tree ID"
   ) +
   theme_bw() +
-  scale_color_manual(values = c("1" = "red", "2" = "blue", "3" = "orange", "4" = "purple")) +  # Fix color mapping
+  scale_color_manual(values = treeid_colors) + 
+  #remove color legend 
+  guides(color = "none") +
+  scale_shape_manual(name = "Burn Status", values = c("GB" = 16, "DB" = 15)) +
   geom_text(data = t_TreeTemp_r2_values_abla, aes(x = Inf, y = Inf, label = R2_label), 
-            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 5)
+            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 4)
 
 transb_TreeTemp_corr_plot_abla
 ```
@@ -2885,8 +3003,8 @@ t_NetSW_r2_values_accu <- transb_corr_data_accu %>%
 
 # Scatterplot
 transb_NetSW_corr_plot_accu <- ggplot(transb_corr_data_accu, aes(x = SWnet_Avg, y = well_diam, color = factor(tree_id))) +
-  geom_point() +  # Scatter points
-  geom_smooth(method = "lm", color = "black", se = FALSE) +  # Trendline
+  geom_point(aes(shape = burn_status), size = 2, alpha = 0.7) + 
+  geom_smooth(method = "lm", color = "grey", se = TRUE) +
   facet_wrap(~ tree_id) +  # Separate by tree_id
   labs(
     title = "TSZ: Accumulation, Net SW Radiation",
@@ -2895,9 +3013,12 @@ transb_NetSW_corr_plot_accu <- ggplot(transb_corr_data_accu, aes(x = SWnet_Avg, 
     color = "Tree ID"
   ) +
   theme_bw() +
-  scale_color_manual(values = c("1" = "red", "2" = "blue", "3" = "orange", "4" = "purple")) +  # Fix color mapping
+  scale_color_manual(values = treeid_colors) + 
+  #remove color legend 
+  guides(color = "none") +
+  scale_shape_manual(name = "Burn Status", values = c("GB" = 16, "DB" = 15)) +
   geom_text(data = t_NetSW_r2_values_accu, aes(x = Inf, y = Inf, label = R2_label), 
-            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 5)
+            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 4)
 
 transb_NetSW_corr_plot_accu
 ```
@@ -2917,8 +3038,8 @@ t_NetSW_r2_values_abla <- transb_corr_data_abla %>%
 
 # Scatterplot
 transb_NetSW_corr_plot_abla <- ggplot(transb_corr_data_abla, aes(x = SWnet_Avg, y = well_diam, color = factor(tree_id))) +
-  geom_point() +  # Scatter points
-  geom_smooth(method = "lm", color = "black", se = FALSE) +  # Trendline
+  geom_point(aes(shape = burn_status), size = 2, alpha = 0.7) + 
+  geom_smooth(method = "lm", color = "grey", se = TRUE) +
   facet_wrap(~ tree_id) +  # Separate by tree_id
   labs(
     title = "TSZ: Ablation, Net SW Radiation",
@@ -2927,9 +3048,12 @@ transb_NetSW_corr_plot_abla <- ggplot(transb_corr_data_abla, aes(x = SWnet_Avg, 
     color = "Tree ID"
   ) +
   theme_bw() +
-  scale_color_manual(values = c("1" = "red", "2" = "blue", "3" = "orange", "4" = "purple")) +  # Fix color mapping
+  scale_color_manual(values = treeid_colors) + 
+  #remove color legend 
+  guides(color = "none") +
+  scale_shape_manual(name = "Burn Status", values = c("GB" = 16, "DB" = 15)) +
   geom_text(data = t_NetSW_r2_values_abla, aes(x = Inf, y = Inf, label = R2_label), 
-            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 5)
+            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 4)
 
 transb_NetSW_corr_plot_abla
 ```
@@ -2949,8 +3073,8 @@ t_NetLW_r2_values_accu <- transb_corr_data_accu %>%
 
 # Scatterplot
 transb_NetLW_corr_plot_accu <- ggplot(transb_corr_data_accu, aes(x = LWnet_Avg, y = well_diam, color = factor(tree_id))) +
-  geom_point() +  # Scatter points
-  geom_smooth(method = "lm", color = "black", se = FALSE) +  # Trendline
+  geom_point(aes(shape = burn_status), size = 2, alpha = 0.7) + 
+  geom_smooth(method = "lm", color = "grey", se = TRUE) +
   facet_wrap(~ tree_id) +  # Separate by tree_id
   labs(
     title = "TSZ: Accumulation, Net LW Radiation",
@@ -2959,9 +3083,12 @@ transb_NetLW_corr_plot_accu <- ggplot(transb_corr_data_accu, aes(x = LWnet_Avg, 
     color = "Tree ID"
   ) +
   theme_bw() +
-  scale_color_manual(values = c("1" = "red", "2" = "blue", "3" = "orange", "4" = "purple")) +  # Fix color mapping
+  scale_color_manual(values = treeid_colors) + 
+  #remove color legend 
+  guides(color = "none") +
+  scale_shape_manual(name = "Burn Status", values = c("GB" = 16, "DB" = 15)) +
   geom_text(data = t_NetLW_r2_values_accu, aes(x = Inf, y = Inf, label = R2_label), 
-            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 5)
+            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 4)
 
 transb_NetLW_corr_plot_accu
 ```
@@ -2981,8 +3108,8 @@ t_NetLW_r2_values_abla <- transb_corr_data_abla %>%
 
 # Scatterplot
 transb_NetLW_corr_plot_abla <- ggplot(transb_corr_data_abla, aes(x = LWnet_Avg, y = well_diam, color = factor(tree_id))) +
-  geom_point() +  # Scatter points
-  geom_smooth(method = "lm", color = "black", se = FALSE) +  # Trendline
+  geom_point(aes(shape = burn_status), size = 2, alpha = 0.7) + 
+  geom_smooth(method = "lm", color = "grey", se = TRUE) +
   facet_wrap(~ tree_id) +  # Separate by tree_id
   labs(
     title = "TSZ: Ablation, Net LW Radiation",
@@ -2991,9 +3118,12 @@ transb_NetLW_corr_plot_abla <- ggplot(transb_corr_data_abla, aes(x = LWnet_Avg, 
     color = "Tree ID"
   ) +
   theme_bw() +
-  scale_color_manual(values = c("1" = "red", "2" = "blue", "3" = "orange", "4" = "purple")) +  # Fix color mapping
+  scale_color_manual(values = treeid_colors) + 
+  #remove color legend 
+  guides(color = "none") +
+  scale_shape_manual(name = "Burn Status", values = c("GB" = 16, "DB" = 15)) +
   geom_text(data = t_NetLW_r2_values_abla, aes(x = Inf, y = Inf, label = R2_label), 
-            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 5)
+            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 4)
 
 transb_NetLW_corr_plot_abla
 ```
@@ -3013,8 +3143,8 @@ t_NR_r2_values_accu <- transb_corr_data_accu %>%
 
 # Scatterplot
 transb_NR_corr_plot_accu <- ggplot(transb_corr_data_accu, aes(x = NR_Avg, y = well_diam, color = factor(tree_id))) +
-  geom_point() +  # Scatter points
-  geom_smooth(method = "lm", color = "black", se = FALSE) +  # Trendline
+  geom_point(aes(shape = burn_status), size = 2, alpha = 0.7) + 
+  geom_smooth(method = "lm", color = "grey", se = TRUE) +
   facet_wrap(~ tree_id) +  # Separate by tree_id
   labs(
     title = "TSZ: Accumulation, Net Radiation",
@@ -3023,9 +3153,12 @@ transb_NR_corr_plot_accu <- ggplot(transb_corr_data_accu, aes(x = NR_Avg, y = we
     color = "Tree ID"
   ) +
   theme_bw() +
-  scale_color_manual(values = c("1" = "red", "2" = "blue", "3" = "orange", "4" = "purple")) +  # Fix color mapping
+  scale_color_manual(values = treeid_colors) + 
+  #remove color legend 
+  guides(color = "none") +
+  scale_shape_manual(name = "Burn Status", values = c("GB" = 16, "DB" = 15)) +
   geom_text(data = t_NetLW_r2_values_accu, aes(x = Inf, y = Inf, label = R2_label), 
-            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 5)
+            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 4)
 
 transb_NR_corr_plot_accu
 ```
@@ -3045,8 +3178,8 @@ t_NR_r2_values_abla <- transb_corr_data_abla %>%
 
 # Scatterplot
 transb_NR_corr_plot_abla <- ggplot(transb_corr_data_abla, aes(x = NR_Avg, y = well_diam, color = factor(tree_id))) +
-  geom_point() +  # Scatter points
-  geom_smooth(method = "lm", color = "black", se = FALSE) +  # Trendline
+  geom_point(aes(shape = burn_status), size = 2, alpha = 0.7) + 
+  geom_smooth(method = "lm", color = "grey", se = TRUE) +
   facet_wrap(~ tree_id) +  # Separate by tree_id
   labs(
     title = "TSZ: Ablation, Net Radiation",
@@ -3055,9 +3188,12 @@ transb_NR_corr_plot_abla <- ggplot(transb_corr_data_abla, aes(x = NR_Avg, y = we
     color = "Tree ID"
   ) +
   theme_bw() +
-  scale_color_manual(values = c("1" = "red", "2" = "blue", "3" = "orange", "4" = "purple")) +  # Fix color mapping
+  scale_color_manual(values = treeid_colors) + 
+  #remove color legend 
+  guides(color = "none") +
+  scale_shape_manual(name = "Burn Status", values = c("GB" = 16, "DB" = 15)) +
   geom_text(data = t_NetLW_r2_values_abla, aes(x = Inf, y = Inf, label = R2_label), 
-            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 5)
+            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 4)
 
 transb_NR_corr_plot_abla
 ```
@@ -3077,8 +3213,8 @@ t_SD_r2_values_accu <- transb_corr_data_accu %>%
 
 # Scatterplot
 transb_SD_corr_plot_accu <- ggplot(transb_corr_data_accu, aes(x = maximum_depth_cm, y = well_diam, color = factor(tree_id))) +
-  geom_point() +  # Scatter points
-  geom_smooth(method = "lm", color = "black", se = FALSE) +  # Trendline
+  geom_point(aes(shape = burn_status), size = 2, alpha = 0.7) + 
+  geom_smooth(method = "lm", color = "grey", se = TRUE) +
   facet_wrap(~ tree_id) +  # Separate by tree_id
   labs(
     title = "TSZ: Accumulation, Snow Depth",
@@ -3087,9 +3223,12 @@ transb_SD_corr_plot_accu <- ggplot(transb_corr_data_accu, aes(x = maximum_depth_
     color = "Tree ID"
   ) +
   theme_bw() +
-  scale_color_manual(values = c("1" = "red", "2" = "blue", "3" = "orange", "4" = "purple")) +  # Fix color mapping
+  scale_color_manual(values = treeid_colors) + 
+  #remove color legend 
+  guides(color = "none") +
+  scale_shape_manual(name = "Burn Status", values = c("GB" = 16, "DB" = 15)) +
   geom_text(data = t_SD_r2_values_accu, aes(x = Inf, y = Inf, label = R2_label), 
-            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 5)
+            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 4)
 
 transb_SD_corr_plot_accu
 ```
@@ -3109,8 +3248,8 @@ t_SD_r2_values_abla <- transb_corr_data_abla%>%
 
 # Scatterplot
 transb_SD_corr_plot_abla <- ggplot(transb_corr_data_abla, aes(x = maximum_depth_cm, y = well_diam, color = factor(tree_id))) +
-  geom_point() +  # Scatter points
-  geom_smooth(method = "lm", color = "black", se = FALSE) +  # Trendline
+  geom_point(aes(shape = burn_status), size = 2, alpha = 0.7) + 
+  geom_smooth(method = "lm", color = "grey", se = TRUE) +
   facet_wrap(~ tree_id) +  # Separate by tree_id
   labs(
     title = "TSZ: Ablation, Snow Depth",
@@ -3119,9 +3258,12 @@ transb_SD_corr_plot_abla <- ggplot(transb_corr_data_abla, aes(x = maximum_depth_
     color = "Tree ID"
   ) +
   theme_bw() +
-  scale_color_manual(values = c("1" = "red", "2" = "blue", "3" = "orange", "4" = "purple")) +  # Fix color mapping
+  scale_color_manual(values = treeid_colors) + 
+  #remove color legend 
+  guides(color = "none") +
+  scale_shape_manual(name = "Burn Status", values = c("GB" = 16, "DB" = 15)) +
   geom_text(data = t_SD_r2_values_abla, aes(x = Inf, y = Inf, label = R2_label), 
-            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 5)
+            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 4)
 
 transb_SD_corr_plot_abla
 ```
