@@ -2437,7 +2437,7 @@ persb_TreeTemp_corr_plot_accu
 ```
 
 ```{r}
-ggsave("persb_TreeTemp_corr_plot_accu.png", plot = persb_AirTC_corr_plot_accu, dpi = 600)
+ggsave("persb_TreeTemp_corr_plot_accu.png", plot = persb_TreeTemp_corr_plot_accu, dpi = 600)
 ```
 
 ```{r}
@@ -2467,7 +2467,7 @@ persb_TreeTemp_corr_plot_abla
 ```
 
 ```{r}
-ggsave("persb_TreeTemp_corr_plot_abla.png", plot = persb_AirTC_corr_plot_abla, dpi = 600)
+ggsave("persb_TreeTemp_corr_plot_abla.png", plot = persb_TreeTemp_corr_plot_abla, dpi = 600)
 ```
 
 \*\* when I include only ablation dates, the R\^2 value increases substantially
@@ -2762,8 +2762,8 @@ transb_AirTC_corr_plot_accu <- ggplot(transb_corr_data_accu, aes(x = AirTC_Avg, 
   facet_wrap(~ tree_id) +  # Separate by tree_id
   labs(
     title = "TSZ: Accumulation, Air Temp",
-    y = "Air Temperature (°C)",
-    x = "Well Diameter (cm)",
+    x = "Air Temperature (°C)",
+    y = "Well Diameter (cm)",
     color = "Tree ID"
   ) +
   theme_bw() +
@@ -2772,6 +2772,10 @@ transb_AirTC_corr_plot_accu <- ggplot(transb_corr_data_accu, aes(x = AirTC_Avg, 
             hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 5)
 
 transb_AirTC_corr_plot_accu
+```
+
+```{r}
+ggsave("transb_AirTC_corr_plot_accu.png", plot = transb_AirTC_corr_plot_accu, dpi = 600)
 ```
 
 ```{r}
@@ -2790,8 +2794,8 @@ transb_AirTC_corr_plot_abla <- ggplot(transb_corr_data_abla, aes(x = AirTC_Avg, 
   facet_wrap(~ tree_id) +  # Separate by tree_id
   labs(
     title = "TSZ: Ablation, Air Temp",
-    y = "Air Temperature (°C)",
-    x = "Well Diameter (cm)",
+    x = "Air Temperature (°C)",
+    y = "Well Diameter (cm)",
     color = "Tree ID"
   ) +
   theme_bw() +
@@ -2800,6 +2804,10 @@ transb_AirTC_corr_plot_abla <- ggplot(transb_corr_data_abla, aes(x = AirTC_Avg, 
             hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 5)
 
 transb_AirTC_corr_plot_abla
+```
+
+```{r}
+ggsave("transb_AirTC_corr_plot_abla.png", plot = transb_AirTC_corr_plot_abla, dpi = 600)
 ```
 
 ```{r}
@@ -2818,8 +2826,8 @@ transb_TreeTemp_corr_plot_accu <- ggplot(transb_corr_data_accu, aes(x = mean_tre
   facet_wrap(~ tree_id) +  # Separate by tree_id
   labs(
     title = "TSZ: Accumulation, Tree Temp",
-    y = "Tree Temperature (°C)",
-    x = "Well Diameter (cm)",
+    x = "Tree Temperature (°C)",
+    y = "Well Diameter (cm)",
     color = "Tree ID"
   ) +
   theme_bw() +
@@ -2828,6 +2836,10 @@ transb_TreeTemp_corr_plot_accu <- ggplot(transb_corr_data_accu, aes(x = mean_tre
             hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 5)
 
 transb_TreeTemp_corr_plot_accu
+```
+
+```{r}
+ggsave("transb_TreeTemp_corr_plot_accu.png", plot = transb_TreeTemp_corr_plot_accu, dpi = 600)
 ```
 
 ```{r}
@@ -2846,8 +2858,8 @@ transb_TreeTemp_corr_plot_abla <- ggplot(transb_corr_data_abla, aes(x = mean_tre
   facet_wrap(~ tree_id) +  # Separate by tree_id
   labs(
     title = "TSZ: Ablation, Tree Temp",
-    y = "Tree Temperature (°C)",
-    x = "Well Diameter (cm)",
+    x = "Tree Temperature (°C)",
+    y = "Well Diameter (cm)",
     color = "Tree ID"
   ) +
   theme_bw() +
@@ -2856,6 +2868,10 @@ transb_TreeTemp_corr_plot_abla <- ggplot(transb_corr_data_abla, aes(x = mean_tre
             hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 5)
 
 transb_TreeTemp_corr_plot_abla
+```
+
+```{r}
+ggsave("transb_TreeTemp_corr_plot_abla.png", plot = transb_TreeTemp_corr_plot_abla, dpi = 600)
 ```
 
 ```{r}
@@ -2874,8 +2890,8 @@ transb_NetSW_corr_plot_accu <- ggplot(transb_corr_data_accu, aes(x = SWnet_Avg, 
   facet_wrap(~ tree_id) +  # Separate by tree_id
   labs(
     title = "TSZ: Accumulation, Net SW Radiation",
-    y = "Net SW Radiation (W/m^2)",
-    x = "Well Diameter (cm)",
+    x = "Net SW Radiation (W/m^2)",
+    y = "Well Diameter (cm)",
     color = "Tree ID"
   ) +
   theme_bw() +
@@ -2884,6 +2900,10 @@ transb_NetSW_corr_plot_accu <- ggplot(transb_corr_data_accu, aes(x = SWnet_Avg, 
             hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 5)
 
 transb_NetSW_corr_plot_accu
+```
+
+```{r}
+ggsave("transb_NetSW_corr_plot_accu.png", plot = transb_NetSW_corr_plot_accu, dpi = 600)
 ```
 
 ```{r}
@@ -2902,8 +2922,8 @@ transb_NetSW_corr_plot_abla <- ggplot(transb_corr_data_abla, aes(x = SWnet_Avg, 
   facet_wrap(~ tree_id) +  # Separate by tree_id
   labs(
     title = "TSZ: Ablation, Net SW Radiation",
-    y = "Net SW Radiation (W/m^2)",
-    x = "Well Diameter (cm)",
+    x = "Net SW Radiation (W/m^2)",
+    y = "Well Diameter (cm)",
     color = "Tree ID"
   ) +
   theme_bw() +
@@ -2912,4 +2932,200 @@ transb_NetSW_corr_plot_abla <- ggplot(transb_corr_data_abla, aes(x = SWnet_Avg, 
             hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 5)
 
 transb_NetSW_corr_plot_abla
+```
+
+```{r}
+ggsave("transb_NetSW_corr_plot_abla.png", plot = transb_NetSW_corr_plot_abla, dpi = 600)
+```
+
+```{r}
+# Net LW Correlation
+# Compute R^2 for each tree_id
+t_NetLW_r2_values_accu <- transb_corr_data_accu %>%
+  drop_na(well_diam, LWnet_Avg) %>%  # Remove rows where either column is NA
+  group_by(tree_id) %>%
+  summarize(R2 = cor(well_diam, LWnet_Avg, use = "complete.obs")^2, .groups = "drop") %>%
+  mutate(R2_label = paste0("R² = ", round(R2, 3))) # Create label for plotting
+
+# Scatterplot
+transb_NetLW_corr_plot_accu <- ggplot(transb_corr_data_accu, aes(x = LWnet_Avg, y = well_diam, color = factor(tree_id))) +
+  geom_point() +  # Scatter points
+  geom_smooth(method = "lm", color = "black", se = FALSE) +  # Trendline
+  facet_wrap(~ tree_id) +  # Separate by tree_id
+  labs(
+    title = "TSZ: Accumulation, Net LW Radiation",
+    x = "Net LW Radiation (W/m^2)",
+    y = "Well Diameter (cm)",
+    color = "Tree ID"
+  ) +
+  theme_bw() +
+  scale_color_manual(values = c("1" = "red", "2" = "blue", "3" = "orange", "4" = "purple")) +  # Fix color mapping
+  geom_text(data = t_NetLW_r2_values_accu, aes(x = Inf, y = Inf, label = R2_label), 
+            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 5)
+
+transb_NetLW_corr_plot_accu
+```
+
+```{r}
+ggsave("transb_NetLW_corr_plot_accu.png", plot = transb_NetLW_corr_plot_accu, dpi = 600)
+```
+
+```{r}
+# Net LW Correlation
+# Compute R^2 for each tree_id
+t_NetLW_r2_values_abla <- transb_corr_data_abla %>%
+  drop_na(well_diam, LWnet_Avg) %>%  # Remove rows where either column is NA
+  group_by(tree_id) %>%
+  summarize(R2 = cor(well_diam, LWnet_Avg, use = "complete.obs")^2, .groups = "drop") %>%
+  mutate(R2_label = paste0("R² = ", round(R2, 3))) # Create label for plotting
+
+# Scatterplot
+transb_NetLW_corr_plot_abla <- ggplot(transb_corr_data_abla, aes(x = LWnet_Avg, y = well_diam, color = factor(tree_id))) +
+  geom_point() +  # Scatter points
+  geom_smooth(method = "lm", color = "black", se = FALSE) +  # Trendline
+  facet_wrap(~ tree_id) +  # Separate by tree_id
+  labs(
+    title = "TSZ: Ablation, Net LW Radiation",
+    x = "Net LW Radiation (W/m^2)",
+    y = "Well Diameter (cm)",
+    color = "Tree ID"
+  ) +
+  theme_bw() +
+  scale_color_manual(values = c("1" = "red", "2" = "blue", "3" = "orange", "4" = "purple")) +  # Fix color mapping
+  geom_text(data = t_NetLW_r2_values_abla, aes(x = Inf, y = Inf, label = R2_label), 
+            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 5)
+
+transb_NetLW_corr_plot_abla
+```
+
+```{r}
+ggsave("transb_NetLW_corr_plot_abla.png", plot = transb_NetLW_corr_plot_abla, dpi = 600)
+```
+
+```{r}
+# Net Radiation Correlation
+# Compute R^2 for each tree_id
+t_NR_r2_values_accu <- transb_corr_data_accu %>%
+  drop_na(well_diam, NR_Avg) %>%  # Remove rows where either column is NA
+  group_by(tree_id) %>%
+  summarize(R2 = cor(well_diam, LWnet_Avg, use = "complete.obs")^2, .groups = "drop") %>%
+  mutate(R2_label = paste0("R² = ", round(R2, 3))) # Create label for plotting
+
+# Scatterplot
+transb_NR_corr_plot_accu <- ggplot(transb_corr_data_accu, aes(x = NR_Avg, y = well_diam, color = factor(tree_id))) +
+  geom_point() +  # Scatter points
+  geom_smooth(method = "lm", color = "black", se = FALSE) +  # Trendline
+  facet_wrap(~ tree_id) +  # Separate by tree_id
+  labs(
+    title = "TSZ: Accumulation, Net Radiation",
+    x = "Total Net Radiation (W/m^2)",
+    y = "Well Diameter (cm)",
+    color = "Tree ID"
+  ) +
+  theme_bw() +
+  scale_color_manual(values = c("1" = "red", "2" = "blue", "3" = "orange", "4" = "purple")) +  # Fix color mapping
+  geom_text(data = t_NetLW_r2_values_accu, aes(x = Inf, y = Inf, label = R2_label), 
+            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 5)
+
+transb_NR_corr_plot_accu
+```
+
+```{r}
+ggsave("transb_NR_corr_plot_accu.png", plot = transb_NR_corr_plot_accu, dpi = 600)
+```
+
+```{r}
+# Net Radiation Correlation
+# Compute R^2 for each tree_id
+t_NR_r2_values_abla <- transb_corr_data_abla %>%
+  drop_na(well_diam, NR_Avg) %>%  # Remove rows where either column is NA
+  group_by(tree_id) %>%
+  summarize(R2 = cor(well_diam, LWnet_Avg, use = "complete.obs")^2, .groups = "drop") %>%
+  mutate(R2_label = paste0("R² = ", round(R2, 3))) # Create label for plotting
+
+# Scatterplot
+transb_NR_corr_plot_abla <- ggplot(transb_corr_data_abla, aes(x = NR_Avg, y = well_diam, color = factor(tree_id))) +
+  geom_point() +  # Scatter points
+  geom_smooth(method = "lm", color = "black", se = FALSE) +  # Trendline
+  facet_wrap(~ tree_id) +  # Separate by tree_id
+  labs(
+    title = "TSZ: Ablation, Net Radiation",
+    x = "Total Net Radiation (W/m^2)",
+    y = "Well Diameter (cm)",
+    color = "Tree ID"
+  ) +
+  theme_bw() +
+  scale_color_manual(values = c("1" = "red", "2" = "blue", "3" = "orange", "4" = "purple")) +  # Fix color mapping
+  geom_text(data = t_NetLW_r2_values_abla, aes(x = Inf, y = Inf, label = R2_label), 
+            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 5)
+
+transb_NR_corr_plot_abla
+```
+
+```{r}
+ggsave("transb_NR_corr_plot_abla.png", plot = transb_NR_corr_plot_abla, dpi = 600)
+```
+
+```{r}
+# Snow Depth Correlation
+# Compute R^2 for each tree_id
+t_SD_r2_values_accu <- transb_corr_data_accu %>%
+  drop_na(well_diam, maximum_depth_cm) %>%  # Remove rows where either column is NA
+  group_by(tree_id) %>%
+  summarize(R2 = cor(well_diam, maximum_depth_cm, use = "complete.obs")^2, .groups = "drop") %>%
+  mutate(R2_label = paste0("R² = ", round(R2, 3))) # Create label for plotting
+
+# Scatterplot
+transb_SD_corr_plot_accu <- ggplot(transb_corr_data_accu, aes(x = maximum_depth_cm, y = well_diam, color = factor(tree_id))) +
+  geom_point() +  # Scatter points
+  geom_smooth(method = "lm", color = "black", se = FALSE) +  # Trendline
+  facet_wrap(~ tree_id) +  # Separate by tree_id
+  labs(
+    title = "TSZ: Accumulation, Snow Depth",
+    x = "Daily Maximum Snow Depth (cm)",
+    y = "Well Diameter (cm)",
+    color = "Tree ID"
+  ) +
+  theme_bw() +
+  scale_color_manual(values = c("1" = "red", "2" = "blue", "3" = "orange", "4" = "purple")) +  # Fix color mapping
+  geom_text(data = t_SD_r2_values_accu, aes(x = Inf, y = Inf, label = R2_label), 
+            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 5)
+
+transb_SD_corr_plot_accu
+```
+
+```{r}
+ggsave("transb_SD_corr_plot_accu.png", plot = transb_SD_corr_plot_accu, dpi = 600)
+```
+
+```{r}
+# Snow Depth Correlation
+# Compute R^2 for each tree_id
+t_SD_r2_values_abla <- transb_corr_data_abla%>%
+  drop_na(well_diam, maximum_depth_cm) %>%  # Remove rows where either column is NA
+  group_by(tree_id) %>%
+  summarize(R2 = cor(well_diam, maximum_depth_cm, use = "complete.obs")^2, .groups = "drop") %>%
+  mutate(R2_label = paste0("R² = ", round(R2, 3))) # Create label for plotting
+
+# Scatterplot
+transb_SD_corr_plot_abla <- ggplot(transb_corr_data_abla, aes(x = maximum_depth_cm, y = well_diam, color = factor(tree_id))) +
+  geom_point() +  # Scatter points
+  geom_smooth(method = "lm", color = "black", se = FALSE) +  # Trendline
+  facet_wrap(~ tree_id) +  # Separate by tree_id
+  labs(
+    title = "TSZ: Ablation, Snow Depth",
+    x = "Daily Maximum Snow Depth (cm)",
+    y = "Well Diameter (cm)",
+    color = "Tree ID"
+  ) +
+  theme_bw() +
+  scale_color_manual(values = c("1" = "red", "2" = "blue", "3" = "orange", "4" = "purple")) +  # Fix color mapping
+  geom_text(data = t_SD_r2_values_abla, aes(x = Inf, y = Inf, label = R2_label), 
+            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 5)
+
+transb_SD_corr_plot_abla
+```
+
+```{r}
+ggsave("transb_SD_corr_plot_abla.png", plot = transb_SD_corr_plot_abla, dpi = 600)
 ```
