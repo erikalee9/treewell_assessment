@@ -1895,13 +1895,32 @@ persb_corr_abla <- persb_corr_long %>%
 ```
 
 ```{r}
-# AirTC Correlation
-# Compute R^2 for each tree_id
+#not using right now!
 p_AirTC_r2_values <- persb_corr_long %>%
   drop_na(well_diam_diff, AirTC_Avg) %>%  # Remove rows where either column is NA
   group_by(tree_id) %>%
   summarize(R2 = cor(well_diam_diff, AirTC_Avg, use = "complete.obs")^2, .groups = "drop") %>%
   mutate(R2_label = paste0("R² = ", round(R2, 3))) # Create label for plotting
+```
+
+```{r}
+# AirTC Correlation
+# Compute R^2 for each tree_id
+
+p_AirTC_results <- persb_corr_long %>%
+  drop_na(well_diam_diff, AirTC_Avg) %>%
+  group_by(tree_id) %>%
+  summarize(
+    cor_test = list(cor.test(well_diam_diff, AirTC_Avg, use = "complete.obs")),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
+    p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
+    R2_label = paste0("R² = ", round(R2, 3), "\n", "P-value = ", signif(p_value, 3))  # Stack values with newline
+  ) %>%
+  select(tree_id, R2_label)
+
 
 # Scatterplot with facet_wrap
 persb_AirTC_corr_plot <- ggplot(persb_corr_long, aes(x = AirTC_Avg, y = well_diam_diff, color = tree_id)) +
@@ -1916,11 +1935,10 @@ persb_AirTC_corr_plot <- ggplot(persb_corr_long, aes(x = AirTC_Avg, y = well_dia
   ) +
   theme_bw() +
   scale_color_manual(values = treeid_colors) + 
-  #remove color legend 
-  guides(color = "none") +
+  guides(color = "none") +  # Remove color legend
   scale_shape_manual(name = "Burn Status", values = c("GB" = 16, "DB" = 15)) +
-  geom_text(data = p_AirTC_r2_values_accu, aes(x = Inf, y = Inf, label = R2_label), 
-            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 5)
+  geom_text(data = p_AirTC_results, aes(x = Inf, y = Inf, label = R2_label), 
+            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 4)
 
 persb_AirTC_corr_plot
 ```
@@ -1960,13 +1978,31 @@ p_AirTC_r2_values_lag
 \*\* lagged results seem to decrease Rsquared value.
 
 ```{r}
-# Tree Temp Correlation
-# Compute R^2 for each tree_id
+#not using right now!
 p_TreeTemp_r2_values <- persb_corr_long %>%
   drop_na(well_diam_diff, mean_tree_temp) %>%  # Remove rows where either column is NA
   group_by(tree_id) %>%
   summarize(R2 = cor(well_diam_diff, mean_tree_temp, use = "complete.obs")^2, .groups = "drop") %>%
-  mutate(R2_label = paste0("R² = ", round(R2, 3))) # Create label for plotting
+  mutate(R2_label = paste0("R² = ", round(R2, 3)))
+```
+
+```{r}
+# Tree Temp Correlation
+# Compute R^2 for each tree_id
+
+p_TreeTemp_results <- persb_corr_long %>%
+  drop_na(well_diam_diff, mean_tree_temp) %>%
+  group_by(tree_id) %>%
+  summarize(
+    cor_test = list(cor.test(well_diam_diff, mean_tree_temp, use = "complete.obs")),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
+    p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
+    R2_label = paste0("R² = ", round(R2, 3), "\n", "P-value = ", signif(p_value, 3))  # Stack values with newline
+  ) %>%
+  select(tree_id, R2_label)
 
 # Scatterplot with facet_wrap
 persb_TreeTemp_corr_plot <- ggplot(persb_corr_long, aes(x = mean_tree_temp, y = well_diam_diff, color = tree_id)) +
@@ -1984,8 +2020,8 @@ persb_TreeTemp_corr_plot <- ggplot(persb_corr_long, aes(x = mean_tree_temp, y = 
   #remove color legend 
   guides(color = "none") +
   scale_shape_manual(name = "Burn Status", values = c("GB" = 16, "DB" = 15)) +
-  geom_text(data = p_TreeTemp_r2_values, aes(x = Inf, y = Inf, label = R2_label), 
-            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 5)
+  geom_text(data = p_TreeTemp_results, aes(x = Inf, y = Inf, label = R2_label), 
+            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 4)
 
 persb_TreeTemp_corr_plot
 ```
@@ -1995,13 +2031,30 @@ ggsave("persb_TreeTemp_corr_plot.png", plot = persb_TreeTemp_corr_plot, dpi = 60
 ```
 
 ```{r}
-# SWin Correlation
-# Compute R^2 for each tree_id
+#not using right now!
 p_SWin_r2_values <- persb_corr_long %>%
   drop_na(well_diam_diff, SWin_Avg) %>%  # Remove rows where either column is NA
   group_by(tree_id) %>%
   summarize(R2 = cor(well_diam_diff, SWin_Avg, use = "complete.obs")^2, .groups = "drop") %>%
   mutate(R2_label = paste0("R² = ", round(R2, 3)))  # Create label for plotting
+```
+
+```{r}
+# SWin Correlation
+# Compute R^2 for each tree_id
+p_SWin_results <- persb_corr_long %>%
+  drop_na(well_diam_diff, SWin_Avg) %>%
+  group_by(tree_id) %>%
+  summarize(
+    cor_test = list(cor.test(well_diam_diff, SWin_Avg, use = "complete.obs")),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
+    p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
+    R2_label = paste0("R² = ", round(R2, 3), "\n", "P-value = ", signif(p_value, 3))  # Stack values with newline
+  ) %>%
+  select(tree_id, R2_label)
 
 # Scatterplot with facet_wrap
 persb_SWin_corr_plot <- ggplot(persb_corr_long, aes(x = SWin_Avg, y = well_diam_diff, color = tree_id)) +
@@ -2019,20 +2072,37 @@ persb_SWin_corr_plot <- ggplot(persb_corr_long, aes(x = SWin_Avg, y = well_diam_
   #remove color legend 
   guides(color = "none") +
   scale_shape_manual(name = "Burn Status", values = c("GB" = 16, "DB" = 15)) +
-  geom_text(data = p_SWin_r2_values, aes(x = Inf, y = Inf, label = R2_label), 
-            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 5)
+  geom_text(data = p_SWin_results, aes(x = Inf, y = Inf, label = R2_label), 
+            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 4)
 
 persb_SWin_corr_plot
 ```
 
 ```{r}
-# NetSW Correlation
-# Compute R^2 for each tree_id
+#not using right now!
 p_NetSW_r2_values <- persb_corr_long%>%
   drop_na(well_diam_diff, SWnet_Avg) %>%  # Remove rows where either column is NA
   group_by(tree_id) %>%
   summarize(R2 = cor(well_diam_diff, SWnet_Avg, use = "complete.obs")^2, .groups = "drop") %>%
   mutate(R2_label = paste0("R² = ", round(R2, 3)))  # Create label for plotting
+```
+
+```{r}
+# NetSW Correlation
+# Compute R^2 for each tree_id
+p_NetSW_results <- persb_corr_long %>%
+  drop_na(well_diam_diff, SWnet_Avg) %>%
+  group_by(tree_id) %>%
+  summarize(
+    cor_test = list(cor.test(well_diam_diff, SWnet_Avg, use = "complete.obs")),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
+    p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
+    R2_label = paste0("R² = ", round(R2, 3), "\n", "P-value = ", signif(p_value, 3))  # Stack values with newline
+  ) %>%
+  select(tree_id, R2_label)
 
 # Scatterplot with facet_wrap
 persb_NetSW_corr_plot <- ggplot(persb_corr_long, aes(x = SWnet_Avg, y = well_diam_diff, color = tree_id)) +
@@ -2050,8 +2120,8 @@ persb_NetSW_corr_plot <- ggplot(persb_corr_long, aes(x = SWnet_Avg, y = well_dia
   #remove color legend 
   guides(color = "none") +
   scale_shape_manual(name = "Burn Status", values = c("GB" = 16, "DB" = 15)) +
-  geom_text(data = p_NetSW_r2_values, aes(x = Inf, y = Inf, label = R2_label), 
-            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 5)
+ geom_text(data = p_NetSW_results, aes(x = Inf, y = Inf, label = R2_label), 
+            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 4)
 
 persb_NetSW_corr_plot
 ```
@@ -2061,13 +2131,30 @@ ggsave("persb_NetSW_corr_plot.png", plot = persb_NetSW_corr_plot, dpi = 600)
 ```
 
 ```{r}
-# NetLW Correlation
-# Compute R^2 for each tree_id
+#not using right now
 p_NetLW_r2_values <- persb_corr_long %>%
   drop_na(well_diam_diff, LWnet_Avg) %>%  # Remove rows where either column is NA
   group_by(tree_id) %>%
   summarize(R2 = cor(well_diam_diff, LWnet_Avg, use = "complete.obs")^2, .groups = "drop") %>%
   mutate(R2_label = paste0("R² = ", round(R2, 3)))  # Create label for plotting
+```
+
+```{r}
+# NetLW Correlation
+# Compute R^2 for each tree_id
+p_NetLW_results <- persb_corr_long %>%
+  drop_na(well_diam_diff, LWnet_Avg) %>%
+  group_by(tree_id) %>%
+  summarize(
+    cor_test = list(cor.test(well_diam_diff, LWnet_Avg, use = "complete.obs")),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
+    p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
+    R2_label = paste0("R² = ", round(R2, 3), "\n", "P-value = ", signif(p_value, 3))  # Stack values with newline
+  ) %>%
+  select(tree_id, R2_label)
 
 # Scatterplot with facet_wrap
 persb_NetLW_corr_plot <- ggplot(persb_corr_long, aes(x = LWnet_Avg, y = well_diam_diff, color = tree_id)) +
@@ -2085,8 +2172,8 @@ persb_NetLW_corr_plot <- ggplot(persb_corr_long, aes(x = LWnet_Avg, y = well_dia
   #remove color legend 
   guides(color = "none") +
   scale_shape_manual(name = "Burn Status", values = c("GB" = 16, "DB" = 15)) +
-  geom_text(data = p_NetLW_r2_values, aes(x = Inf, y = Inf, label = R2_label), 
-            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 5)
+   geom_text(data = p_NetLW_results, aes(x = Inf, y = Inf, label = R2_label), 
+            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 4)
 
 persb_NetLW_corr_plot
 ```
@@ -2096,13 +2183,30 @@ ggsave("persb_NetLW_corr_plot.png", plot = persb_NetLW_corr_plot, dpi = 600)
 ```
 
 ```{r}
-# Total net Radiation Correlation
-# Compute R^2 for each tree_id
+#not using right now!
 p_NR_r2_values <- persb_corr_long %>%
   drop_na(well_diam_diff, NR_Avg) %>%  # Remove rows where either column is NA
   group_by(tree_id) %>%
   summarize(R2 = cor(well_diam_diff, NR_Avg, use = "complete.obs")^2, .groups = "drop") %>%
   mutate(R2_label = paste0("R² = ", round(R2, 3)))  # Create label for plotting
+```
+
+```{r}
+# Total net Radiation Correlation
+# Compute R^2 for each tree_id
+p_NR_results <- persb_corr_long %>%
+  drop_na(well_diam_diff, NR_Avg) %>%
+  group_by(tree_id) %>%
+  summarize(
+    cor_test = list(cor.test(well_diam_diff, NR_Avg, use = "complete.obs")),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
+    p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
+    R2_label = paste0("R² = ", round(R2, 3), "\n", "P-value = ", signif(p_value, 3))  # Stack values with newline
+  ) %>%
+  select(tree_id, R2_label)
 
 # Scatterplot with facet_wrap
 persb_NR_corr_plot <- ggplot(persb_corr_long, aes(x = NR_Avg, y = well_diam_diff, color = tree_id)) +
@@ -2120,8 +2224,8 @@ persb_NR_corr_plot <- ggplot(persb_corr_long, aes(x = NR_Avg, y = well_diam_diff
   #remove color legend 
   guides(color = "none") +
   scale_shape_manual(name = "Burn Status", values = c("GB" = 16, "DB" = 15)) +
-  geom_text(data = p_NR_r2_values, aes(x = Inf, y = Inf, label = R2_label), 
-            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 5)
+  geom_text(data = p_NR_results, aes(x = Inf, y = Inf, label = R2_label), 
+            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 4)
 
 persb_NR_corr_plot
 ```
@@ -2131,13 +2235,30 @@ ggsave("persb_NR_corr_plot.png", plot = persb_NR_corr_plot, dpi = 600)
 ```
 
 ```{r}
-# NetLW Correlation
-# Compute R^2 for each tree_id
+#not using right now
 p_SD_r2_values <- persb_corr_long %>%
   drop_na(well_diam_diff, maximum_depth_cm) %>%  # Remove rows where either column is NA
   group_by(tree_id) %>%
   summarize(R2 = cor(well_diam_diff, maximum_depth_cm, use = "complete.obs")^2, .groups = "drop") %>%
-  mutate(R2_label = paste0("R² = ", round(R2, 3)))  # Create label for plotting
+  mutate(R2_label = paste0("R² = ", round(R2, 3))) 
+```
+
+```{r}
+# NetLW Correlation
+# Compute R^2 for each tree_id
+p_SD_results <- persb_corr_long %>%
+  drop_na(well_diam_diff, maximum_depth_cm) %>%
+  group_by(tree_id) %>%
+  summarize(
+    cor_test = list(cor.test(well_diam_diff, maximum_depth_cm, use = "complete.obs")),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
+    p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
+    R2_label = paste0("R² = ", round(R2, 3), "\n", "P-value = ", signif(p_value, 3))  # Stack values with newline
+  ) %>%
+  select(tree_id, R2_label)
 
 # Scatterplot with facet_wrap
 persb_SD_corr_plot <- ggplot(persb_corr_long, aes(x = maximum_depth_cm, y = well_diam_diff, color = tree_id)) +
@@ -2155,8 +2276,8 @@ persb_SD_corr_plot <- ggplot(persb_corr_long, aes(x = maximum_depth_cm, y = well
   #remove color legend 
   guides(color = "none") +
   scale_shape_manual(name = "Burn Status", values = c("GB" = 16, "DB" = 15)) +
-  geom_text(data = p_SD_r2_values, aes(x = Inf, y = Inf, label = R2_label), 
-            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 5)
+  geom_text(data = p_SD_results, aes(x = Inf, y = Inf, label = R2_label), 
+            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 4)
 
 persb_SD_corr_plot
 ```
@@ -2221,13 +2342,30 @@ transb_corr_may <- transb_corr_long %>%
 ```
 
 ```{r}
-# AirTC Correlation
-# Compute R^2 for each tree_id
+#not using right now
 t_AirTC_r2_values <- transb_corr_long %>%
   drop_na(well_diam_diff, AirTC_Avg) %>%  # Remove rows where either column is NA
   group_by(tree_id) %>%
   summarize(R2 = cor(well_diam_diff, AirTC_Avg, use = "complete.obs")^2, .groups = "drop") %>%
   mutate(R2_label = paste0("R² = ", round(R2, 3))) # Create label for plotting
+```
+
+```{r}
+# AirTC Correlation
+# Compute R^2 for each tree_id
+t_AirTC_results <- transb_corr_long %>%
+  drop_na(well_diam_diff, AirTC_Avg) %>%
+  group_by(tree_id) %>%
+  summarize(
+    cor_test = list(cor.test(well_diam_diff, AirTC_Avg, use = "complete.obs")),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
+    p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
+    R2_label = paste0("R² = ", round(R2, 3), "\n", "P-value = ", signif(p_value, 3))  # Stack values with newline
+  ) %>%
+  select(tree_id, R2_label)
 
 # Scatterplot with facet_wrap
 transb_AirTC_corr_plot <- ggplot(transb_corr_long, aes(x = AirTC_Avg, y = well_diam_diff, color = tree_id)) +
@@ -2245,8 +2383,8 @@ transb_AirTC_corr_plot <- ggplot(transb_corr_long, aes(x = AirTC_Avg, y = well_d
   #remove color legend 
   guides(color = "none") +
   scale_shape_manual(name = "Burn Status", values = c("GB" = 16, "DB" = 15)) +
-  geom_text(data = t_AirTC_r2_values, aes(x = Inf, y = Inf, label = R2_label), 
-            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 5)
+  geom_text(data = t_AirTC_results, aes(x = Inf, y = Inf, label = R2_label), 
+            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 4)
 
 transb_AirTC_corr_plot
 ```
@@ -2256,13 +2394,31 @@ ggsave("transb_AirTC_corr_plot.png", plot = transb_AirTC_corr_plot, dpi = 600)
 ```
 
 ```{r}
-# Tree Temp Cggsave("transb_SD_corr_plot.png", plot = persb_SD_corr_plot, dpi = 600)orrelation
-# Compute R^2 for each tree_id
+#not using right now!
 t_TreeTemp_r2_values <- transb_corr_long %>%
   drop_na(well_diam_diff, mean_tree_temp) %>%  # Remove rows where either column is NA
   group_by(tree_id) %>%
   summarize(R2 = cor(well_diam_diff, mean_tree_temp, use = "complete.obs")^2, .groups = "drop") %>%
   mutate(R2_label = paste0("R² = ", round(R2, 3))) # Create label for plotting
+
+```
+
+```{r}
+# Tree Temp
+# Compute R^2 for each tree_id
+t_TreeTemp_results <- transb_corr_long %>%
+  drop_na(well_diam_diff, mean_tree_temp) %>%
+  group_by(tree_id) %>%
+  summarize(
+    cor_test = list(cor.test(well_diam_diff, mean_tree_temp, use = "complete.obs")),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
+    p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
+    R2_label = paste0("R² = ", round(R2, 3), "\n", "P-value = ", signif(p_value, 3))  # Stack values with newline
+  ) %>%
+  select(tree_id, R2_label)
 
 # Scatterplot with facet_wrap
 transb_TreeTemp_corr_plot <- ggplot(transb_corr_long, aes(x = mean_tree_temp, y = well_diam_diff, color = tree_id)) +
@@ -2280,8 +2436,8 @@ transb_TreeTemp_corr_plot <- ggplot(transb_corr_long, aes(x = mean_tree_temp, y 
   #remove color legend 
   guides(color = "none") +
   scale_shape_manual(name = "Burn Status", values = c("GB" = 16, "DB" = 15)) +
-  geom_text(data = t_TreeTemp_r2_values, aes(x = Inf, y = Inf, label = R2_label), 
-            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 5)
+  geom_text(data = t_TreeTemp_results, aes(x = Inf, y = Inf, label = R2_label), 
+            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 4)
 
 transb_TreeTemp_corr_plot
 ```
@@ -2291,13 +2447,30 @@ ggsave("transb_TreeTemp_corr_plot.png", plot = transb_TreeTemp_corr_plot, dpi = 
 ```
 
 ```{r}
-# Net SW Correlation
-# Compute R^2 for each tree_id
+#not using right now!
 t_NetSW_r2_values <- transb_corr_long %>%
   drop_na(well_diam_diff, SWnet_Avg) %>%  # Remove rows where either column is NA
   group_by(tree_id) %>%
   summarize(R2 = cor(well_diam_diff, SWnet_Avg, use = "complete.obs")^2, .groups = "drop") %>%
   mutate(R2_label = paste0("R² = ", round(R2, 3)))  # Create label for plotting
+```
+
+```{r}
+# Net SW Correlation
+# Compute R^2 for each tree_id
+t_NetSW_results <- transb_corr_long %>%
+  drop_na(well_diam_diff, SWnet_Avg) %>%
+  group_by(tree_id) %>%
+  summarize(
+    cor_test = list(cor.test(well_diam_diff, SWnet_Avg, use = "complete.obs")),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
+    p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
+    R2_label = paste0("R² = ", round(R2, 3), "\n", "P-value = ", signif(p_value, 3))  # Stack values with newline
+  ) %>%
+  select(tree_id, R2_label)
 
 # Scatterplot with facet_wrap
 transb_NetSW_corr_plot <- ggplot(transb_corr_long, aes(x = SWnet_Avg, y = well_diam_diff, color = tree_id)) +
@@ -2315,8 +2488,8 @@ transb_NetSW_corr_plot <- ggplot(transb_corr_long, aes(x = SWnet_Avg, y = well_d
   #remove color legend 
   guides(color = "none") +
   scale_shape_manual(name = "Burn Status", values = c("GB" = 16, "DB" = 15)) +
-  geom_text(data = t_NetSW_r2_values, aes(x = Inf, y = Inf, label = R2_label), 
-            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 5)
+  geom_text(data = t_NetSW_results, aes(x = Inf, y = Inf, label = R2_label), 
+            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 4)
 
 transb_NetSW_corr_plot
 ```
@@ -2326,13 +2499,31 @@ ggsave("transb_NetSW_corr_plot.png", plot = transb_NetSW_corr_plot, dpi = 600)
 ```
 
 ```{r}
-# Net LW Correlation
-# Compute R^2 for each tree_id
+#not using right now!
 t_NetLW_r2_values <- transb_corr_long %>%
   drop_na(well_diam_diff, LWnet_Avg) %>%  # Remove rows where either column is NA
   group_by(tree_id) %>%
   summarize(R2 = cor(well_diam_diff, LWnet_Avg, use = "complete.obs")^2, .groups = "drop") %>%
   mutate(R2_label = paste0("R² = ", round(R2, 3)))  # Create label for plotting
+```
+
+```{r}
+# Net LW Correlation
+# Compute R^2 for each tree_id
+t_NetLW_results <- transb_corr_long %>%
+  drop_na(well_diam_diff, LWnet_Avg) %>%
+  group_by(tree_id) %>%
+  summarize(
+    cor_test = list(cor.test(well_diam_diff, LWnet_Avg, use = "complete.obs")),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
+    p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
+    R2_label = paste0("R² = ", round(R2, 3), "\n", "P-value = ", signif(p_value, 3))  # Stack values with newline
+  ) %>%
+  select(tree_id, R2_label)
+
 
 # Scatterplot with facet_wrap
 transb_NetLW_corr_plot <- ggplot(transb_corr_long, aes(x = LWnet_Avg, y = well_diam_diff, color = tree_id)) +
@@ -2350,8 +2541,8 @@ transb_NetLW_corr_plot <- ggplot(transb_corr_long, aes(x = LWnet_Avg, y = well_d
   #remove color legend 
   guides(color = "none") +
   scale_shape_manual(name = "Burn Status", values = c("GB" = 16, "DB" = 15)) +
-  geom_text(data = t_NetLW_r2_values, aes(x = Inf, y = Inf, label = R2_label), 
-            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 5)
+   geom_text(data = t_NetLW_results, aes(x = Inf, y = Inf, label = R2_label), 
+            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 4)
 
 transb_NetLW_corr_plot
 ```
@@ -2361,13 +2552,30 @@ ggsave("transb_NetLW_corr_plot.png", plot = transb_NetLW_corr_plot, dpi = 600)
 ```
 
 ```{r}
-# Total net Radiation Correlation
-# Compute R^2 for each tree_id
+#not using right now!
 t_NR_r2_values <- transb_corr_long %>%
   drop_na(well_diam_diff, NR_Avg) %>%  # Remove rows where either column is NA
   group_by(tree_id) %>%
   summarize(R2 = cor(well_diam_diff, NR_Avg, use = "complete.obs")^2, .groups = "drop") %>%
   mutate(R2_label = paste0("R² = ", round(R2, 3)))  # Create label for plotting
+```
+
+```{r}
+# Total net Radiation Correlation
+# Compute R^2 for each tree_id
+t_NR_results <- transb_corr_long %>%
+  drop_na(well_diam_diff, NR_Avg) %>%
+  group_by(tree_id) %>%
+  summarize(
+    cor_test = list(cor.test(well_diam_diff, NR_Avg, use = "complete.obs")),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
+    p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
+    R2_label = paste0("R² = ", round(R2, 3), "\n", "P-value = ", signif(p_value, 3))  # Stack values with newline
+  ) %>%
+  select(tree_id, R2_label)
 
 # Scatterplot with facet_wrap
 transb_NR_corr_plot <- ggplot(transb_corr_long, aes(x = NR_Avg, y = well_diam_diff, color = tree_id)) +
@@ -2385,8 +2593,9 @@ transb_NR_corr_plot <- ggplot(transb_corr_long, aes(x = NR_Avg, y = well_diam_di
   #remove color legend 
   guides(color = "none") +
   scale_shape_manual(name = "Burn Status", values = c("GB" = 16, "DB" = 15)) +
-  geom_text(data = t_NR_r2_values, aes(x = Inf, y = Inf, label = R2_label), 
-            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 5)
+  geom_text(data = t_NR_results, aes(x = Inf, y = Inf, label = R2_label), 
+            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 4)
+
 
 transb_NR_corr_plot
 ```
@@ -2396,13 +2605,30 @@ ggsave("transb_NR_corr_plot.png", plot = transb_NR_corr_plot, dpi = 600)
 ```
 
 ```{r}
-# Snow Depth Correlation
-# Compute R^2 for each tree_id
+#not using right now
 t_SD_r2_values <- transb_corr_long %>%
   drop_na(well_diam_diff, maximum_depth_cm) %>%  # Remove rows where either column is NA
   group_by(tree_id) %>%
   summarize(R2 = cor(well_diam_diff, maximum_depth_cm, use = "complete.obs")^2, .groups = "drop") %>%
   mutate(R2_label = paste0("R² = ", round(R2, 3)))  # Create label for plotting
+```
+
+```{r}
+# Snow Depth Correlation
+# Compute R^2 for each tree_id
+t_SD_results <- transb_corr_long %>%
+  drop_na(well_diam_diff, maximum_depth_cm) %>%
+  group_by(tree_id) %>%
+  summarize(
+    cor_test = list(cor.test(well_diam_diff, maximum_depth_cm, use = "complete.obs")),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
+    p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
+    R2_label = paste0("R² = ", round(R2, 3), "\n", "P-value = ", signif(p_value, 3))  # Stack values with newline
+  ) %>%
+  select(tree_id, R2_label)
 
 # Scatterplot with facet_wrap
 transb_SD_corr_plot <- ggplot(transb_corr_long, aes(x = maximum_depth_cm, y = well_diam_diff, color = tree_id)) +
@@ -2420,8 +2646,8 @@ transb_SD_corr_plot <- ggplot(transb_corr_long, aes(x = maximum_depth_cm, y = we
   #remove color legend 
   guides(color = "none") +
   scale_shape_manual(name = "Burn Status", values = c("GB" = 16, "DB" = 15)) +
-  geom_text(data = t_SD_r2_values, aes(x = Inf, y = Inf, label = R2_label), 
-            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 5)
+  geom_text(data = t_SD_results, aes(x = Inf, y = Inf, label = R2_label), 
+            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 4)
 
 transb_SD_corr_plot
 ```
@@ -2431,11 +2657,16 @@ ggsave("transb_SD_corr_plot.png", plot = transb_SD_corr_plot, dpi = 600)
 ```
 
 ```{r}
-# Calculate overall R^2 for all points - NOT facet wrapping R^2 of plot!
+#not using right now!
 t_single_SWin_r2_value <- transb_corr_long %>%
   drop_na(well_diam_diff, SWin_Avg) %>%  # Remove NA values
   summarize(R2 = cor(well_diam_diff, SWin_Avg, use = "complete.obs")^2) %>%
   mutate(R2_label = paste0("R² = ", round(R2, 3)))  # Create label for plotting
+```
+
+```{r}
+# Calculate overall R^2 for all points - NOT facet wrapping R^2 of plot!
+
 
 # Scatterplot colored by tree_id (without facet_wrap)
 transb_single_SWin_corr_plot <- ggplot(transb_corr_long, aes(x = SWin_Avg, y = well_diam_diff, color = tree_id)) +
@@ -2509,13 +2740,31 @@ persb_corr_data_abla<- comb_persb_treewell_diam_fullseason %>%
 ```
 
 ```{r}
-# AirTC Correlation
-# Compute R^2 for each tree_id
+#not using right now!
 p_AirTC_r2_values_accu <- persb_corr_data_accu %>%
   drop_na(well_diam, AirTC_Avg) %>%  # Remove rows where either column is NA
   group_by(tree_id) %>%
   summarize(R2 = cor(well_diam, AirTC_Avg, use = "complete.obs")^2, .groups = "drop") %>%
-  mutate(R2_label = paste0("R² = ", round(R2, 3))) # Create label for plotting
+  mutate(R2_label = paste0("R² = ", round(R2, 3)))
+```
+
+```{r}
+# AirTC Correlation
+# Compute R^2 for each tree_id
+p_AirTC_accu_results <- persb_corr_data_accu %>%
+  drop_na(well_diam, AirTC_Avg) %>%
+  group_by(tree_id) %>%
+  summarize(
+    cor_test = list(cor.test(well_diam, AirTC_Avg, use = "complete.obs")),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
+    p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
+    R2_label = paste0("R² = ", round(R2, 3), "\n", "P-value = ", signif(p_value, 3))  # Stack values with newline
+  ) %>%
+  select(tree_id, R2_label)
+
 
 # Scatterplot
 persb_AirTC_corr_plot_accu <- ggplot(persb_corr_data_accu, aes(x = AirTC_Avg, y = well_diam, color = factor(tree_id))) +
@@ -2533,7 +2782,7 @@ persb_AirTC_corr_plot_accu <- ggplot(persb_corr_data_accu, aes(x = AirTC_Avg, y 
   #remove color legend 
   guides(color = "none") +
   scale_shape_manual(name = "Burn Status", values = c("GB" = 16, "DB" = 15)) +
-  geom_text(data = p_AirTC_r2_values_accu, aes(x = Inf, y = Inf, label = R2_label), 
+  geom_text(data = p_AirTC_accu_results, aes(x = Inf, y = Inf, label = R2_label), 
             hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 4)
 
 persb_AirTC_corr_plot_accu
@@ -3362,4 +3611,91 @@ transb_SD_corr_plot_abla
 
 ```{r}
 ggsave("transb_SD_corr_plot_abla.png", plot = transb_SD_corr_plot_abla, dpi = 600)
+```
+
+## New Snow Depth vs Diameter Scatterplots
+
+PSZ
+
+```{r}
+persb_corr_data_abla_V2 <- persb_corr_data_abla %>%
+  filter(date >= "2024-05-06")
+```
+
+```{r}
+p_SD_r2_values_abla_V2 <- persb_corr_data_abla_V2 %>%
+  drop_na(well_diam, maximum_depth_cm) %>%  # Remove rows where either column is NA
+  group_by(tree_id) %>%
+  summarize(R2 = cor(well_diam, maximum_depth_cm, use = "complete.obs")^2, .groups = "drop") %>%
+  mutate(R2_label = paste0("R² = ", round(R2, 3))) # Create label for plotting
+
+# Scatterplot
+persb_SD_abla_wellsnowdepth <- ggplot(persb_corr_data_abla_V2, aes(x = maximum_depth_cm, y = well_diam, color = factor(tree_id))) +
+  geom_point(aes(shape = burn_status), size = 2, alpha = 0.7) + 
+  geom_smooth(method = "lm", color = "grey", se = TRUE) +
+  facet_wrap(~ tree_id, nrow = 1, ncol = 4) +  # Separate by tree_id
+  labs(
+    title = "a) PSZ",
+    x = NULL,
+    y = "Well Diameter (cm)",
+    color = "Tree ID"
+  ) +
+  theme_bw() +
+  scale_color_manual(values = treeid_colors) + 
+  scale_y_continuous(limits = c(NA, 200)) + 
+  #remove color legend 
+  guides(color = "none") +
+  scale_shape_manual(name = "Burn Status", values = c("GB" = 16, "DB" = 15)) +
+  geom_text(data = p_SD_r2_values_abla_V2, aes(x = Inf, y = Inf, label = R2_label),
+            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 4)
+
+persb_SD_abla_wellsnowdepth
+```
+
+TSZ
+
+```{r}
+transb_corr_data_abla_V2 <- transb_corr_data_abla %>%
+  filter(date >= "2024-04-01" & date <= "2024-04-25")
+```
+
+```{r}
+t_SD_r2_values_abla_V2 <- transb_corr_data_abla_V2 %>%
+  drop_na(well_diam, maximum_depth_cm) %>%  # Remove rows where either column is NA
+  group_by(tree_id) %>%
+  summarize(R2 = cor(well_diam, maximum_depth_cm, use = "complete.obs")^2, .groups = "drop") %>%
+  mutate(R2_label = paste0("R² = ", round(R2, 3))) # Create label for plotting
+
+# Scatterplot
+transb_SD_abla_wellsnowdepth <- ggplot(transb_corr_data_abla_V2, aes(x = maximum_depth_cm, y = well_diam, color = factor(tree_id))) +
+  geom_point(aes(shape = burn_status), size = 2, alpha = 0.7) + 
+  geom_smooth(method = "lm", color = "grey", se = TRUE) +
+  facet_wrap(~ tree_id, nrow = 1, ncol = 4) +  # Separate by tree_id
+  labs(
+    title = "b) TSZ",
+    x = "Maximum Daily Snow Depth (cm)",
+    y = "Well Diameter (cm)",
+    color = "Tree ID"
+  ) +
+  theme_bw() +
+  scale_color_manual(values = treeid_colors) + 
+  scale_y_continuous(limits = c(NA, 200)) + 
+  #remove color legend 
+  guides(color = "none") +
+  scale_shape_manual(name = "Burn Status", values = c("GB" = 16, "DB" = 15)) +
+  geom_text(data = t_SD_r2_values_abla_V2, aes(x = Inf, y = Inf, label = R2_label),
+            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 4)
+
+transb_SD_abla_wellsnowdepth
+```
+
+```{r}
+comb_snowdepth_scatterplot_V3 <- ggarrange(persb_SD_abla_wellsnowdepth, transb_SD_abla_wellsnowdepth, nrow = 2, ncol = 1, common.legend = TRUE, legend = "bottom")
+
+comb_snowdepth_scatterplot_V3
+```
+
+```{r}
+ggsave(filename = "comb_snowdepth_scatterplot_V3.png", plot = comb_snowdepth_scatterplot_V3, dpi = 600)
+
 ```
