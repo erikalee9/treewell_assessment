@@ -2031,6 +2031,30 @@ ggsave("persb_TreeTemp_corr_plot.png", plot = persb_TreeTemp_corr_plot, dpi = 60
 ```
 
 ```{r}
+persb_corr_TreeTemp_lagged <- persb_corr_long %>%
+  arrange(tree_id, date) %>%  # Sorting by tree_id and date ensures correct lagging
+  group_by(tree_id) %>%
+  mutate(mean_tree_temp_lag1 = lag(mean_tree_temp, n = 1)) %>%  # Lag AirTC_Avg by 1 time step
+  ungroup()
+
+# Fit the lagged regression model for each tree_id
+persb_TreeTemp_lagged_results <- persb_corr_TreeTemp_lagged %>%
+  drop_na(well_diam_diff, mean_tree_temp_lag1) %>%  # Remove NAs
+  group_by(tree_id) %>%
+  summarise(
+    model = list(lm(well_diam_diff ~ mean_tree_temp_lag1, data = cur_data())),  # Fit lagged regression
+    .groups = "drop"
+  )
+
+p_TreeTemp_r2_values_lag <- persb_TreeTemp_lagged_results %>%
+  mutate(R2 = map_dbl(model, ~ summary(.x)$r.squared)) %>%  # Extract R² from each model
+  mutate(R2_label = paste0("Lagged R² = ", round(R2, 3))) %>%
+  select(tree_id, R2, R2_label)
+
+p_TreeTemp_r2_values_lag
+```
+
+```{r}
 #not using right now!
 p_SWin_r2_values <- persb_corr_long %>%
   drop_na(well_diam_diff, SWin_Avg) %>%  # Remove rows where either column is NA
@@ -2235,6 +2259,30 @@ ggsave("persb_NR_corr_plot.png", plot = persb_NR_corr_plot, dpi = 600)
 ```
 
 ```{r}
+persb_corr_NR_lagged <- persb_corr_long %>%
+  arrange(tree_id, date) %>%  # Sorting by tree_id and date ensures correct lagging
+  group_by(tree_id) %>%
+  mutate(NR_Avg_lag1 = lag(NR_Avg, n = 1)) %>%  # Lag AirTC_Avg by 1 time step
+  ungroup()
+
+# Fit the lagged regression model for each tree_id
+persb_NR_lagged_results <- persb_corr_NR_lagged %>%
+  drop_na(well_diam_diff, NR_Avg_lag1) %>%  # Remove NAs
+  group_by(tree_id) %>%
+  summarise(
+    model = list(lm(well_diam_diff ~ NR_Avg_lag1, data = cur_data())),  # Fit lagged regression
+    .groups = "drop"
+  )
+
+p_NR_r2_values_lag <- persb_NR_lagged_results %>%
+  mutate(R2 = map_dbl(model, ~ summary(.x)$r.squared)) %>%  # Extract R² from each model
+  mutate(R2_label = paste0("Lagged R² = ", round(R2, 3))) %>%
+  select(tree_id, R2, R2_label)
+
+p_NR_r2_values_lag
+```
+
+```{r}
 #not using right now
 p_SD_r2_values <- persb_corr_long %>%
   drop_na(well_diam_diff, maximum_depth_cm) %>%  # Remove rows where either column is NA
@@ -2284,6 +2332,30 @@ persb_SD_corr_plot
 
 ```{r}
 ggsave("persb_SD_corr_plot.png", plot = persb_SD_corr_plot, dpi = 600)
+```
+
+```{r}
+persb_corr_SD_lagged <- persb_corr_long %>%
+  arrange(tree_id, date) %>%  # Sorting by tree_id and date ensures correct lagging
+  group_by(tree_id) %>%
+  mutate(max_SD_lag1 = lag(maximum_depth_cm, n = 1)) %>%  # Lag AirTC_Avg by 1 time step
+  ungroup()
+
+# Fit the lagged regression model for each tree_id
+persb_SD_lagged_results <- persb_corr_SD_lagged %>%
+  drop_na(well_diam_diff, max_SD_lag1) %>%  # Remove NAs
+  group_by(tree_id) %>%
+  summarise(
+    model = list(lm(well_diam_diff ~ max_SD_lag1, data = cur_data())),  # Fit lagged regression
+    .groups = "drop"
+  )
+
+p_SD_r2_values_lag <- persb_SD_lagged_results %>%
+  mutate(R2 = map_dbl(model, ~ summary(.x)$r.squared)) %>%  # Extract R² from each model
+  mutate(R2_label = paste0("Lagged R² = ", round(R2, 3))) %>%
+  select(tree_id, R2, R2_label)
+
+p_SD_r2_values_lag
 ```
 
 TSZ
