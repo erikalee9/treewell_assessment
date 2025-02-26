@@ -1917,10 +1917,13 @@ p_AirTC_results <- persb_corr_long %>%
   mutate(
     R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
     p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
-    R2_label = paste0("R² = ", round(R2, 3), "\n", "P-value = ", signif(p_value, 3))  # Stack values with newline
-  ) %>%
-  select(tree_id, R2_label)
-
+    conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
+    conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
+    R2_label = paste0(
+      "R² = ", round(R2, 3), "\n",
+      "P-value = ", signif(p_value, 3), "\n"
+    )  # Include CI in the label
+  )
 
 # Scatterplot with facet_wrap
 persb_AirTC_corr_plot <- ggplot(persb_corr_long, aes(x = AirTC_Avg, y = well_diam_diff, color = tree_id)) +
@@ -1997,12 +2000,16 @@ p_TreeTemp_results <- persb_corr_long %>%
     cor_test = list(cor.test(well_diam_diff, mean_tree_temp, use = "complete.obs")),
     .groups = "drop"
   ) %>%
-  mutate(
+   mutate(
     R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
     p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
-    R2_label = paste0("R² = ", round(R2, 3), "\n", "P-value = ", signif(p_value, 3))  # Stack values with newline
-  ) %>%
-  select(tree_id, R2_label)
+    conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
+    conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
+    R2_label = paste0(
+      "R² = ", round(R2, 3), "\n",
+      "P-value = ", signif(p_value, 3), "\n"
+    )  # Include CI in the label
+  )
 
 # Scatterplot with facet_wrap
 persb_TreeTemp_corr_plot <- ggplot(persb_corr_long, aes(x = mean_tree_temp, y = well_diam_diff, color = tree_id)) +
@@ -2124,9 +2131,13 @@ p_NetSW_results <- persb_corr_long %>%
   mutate(
     R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
     p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
-    R2_label = paste0("R² = ", round(R2, 3), "\n", "P-value = ", signif(p_value, 3))  # Stack values with newline
-  ) %>%
-  select(tree_id, R2_label)
+    conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
+    conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
+    R2_label = paste0(
+      "R² = ", round(R2, 3), "\n",
+      "P-value = ", signif(p_value, 3), "\n"
+    )  # Include CI in the label
+  )
 
 # Scatterplot with facet_wrap
 persb_NetSW_corr_plot <- ggplot(persb_corr_long, aes(x = SWnet_Avg, y = well_diam_diff, color = tree_id)) +
@@ -2176,9 +2187,13 @@ p_NetLW_results <- persb_corr_long %>%
   mutate(
     R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
     p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
-    R2_label = paste0("R² = ", round(R2, 3), "\n", "P-value = ", signif(p_value, 3))  # Stack values with newline
-  ) %>%
-  select(tree_id, R2_label)
+    conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
+    conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
+    R2_label = paste0(
+      "R² = ", round(R2, 3), "\n",
+      "P-value = ", signif(p_value, 3), "\n"
+    )  # Include CI in the label
+  )
 
 # Scatterplot with facet_wrap
 persb_NetLW_corr_plot <- ggplot(persb_corr_long, aes(x = LWnet_Avg, y = well_diam_diff, color = tree_id)) +
@@ -2228,9 +2243,13 @@ p_NR_results <- persb_corr_long %>%
   mutate(
     R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
     p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
-    R2_label = paste0("R² = ", round(R2, 3), "\n", "P-value = ", signif(p_value, 3))  # Stack values with newline
-  ) %>%
-  select(tree_id, R2_label)
+    conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
+    conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
+    R2_label = paste0(
+      "R² = ", round(R2, 3), "\n",
+      "P-value = ", signif(p_value, 3), "\n"
+    )  # Include CI in the label
+  )
 
 # Scatterplot with facet_wrap
 persb_NR_corr_plot <- ggplot(persb_corr_long, aes(x = NR_Avg, y = well_diam_diff, color = tree_id)) +
@@ -2304,9 +2323,13 @@ p_SD_results <- persb_corr_long %>%
   mutate(
     R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
     p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
-    R2_label = paste0("R² = ", round(R2, 3), "\n", "P-value = ", signif(p_value, 3))  # Stack values with newline
-  ) %>%
-  select(tree_id, R2_label)
+    conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
+    conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
+    R2_label = paste0(
+      "R² = ", round(R2, 3), "\n",
+      "P-value = ", signif(p_value, 3), "\n"
+    )  # Include CI in the label
+  )
 
 # Scatterplot with facet_wrap
 persb_SD_corr_plot <- ggplot(persb_corr_long, aes(x = maximum_depth_cm, y = well_diam_diff, color = tree_id)) +
@@ -2432,12 +2455,16 @@ t_AirTC_results <- transb_corr_long %>%
     cor_test = list(cor.test(well_diam_diff, AirTC_Avg, use = "complete.obs")),
     .groups = "drop"
   ) %>%
-  mutate(
+ mutate(
     R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
     p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
-    R2_label = paste0("R² = ", round(R2, 3), "\n", "P-value = ", signif(p_value, 3))  # Stack values with newline
-  ) %>%
-  select(tree_id, R2_label)
+    conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
+    conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
+    R2_label = paste0(
+      "R² = ", round(R2, 3), "\n",
+      "P-value = ", signif(p_value, 3), "\n"
+    )  # Include CI in the label
+  )
 
 # Scatterplot with facet_wrap
 transb_AirTC_corr_plot <- ggplot(transb_corr_long, aes(x = AirTC_Avg, y = well_diam_diff, color = tree_id)) +
@@ -2485,12 +2512,16 @@ t_TreeTemp_results <- transb_corr_long %>%
     cor_test = list(cor.test(well_diam_diff, mean_tree_temp, use = "complete.obs")),
     .groups = "drop"
   ) %>%
-  mutate(
+   mutate(
     R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
     p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
-    R2_label = paste0("R² = ", round(R2, 3), "\n", "P-value = ", signif(p_value, 3))  # Stack values with newline
-  ) %>%
-  select(tree_id, R2_label)
+    conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
+    conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
+    R2_label = paste0(
+      "R² = ", round(R2, 3), "\n",
+      "P-value = ", signif(p_value, 3), "\n"
+    )  # Include CI in the label
+  )
 
 # Scatterplot with facet_wrap
 transb_TreeTemp_corr_plot <- ggplot(transb_corr_long, aes(x = mean_tree_temp, y = well_diam_diff, color = tree_id)) +
@@ -2540,9 +2571,13 @@ t_NetSW_results <- transb_corr_long %>%
   mutate(
     R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
     p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
-    R2_label = paste0("R² = ", round(R2, 3), "\n", "P-value = ", signif(p_value, 3))  # Stack values with newline
-  ) %>%
-  select(tree_id, R2_label)
+    conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
+    conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
+    R2_label = paste0(
+      "R² = ", round(R2, 3), "\n",
+      "P-value = ", signif(p_value, 3), "\n"
+    )  # Include CI in the label
+  )
 
 # Scatterplot with facet_wrap
 transb_NetSW_corr_plot <- ggplot(transb_corr_long, aes(x = SWnet_Avg, y = well_diam_diff, color = tree_id)) +
@@ -2592,10 +2627,13 @@ t_NetLW_results <- transb_corr_long %>%
   mutate(
     R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
     p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
-    R2_label = paste0("R² = ", round(R2, 3), "\n", "P-value = ", signif(p_value, 3))  # Stack values with newline
-  ) %>%
-  select(tree_id, R2_label)
-
+    conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
+    conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
+    R2_label = paste0(
+      "R² = ", round(R2, 3), "\n",
+      "P-value = ", signif(p_value, 3), "\n"
+    )  # Include CI in the label
+  )
 
 # Scatterplot with facet_wrap
 transb_NetLW_corr_plot <- ggplot(transb_corr_long, aes(x = LWnet_Avg, y = well_diam_diff, color = tree_id)) +
@@ -2645,9 +2683,13 @@ t_NR_results <- transb_corr_long %>%
   mutate(
     R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
     p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
-    R2_label = paste0("R² = ", round(R2, 3), "\n", "P-value = ", signif(p_value, 3))  # Stack values with newline
-  ) %>%
-  select(tree_id, R2_label)
+    conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
+    conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
+    R2_label = paste0(
+      "R² = ", round(R2, 3), "\n",
+      "P-value = ", signif(p_value, 3), "\n"
+    )  # Include CI in the label
+  )
 
 # Scatterplot with facet_wrap
 transb_NR_corr_plot <- ggplot(transb_corr_long, aes(x = NR_Avg, y = well_diam_diff, color = tree_id)) +
@@ -2698,9 +2740,13 @@ t_SD_results <- transb_corr_long %>%
   mutate(
     R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
     p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
-    R2_label = paste0("R² = ", round(R2, 3), "\n", "P-value = ", signif(p_value, 3))  # Stack values with newline
-  ) %>%
-  select(tree_id, R2_label)
+    conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
+    conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
+    R2_label = paste0(
+      "R² = ", round(R2, 3), "\n",
+      "P-value = ", signif(p_value, 3), "\n"
+    )  # Include CI in the label
+  )
 
 # Scatterplot with facet_wrap
 transb_SD_corr_plot <- ggplot(transb_corr_long, aes(x = maximum_depth_cm, y = well_diam_diff, color = tree_id)) +
@@ -2833,9 +2879,13 @@ p_AirTC_accu_results <- persb_corr_data_accu %>%
   mutate(
     R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
     p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
-    R2_label = paste0("R² = ", round(R2, 3), "\n", "P-value = ", signif(p_value, 3))  # Stack values with newline
-  ) %>%
-  select(tree_id, R2_label)
+    conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
+    conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
+    R2_label = paste0(
+      "R² = ", round(R2, 3), "\n",
+      "P-value = ", signif(p_value, 3), "\n"
+    )  # Include CI in the label
+  )
 
 
 # Scatterplot
@@ -2866,11 +2916,23 @@ ggsave("persb_AirTC_corr_plot_accu.png", plot = persb_AirTC_corr_plot_accu, dpi 
 
 ```{r}
 # Compute R^2 for each tree_id
-p_AirTC_r2_values_abla <- persb_corr_data_abla %>%
-  drop_na(well_diam, AirTC_Avg) %>%  # Remove rows where either column is NA
-  group_by(tree_id) %>%
-  summarize(R2 = cor(well_diam, AirTC_Avg, use = "complete.obs")^2, .groups = "drop") %>%
-  mutate(R2_label = paste0("R² = ", round(R2, 3))) # Create label for plotting
+p_AirTC_abla_results <- persb_corr_data_abla %>%
+  drop_na(well_diam, AirTC_Avg) %>%
+  group_by(burn_status) %>%
+  summarize(
+    cor_test = list(cor.test(well_diam, AirTC_Avg, use = "complete.obs")),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
+    p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
+    conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
+    conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
+    R2_label = paste0(
+      "R² = ", round(R2, 3), "\n",
+      "P-value = ", signif(p_value, 3), "\n"
+    )  # Include CI in the label
+  ) # Create label for plotting
 
 # Scatterplot
 persb_AirTC_corr_plot_abla <- ggplot(persb_corr_data_abla, aes(x = AirTC_Avg, y = well_diam, color = factor(tree_id))) +
@@ -2902,10 +2964,22 @@ ggsave("persb_AirTC_corr_plot_abla.png", plot = persb_AirTC_corr_plot_abla, dpi 
 # AirTC Correlation
 # Compute R^2 for each tree_id
 p_TreeTemp_r2_values_accu <- persb_corr_data_accu %>%
-  drop_na(well_diam, mean_tree_temp) %>%  # Remove rows where either column is NA
+  drop_na(well_diam, mean_tree_temp) %>%
   group_by(tree_id) %>%
-  summarize(R2 = cor(well_diam, mean_tree_temp, use = "complete.obs")^2, .groups = "drop") %>%
-  mutate(R2_label = paste0("R² = ", round(R2, 3))) # Create label for plotting
+  summarize(
+    cor_test = list(cor.test(well_diam, mean_tree_temp, use = "complete.obs")),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
+    p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
+    conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
+    conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
+    R2_label = paste0(
+      "R² = ", round(R2, 3), "\n",
+      "P-value = ", signif(p_value, 3), "\n"
+    )  # Include CI in the label
+  ) 
 
 # Scatterplot
 persb_TreeTemp_corr_plot_accu <- ggplot(persb_corr_data_accu, aes(x = mean_tree_temp, y = well_diam, color = factor(tree_id))) +
@@ -2937,8 +3011,20 @@ ggsave("persb_TreeTemp_corr_plot_accu.png", plot = persb_TreeTemp_corr_plot_accu
 p_TreeTemp_r2_values_abla <- persb_corr_data_abla %>%
   drop_na(well_diam, mean_tree_temp) %>%  # Remove rows where either column is NA
   group_by(tree_id) %>%
-  summarize(R2 = cor(well_diam, mean_tree_temp, use = "complete.obs")^2, .groups = "drop") %>%
-  mutate(R2_label = paste0("R² = ", round(R2, 3))) # Create label for plotting
+  summarize(
+    cor_test = list(cor.test(well_diam, mean_tree_temp, use = "complete.obs")),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
+    p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
+    conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
+    conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
+    R2_label = paste0(
+      "R² = ", round(R2, 3), "\n",
+      "P-value = ", signif(p_value, 3), "\n"
+    )  # Include CI in the label
+  ) 
 
 # Scatterplot
 persb_TreeTemp_corr_plot_abla <- ggplot(persb_corr_data_abla, aes(x = mean_tree_temp, y = well_diam, color = factor(tree_id))) +
@@ -2974,8 +3060,21 @@ ggsave("persb_TreeTemp_corr_plot_abla.png", plot = persb_TreeTemp_corr_plot_abla
 p_NetSW_r2_values_accu <- persb_corr_data_accu %>%
   drop_na(well_diam, SWnet_Avg) %>%  # Remove rows where either column is NA
   group_by(tree_id) %>%
-  summarize(R2 = cor(well_diam, SWnet_Avg, use = "complete.obs")^2, .groups = "drop") %>%
-  mutate(R2_label = paste0("R² = ", round(R2, 3))) # Create label for plotting
+  summarize(
+    cor_test = list(cor.test(well_diam, SWnet_Avg, use = "complete.obs")),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
+    p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
+    conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
+    conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
+    R2_label = paste0(
+      "R² = ", round(R2, 3), "\n",
+      "P-value = ", signif(p_value, 3), "\n"
+    )  # Include CI in the label
+  ) 
+
 
 # Scatterplot
 persb_NetSW_corr_plot_accu <- ggplot(persb_corr_data_accu, aes(x = SWnet_Avg, y = well_diam, color = factor(tree_id))) +
@@ -3008,8 +3107,20 @@ ggsave("persb_NetSW_corr_plot_accu.png", plot = persb_NetSW_corr_plot_accu, dpi 
 p_NetSW_r2_values_abla <- persb_corr_data_abla %>%
   drop_na(well_diam, SWnet_Avg) %>%  # Remove rows where either column is NA
   group_by(tree_id) %>%
-  summarize(R2 = cor(well_diam, SWnet_Avg, use = "complete.obs")^2, .groups = "drop") %>%
-  mutate(R2_label = paste0("R² = ", round(R2, 3))) # Create label for plotting
+  summarize(
+    cor_test = list(cor.test(well_diam, SWnet_Avg, use = "complete.obs")),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
+    p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
+    conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
+    conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
+    R2_label = paste0(
+      "R² = ", round(R2, 3), "\n",
+      "P-value = ", signif(p_value, 3), "\n"
+    )  # Include CI in the label
+  ) 
 
 # Scatterplot
 persb_NetSW_corr_plot_abla <- ggplot(persb_corr_data_abla, aes(x = SWnet_Avg, y = well_diam, color = factor(tree_id))) +
@@ -3043,8 +3154,20 @@ ggsave("persb_NetSW_corr_plot_abla.png", plot = persb_NetSW_corr_plot_abla, dpi 
 p_NetLW_r2_values_accu <- persb_corr_data_accu %>%
   drop_na(well_diam, LWnet_Avg) %>%  # Remove rows where either column is NA
   group_by(tree_id) %>%
-  summarize(R2 = cor(well_diam, LWnet_Avg, use = "complete.obs")^2, .groups = "drop") %>%
-  mutate(R2_label = paste0("R² = ", round(R2, 3))) # Create label for plotting
+  summarize(
+    cor_test = list(cor.test(well_diam, LWnet_Avg, use = "complete.obs")),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
+    p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
+    conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
+    conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
+    R2_label = paste0(
+      "R² = ", round(R2, 3), "\n",
+      "P-value = ", signif(p_value, 3), "\n"
+    )  # Include CI in the label
+  ) 
 
 # Scatterplot
 persb_NetLW_corr_plot_accu <- ggplot(persb_corr_data_accu, aes(x = LWnet_Avg, y = well_diam, color = factor(tree_id))) +
@@ -3078,8 +3201,20 @@ ggsave("persb_NetLW_corr_plot_accu.png", plot = persb_NetLW_corr_plot_accu, dpi 
 p_NetLW_r2_values_abla <- persb_corr_data_abla %>%
   drop_na(well_diam, LWnet_Avg) %>%  # Remove rows where either column is NA
   group_by(tree_id) %>%
-  summarize(R2 = cor(well_diam, LWnet_Avg, use = "complete.obs")^2, .groups = "drop") %>%
-  mutate(R2_label = paste0("R² = ", round(R2, 3))) # Create label for plotting
+  summarize(
+    cor_test = list(cor.test(well_diam, LWnet_Avg, use = "complete.obs")),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
+    p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
+    conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
+    conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
+    R2_label = paste0(
+      "R² = ", round(R2, 3), "\n",
+      "P-value = ", signif(p_value, 3), "\n"
+    )  # Include CI in the label
+  ) 
 
 # Scatterplot
 persb_NetLW_corr_plot_abla <- ggplot(persb_corr_data_abla, aes(x = LWnet_Avg, y = well_diam, color = factor(tree_id))) +
@@ -3113,8 +3248,20 @@ ggsave("persb_NetLW_corr_plot_abla.png", plot = persb_NetLW_corr_plot_abla, dpi 
 p_NR_r2_values_accu <- persb_corr_data_accu %>%
   drop_na(well_diam, NR_Avg) %>%  # Remove rows where either column is NA
   group_by(tree_id) %>%
-  summarize(R2 = cor(well_diam, NR_Avg, use = "complete.obs")^2, .groups = "drop") %>%
-  mutate(R2_label = paste0("R² = ", round(R2, 3))) # Create label for plotting
+  summarize(
+    cor_test = list(cor.test(well_diam, NR_Avg, use = "complete.obs")),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
+    p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
+    conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
+    conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
+    R2_label = paste0(
+      "R² = ", round(R2, 3), "\n",
+      "P-value = ", signif(p_value, 3), "\n"
+    )  # Include CI in the label
+  )
 
 # Scatterplot
 persb_NR_corr_plot_accu <- ggplot(persb_corr_data_accu, aes(x = NR_Avg, y = well_diam, color = factor(tree_id))) +
@@ -3148,8 +3295,20 @@ ggsave("persb_NR_corr_plot_accu.png", plot = persb_NR_corr_plot_accu, dpi = 600)
 p_NR_r2_values_abla <- persb_corr_data_abla %>%
   drop_na(well_diam, NR_Avg) %>%  # Remove rows where either column is NA
   group_by(tree_id) %>%
-  summarize(R2 = cor(well_diam, NR_Avg, use = "complete.obs")^2, .groups = "drop") %>%
-  mutate(R2_label = paste0("R² = ", round(R2, 3))) # Create label for plotting
+  summarize(
+    cor_test = list(cor.test(well_diam, NR_Avg, use = "complete.obs")),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
+    p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
+    conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
+    conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
+    R2_label = paste0(
+      "R² = ", round(R2, 3), "\n",
+      "P-value = ", signif(p_value, 3), "\n"
+    )  # Include CI in the label
+  )
 
 # Scatterplot
 persb_NR_corr_plot_abla <- ggplot(persb_corr_data_abla, aes(x = NR_Avg, y = well_diam, color = factor(tree_id))) +
@@ -3182,9 +3341,21 @@ ggsave("persb_NR_corr_plot_abla.png", plot = persb_NR_corr_plot_abla, dpi = 600)
 # Compute R^2 for each tree_id
 p_SD_r2_values_accu <- persb_corr_data_accu %>%
   drop_na(well_diam, maximum_depth_cm) %>%  # Remove rows where either column is NA
-  group_by(tree_id) %>%
-  summarize(R2 = cor(well_diam, maximum_depth_cm, use = "complete.obs")^2, .groups = "drop") %>%
-  mutate(R2_label = paste0("R² = ", round(R2, 3))) # Create label for plotting
+  group_by(burn_status) %>%
+  summarize(
+    cor_test = list(cor.test(well_diam, maximum_depth_cm, use = "complete.obs")),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
+    p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
+    conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
+    conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
+    R2_label = paste0(
+      "R² = ", round(R2, 3), "\n",
+      "P-value = ", signif(p_value, 3), "\n"
+    )  # Include CI in the label
+  )
 
 # Scatterplot
 persb_SD_corr_plot_accu <- ggplot(persb_corr_data_accu, aes(x = maximum_depth_cm, y = well_diam, color = factor(tree_id))) +
@@ -3218,8 +3389,20 @@ ggsave("persb_SD_corr_plot_accu.png", plot = persb_SD_corr_plot_accu, dpi = 600)
 p_SD_r2_values_abla <- persb_corr_data_abla %>%
   drop_na(well_diam, maximum_depth_cm) %>%  # Remove rows where either column is NA
   group_by(tree_id) %>%
-  summarize(R2 = cor(well_diam, maximum_depth_cm, use = "complete.obs")^2, .groups = "drop") %>%
-  mutate(R2_label = paste0("R² = ", round(R2, 3))) # Create label for plotting
+  summarize(
+    cor_test = list(cor.test(well_diam, maximum_depth_cm, use = "complete.obs")),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
+    p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
+    conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
+    conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
+    R2_label = paste0(
+      "R² = ", round(R2, 3), "\n",
+      "P-value = ", signif(p_value, 3), "\n"
+    )  # Include CI in the label
+  )
 
 # Scatterplot
 persb_SD_corr_plot_abla <- ggplot(persb_corr_data_abla, aes(x = maximum_depth_cm, y = well_diam, color = factor(tree_id))) +
@@ -3271,8 +3454,20 @@ transb_corr_data_abla <- long_transb_treewell_diams_fullseason_V2 %>%
 t_AirTC_r2_values_accu <- transb_corr_data_accu %>%
   drop_na(well_diam, AirTC_Avg) %>%  # Remove rows where either column is NA
   group_by(tree_id) %>%
-  summarize(R2 = cor(well_diam, AirTC_Avg, use = "complete.obs")^2, .groups = "drop") %>%
-  mutate(R2_label = paste0("R² = ", round(R2, 3))) # Create label for plotting
+  summarize(
+    cor_test = list(cor.test(well_diam, AirTC_Avg, use = "complete.obs")),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
+    p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
+    conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
+    conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
+    R2_label = paste0(
+      "R² = ", round(R2, 3), "\n",
+      "P-value = ", signif(p_value, 3), "\n"
+    )  # Include CI in the label
+  )
 
 # Scatterplot
 transb_AirTC_corr_plot_accu <- ggplot(transb_corr_data_accu, aes(x = AirTC_Avg, y = well_diam, color = factor(tree_id))) +
@@ -3306,8 +3501,20 @@ ggsave("transb_AirTC_corr_plot_accu.png", plot = transb_AirTC_corr_plot_accu, dp
 t_AirTC_r2_values_abla <- transb_corr_data_abla %>%
   drop_na(well_diam, AirTC_Avg) %>%  # Remove rows where either column is NA
   group_by(tree_id) %>%
-  summarize(R2 = cor(well_diam, AirTC_Avg, use = "complete.obs")^2, .groups = "drop") %>%
-  mutate(R2_label = paste0("R² = ", round(R2, 3))) # Create label for plotting
+  summarize(
+    cor_test = list(cor.test(well_diam, AirTC_Avg, use = "complete.obs")),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
+    p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
+    conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
+    conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
+    R2_label = paste0(
+      "R² = ", round(R2, 3), "\n",
+      "P-value = ", signif(p_value, 3), "\n"
+    )  # Include CI in the label
+  )
 
 # Scatterplot
 transb_AirTC_corr_plot_abla <- ggplot(transb_corr_data_abla, aes(x = AirTC_Avg, y = well_diam, color = factor(tree_id))) +
@@ -3341,8 +3548,20 @@ ggsave("transb_AirTC_corr_plot_abla.png", plot = transb_AirTC_corr_plot_abla, dp
 t_TreeTemp_r2_values_accu <- transb_corr_data_accu %>%
   drop_na(well_diam, mean_tree_temp) %>%  # Remove rows where either column is NA
   group_by(tree_id) %>%
-  summarize(R2 = cor(well_diam, mean_tree_temp, use = "complete.obs")^2, .groups = "drop") %>%
-  mutate(R2_label = paste0("R² = ", round(R2, 3))) # Create label for plotting
+  summarize(
+    cor_test = list(cor.test(well_diam, mean_tree_temp, use = "complete.obs")),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
+    p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
+    conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
+    conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
+    R2_label = paste0(
+      "R² = ", round(R2, 3), "\n",
+      "P-value = ", signif(p_value, 3), "\n"
+    )  # Include CI in the label
+  )
 
 # Scatterplot
 transb_TreeTemp_corr_plot_accu <- ggplot(transb_corr_data_accu, aes(x = mean_tree_temp, y = well_diam, color = factor(tree_id))) +
@@ -3376,8 +3595,20 @@ ggsave("transb_TreeTemp_corr_plot_accu.png", plot = transb_TreeTemp_corr_plot_ac
 t_TreeTemp_r2_values_abla <- transb_corr_data_abla %>%
   drop_na(well_diam, mean_tree_temp) %>%  # Remove rows where either column is NA
   group_by(tree_id) %>%
-  summarize(R2 = cor(well_diam, mean_tree_temp, use = "complete.obs")^2, .groups = "drop") %>%
-  mutate(R2_label = paste0("R² = ", round(R2, 3))) # Create label for plotting
+  summarize(
+    cor_test = list(cor.test(well_diam, mean_tree_temp, use = "complete.obs")),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
+    p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
+    conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
+    conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
+    R2_label = paste0(
+      "R² = ", round(R2, 3), "\n",
+      "P-value = ", signif(p_value, 3), "\n"
+    )  # Include CI in the label
+  )
 
 # Scatterplot
 transb_TreeTemp_corr_plot_abla <- ggplot(transb_corr_data_abla, aes(x = mean_tree_temp, y = well_diam, color = factor(tree_id))) +
@@ -3410,9 +3641,21 @@ ggsave("transb_TreeTemp_corr_plot_abla.png", plot = transb_TreeTemp_corr_plot_ab
 # Compute R^2 for each tree_id
 t_NetSW_r2_values_accu <- transb_corr_data_accu %>%
   drop_na(well_diam, SWnet_Avg) %>%  # Remove rows where either column is NA
-  group_by(tree_id) %>%
-  summarize(R2 = cor(well_diam, SWnet_Avg, use = "complete.obs")^2, .groups = "drop") %>%
-  mutate(R2_label = paste0("R² = ", round(R2, 3))) # Create label for plotting
+  group_by(burn_status) %>%
+  summarize(
+    cor_test = list(cor.test(well_diam, SWnet_Avg, use = "complete.obs")),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
+    p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
+    conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
+    conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
+    R2_label = paste0(
+      "R² = ", round(R2, 3), "\n",
+      "P-value = ", signif(p_value, 3), "\n"
+    )  # Include CI in the label
+  )
 
 # Scatterplot
 transb_NetSW_corr_plot_accu <- ggplot(transb_corr_data_accu, aes(x = SWnet_Avg, y = well_diam, color = factor(tree_id))) +
@@ -3445,9 +3688,21 @@ ggsave("transb_NetSW_corr_plot_accu.png", plot = transb_NetSW_corr_plot_accu, dp
 # Compute R^2 for each tree_id
 t_NetSW_r2_values_abla <- transb_corr_data_abla %>%
   drop_na(well_diam, SWnet_Avg) %>%  # Remove rows where either column is NA
-  group_by(tree_id) %>%
-  summarize(R2 = cor(well_diam, SWnet_Avg, use = "complete.obs")^2, .groups = "drop") %>%
-  mutate(R2_label = paste0("R² = ", round(R2, 3))) # Create label for plotting
+  group_by(burn_status) %>%
+  summarize(
+    cor_test = list(cor.test(well_diam, SWnet_Avg, use = "complete.obs")),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
+    p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
+    conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
+    conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
+    R2_label = paste0(
+      "R² = ", round(R2, 3), "\n",
+      "P-value = ", signif(p_value, 3), "\n"
+    )  # Include CI in the label
+  )
 
 # Scatterplot
 transb_NetSW_corr_plot_abla <- ggplot(transb_corr_data_abla, aes(x = SWnet_Avg, y = well_diam, color = factor(tree_id))) +
@@ -3480,9 +3735,21 @@ ggsave("transb_NetSW_corr_plot_abla.png", plot = transb_NetSW_corr_plot_abla, dp
 # Compute R^2 for each tree_id
 t_NetLW_r2_values_accu <- transb_corr_data_accu %>%
   drop_na(well_diam, LWnet_Avg) %>%  # Remove rows where either column is NA
-  group_by(tree_id) %>%
-  summarize(R2 = cor(well_diam, LWnet_Avg, use = "complete.obs")^2, .groups = "drop") %>%
-  mutate(R2_label = paste0("R² = ", round(R2, 3))) # Create label for plotting
+  group_by(burn_status) %>%
+  summarize(
+    cor_test = list(cor.test(well_diam, LWnet_Avg, use = "complete.obs")),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
+    p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
+    conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
+    conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
+    R2_label = paste0(
+      "R² = ", round(R2, 3), "\n",
+      "P-value = ", signif(p_value, 3), "\n"
+    )  # Include CI in the label
+  )
 
 # Scatterplot
 transb_NetLW_corr_plot_accu <- ggplot(transb_corr_data_accu, aes(x = LWnet_Avg, y = well_diam, color = factor(tree_id))) +
@@ -3515,9 +3782,21 @@ ggsave("transb_NetLW_corr_plot_accu.png", plot = transb_NetLW_corr_plot_accu, dp
 # Compute R^2 for each tree_id
 t_NetLW_r2_values_abla <- transb_corr_data_abla %>%
   drop_na(well_diam, LWnet_Avg) %>%  # Remove rows where either column is NA
-  group_by(tree_id) %>%
-  summarize(R2 = cor(well_diam, LWnet_Avg, use = "complete.obs")^2, .groups = "drop") %>%
-  mutate(R2_label = paste0("R² = ", round(R2, 3))) # Create label for plotting
+  group_by(burn_status) %>%
+  summarize(
+    cor_test = list(cor.test(well_diam, LWnet_Avg, use = "complete.obs")),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
+    p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
+    conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
+    conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
+    R2_label = paste0(
+      "R² = ", round(R2, 3), "\n",
+      "P-value = ", signif(p_value, 3), "\n"
+    )  # Include CI in the label
+  )
 
 # Scatterplot
 transb_NetLW_corr_plot_abla <- ggplot(transb_corr_data_abla, aes(x = LWnet_Avg, y = well_diam, color = factor(tree_id))) +
@@ -3550,9 +3829,21 @@ ggsave("transb_NetLW_corr_plot_abla.png", plot = transb_NetLW_corr_plot_abla, dp
 # Compute R^2 for each tree_id
 t_NR_r2_values_accu <- transb_corr_data_accu %>%
   drop_na(well_diam, NR_Avg) %>%  # Remove rows where either column is NA
-  group_by(tree_id) %>%
-  summarize(R2 = cor(well_diam, LWnet_Avg, use = "complete.obs")^2, .groups = "drop") %>%
-  mutate(R2_label = paste0("R² = ", round(R2, 3))) # Create label for plotting
+  group_by(burn_status) %>%
+  summarize(
+    cor_test = list(cor.test(well_diam, NR_Avg, use = "complete.obs")),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
+    p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
+    conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
+    conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
+    R2_label = paste0(
+      "R² = ", round(R2, 3), "\n",
+      "P-value = ", signif(p_value, 3), "\n"
+    )  # Include CI in the label
+  )
 
 # Scatterplot
 transb_NR_corr_plot_accu <- ggplot(transb_corr_data_accu, aes(x = NR_Avg, y = well_diam, color = factor(tree_id))) +
@@ -3586,8 +3877,20 @@ ggsave("transb_NR_corr_plot_accu.png", plot = transb_NR_corr_plot_accu, dpi = 60
 t_NR_r2_values_abla <- transb_corr_data_abla %>%
   drop_na(well_diam, NR_Avg) %>%  # Remove rows where either column is NA
   group_by(tree_id) %>%
-  summarize(R2 = cor(well_diam, LWnet_Avg, use = "complete.obs")^2, .groups = "drop") %>%
-  mutate(R2_label = paste0("R² = ", round(R2, 3))) # Create label for plotting
+  summarize(
+    cor_test = list(cor.test(well_diam, NR_Avg, use = "complete.obs")),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
+    p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
+    conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
+    conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
+    R2_label = paste0(
+      "R² = ", round(R2, 3), "\n",
+      "P-value = ", signif(p_value, 3), "\n"
+    )  # Include CI in the label
+  )
 
 # Scatterplot
 transb_NR_corr_plot_abla <- ggplot(transb_corr_data_abla, aes(x = NR_Avg, y = well_diam, color = factor(tree_id))) +
@@ -3621,8 +3924,20 @@ ggsave("transb_NR_corr_plot_abla.png", plot = transb_NR_corr_plot_abla, dpi = 60
 t_SD_r2_values_accu <- transb_corr_data_accu %>%
   drop_na(well_diam, maximum_depth_cm) %>%  # Remove rows where either column is NA
   group_by(tree_id) %>%
-  summarize(R2 = cor(well_diam, maximum_depth_cm, use = "complete.obs")^2, .groups = "drop") %>%
-  mutate(R2_label = paste0("R² = ", round(R2, 3))) # Create label for plotting
+  summarize(
+    cor_test = list(cor.test(well_diam, maximum_depth_cm, use = "complete.obs")),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
+    p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
+    conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
+    conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
+    R2_label = paste0(
+      "R² = ", round(R2, 3), "\n",
+      "P-value = ", signif(p_value, 3), "\n"
+    )  # Include CI in the label
+  )
 
 # Scatterplot
 transb_SD_corr_plot_accu <- ggplot(transb_corr_data_accu, aes(x = maximum_depth_cm, y = well_diam, color = factor(tree_id))) +
@@ -3655,9 +3970,21 @@ ggsave("transb_SD_corr_plot_accu.png", plot = transb_SD_corr_plot_accu, dpi = 60
 # Compute R^2 for each tree_id
 t_SD_r2_values_abla <- transb_corr_data_abla%>%
   drop_na(well_diam, maximum_depth_cm) %>%  # Remove rows where either column is NA
-  group_by(tree_id) %>%
-  summarize(R2 = cor(well_diam, maximum_depth_cm, use = "complete.obs")^2, .groups = "drop") %>%
-  mutate(R2_label = paste0("R² = ", round(R2, 3))) # Create label for plotting
+  group_by(burn_status) %>%
+  summarize(
+    cor_test = list(cor.test(well_diam, maximum_depth_cm, use = "complete.obs")),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
+    p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
+    conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
+    conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
+    R2_label = paste0(
+      "R² = ", round(R2, 3), "\n",
+      "P-value = ", signif(p_value, 3), "\n"
+    )  # Include CI in the label
+  )
 
 # Scatterplot
 transb_SD_corr_plot_abla <- ggplot(transb_corr_data_abla, aes(x = maximum_depth_cm, y = well_diam, color = factor(tree_id))) +
