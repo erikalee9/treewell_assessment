@@ -1961,6 +1961,10 @@ persb_AirTC_corr_plot
 ```
 
 ```{r}
+write_csv(p_AirTC_results, "p_AirTC_results.csv")
+```
+
+```{r}
 ggsave("persb_AirTC_corr_plot.png", plot = persb_AirTC_corr_plot, dpi = 600)
 ```
 
@@ -2136,7 +2140,7 @@ p_NetSW_r2_values <- persb_corr_long%>%
 # Compute R^2 for each tree_id
 p_NetSW_results <- persb_corr_long %>%
   drop_na(well_diam_diff, SWnet_Avg) %>%
-  group_by(burn_status, season) %>%
+  group_by(tree_id, season) %>%
   summarize(
     cor_test = list(cor.test(well_diam_diff, SWnet_Avg, use = "complete.obs")),
     .groups = "drop"
@@ -2192,7 +2196,7 @@ p_NetLW_r2_values <- persb_corr_long %>%
 # Compute R^2 for each tree_id
 p_NetLW_results <- persb_corr_long %>%
   drop_na(well_diam_diff, LWnet_Avg) %>%
-  group_by(burn_status, season) %>%
+  group_by(tree_id, season) %>%
   summarize(
     cor_test = list(cor.test(well_diam_diff, LWnet_Avg, use = "complete.obs")),
     .groups = "drop"
@@ -2328,7 +2332,7 @@ p_SD_r2_values <- persb_corr_long %>%
 # Compute R^2 for each tree_id
 p_SD_results <- persb_corr_long %>%
   drop_na(well_diam_diff, maximum_depth_cm) %>%
-  group_by(tree_id) %>%
+  group_by(tree_id, season) %>%
   summarize(
     cor_test = list(cor.test(well_diam_diff, maximum_depth_cm, use = "complete.obs")),
     .groups = "drop"
@@ -2568,7 +2572,7 @@ t_TreeTemp_r2_values <- transb_corr_long %>%
 # Compute R^2 for each tree_id
 t_TreeTemp_results <- transb_corr_long %>%
   drop_na(well_diam_diff, mean_tree_temp) %>%
-  group_by(burn_status, season) %>%
+  group_by(tree_id, season) %>%
   summarize(
     cor_test = list(cor.test(well_diam_diff, mean_tree_temp, use = "complete.obs")),
     .groups = "drop"
@@ -2624,7 +2628,7 @@ t_NetSW_r2_values <- transb_corr_long %>%
 # Compute R^2 for each tree_id
 t_NetSW_results <- transb_corr_long %>%
   drop_na(well_diam_diff, SWnet_Avg) %>%
-  group_by(burn_status, season) %>%
+  group_by(tree_id, season) %>%
   summarize(
     cor_test = list(cor.test(well_diam_diff, SWnet_Avg, use = "complete.obs")),
     .groups = "drop"
@@ -2680,7 +2684,7 @@ t_NetLW_r2_values <- transb_corr_long %>%
 # Compute R^2 for each tree_id
 t_NetLW_results <- transb_corr_long %>%
   drop_na(well_diam_diff, LWnet_Avg) %>%
-  group_by(burn_status, season) %>%
+  group_by(tree_id, season) %>%
   summarize(
     cor_test = list(cor.test(well_diam_diff, LWnet_Avg, use = "complete.obs")),
     .groups = "drop"
@@ -2736,7 +2740,7 @@ t_NR_r2_values <- transb_corr_long %>%
 # Compute R^2 for each tree_id
 t_NR_results <- transb_corr_long %>%
   drop_na(well_diam_diff, NR_Avg) %>%
-  group_by(burn_status, season) %>%
+  group_by(tree_id, season) %>%
   summarize(
     cor_test = list(cor.test(well_diam_diff, NR_Avg, use = "complete.obs")),
     .groups = "drop"
@@ -2914,7 +2918,7 @@ p_AirTC_r2_values_accu <- persb_corr_data_accu %>%
 # Compute R^2 for each tree_id
 p_AirTC_accu_results <- persb_corr_data_accu %>%
   drop_na(well_diam, AirTC_Avg) %>%
-  group_by(burn_status) %>%
+  group_by(tree_id) %>%
   summarize(
     cor_test = list(cor.test(well_diam, AirTC_Avg, use = "complete.obs")),
     .groups = "drop"
@@ -3008,7 +3012,7 @@ ggsave("persb_AirTC_corr_plot_abla.png", plot = persb_AirTC_corr_plot_abla, dpi 
 # Compute R^2 for each tree_id
 p_TreeTemp_r2_values_accu <- persb_corr_data_accu %>%
   drop_na(well_diam, mean_tree_temp) %>%
-  group_by(burn_status) %>%
+  group_by(tree_id) %>%
   summarize(
     cor_test = list(cor.test(well_diam, mean_tree_temp, use = "complete.obs")),
     .groups = "drop"
@@ -3053,7 +3057,7 @@ ggsave("persb_TreeTemp_corr_plot_accu.png", plot = persb_TreeTemp_corr_plot_accu
 ```{r}
 p_TreeTemp_r2_values_abla <- persb_corr_data_abla %>%
   drop_na(well_diam, mean_tree_temp) %>%  # Remove rows where either column is NA
-  group_by(burn_status) %>%
+  group_by(tree_id) %>%
   summarize(
     cor_test = list(cor.test(well_diam, mean_tree_temp, use = "complete.obs")),
     .groups = "drop"
@@ -3102,7 +3106,7 @@ ggsave("persb_TreeTemp_corr_plot_abla.png", plot = persb_TreeTemp_corr_plot_abla
 # Compute R^2 for each tree_id
 p_NetSW_r2_values_accu <- persb_corr_data_accu %>%
   drop_na(well_diam, SWnet_Avg) %>%  # Remove rows where either column is NA
-  group_by(burn_status) %>%
+  group_by(tree_id) %>%
   summarize(
     cor_test = list(cor.test(well_diam, SWnet_Avg, use = "complete.obs")),
     .groups = "drop"
@@ -3149,7 +3153,7 @@ ggsave("persb_NetSW_corr_plot_accu.png", plot = persb_NetSW_corr_plot_accu, dpi 
 # Compute R^2 for each tree_id
 p_NetSW_r2_values_abla <- persb_corr_data_abla %>%
   drop_na(well_diam, SWnet_Avg) %>%  # Remove rows where either column is NA
-  group_by(burn_status) %>%
+  group_by(tree_id) %>%
   summarize(
     cor_test = list(cor.test(well_diam, SWnet_Avg, use = "complete.obs")),
     .groups = "drop"
@@ -3196,7 +3200,7 @@ ggsave("persb_NetSW_corr_plot_abla.png", plot = persb_NetSW_corr_plot_abla, dpi 
 # Compute R^2 for each tree_id
 p_NetLW_r2_values_accu <- persb_corr_data_accu %>%
   drop_na(well_diam, LWnet_Avg) %>%  # Remove rows where either column is NA
-  group_by(burn_status) %>%
+  group_by(tree_id) %>%
   summarize(
     cor_test = list(cor.test(well_diam, LWnet_Avg, use = "complete.obs")),
     .groups = "drop"
@@ -3243,7 +3247,7 @@ ggsave("persb_NetLW_corr_plot_accu.png", plot = persb_NetLW_corr_plot_accu, dpi 
 # Compute R^2 for each tree_id
 p_NetLW_r2_values_abla <- persb_corr_data_abla %>%
   drop_na(well_diam, LWnet_Avg) %>%  # Remove rows where either column is NA
-  group_by(burn_status) %>%
+  group_by(tree_id) %>%
   summarize(
     cor_test = list(cor.test(well_diam, LWnet_Avg, use = "complete.obs")),
     .groups = "drop"
@@ -3290,7 +3294,7 @@ ggsave("persb_NetLW_corr_plot_abla.png", plot = persb_NetLW_corr_plot_abla, dpi 
 # Compute R^2 for each tree_id
 p_NR_r2_values_accu <- persb_corr_data_accu %>%
   drop_na(well_diam, NR_Avg) %>%  # Remove rows where either column is NA
-  group_by(burn_status) %>%
+  group_by(tree_id) %>%
   summarize(
     cor_test = list(cor.test(well_diam, NR_Avg, use = "complete.obs")),
     .groups = "drop"
@@ -3337,7 +3341,7 @@ ggsave("persb_NR_corr_plot_accu.png", plot = persb_NR_corr_plot_accu, dpi = 600)
 # Compute R^2 for each tree_id
 p_NR_r2_values_abla <- persb_corr_data_abla %>%
   drop_na(well_diam, NR_Avg) %>%  # Remove rows where either column is NA
-  group_by(burn_status) %>%
+  group_by(tree_id) %>%
   summarize(
     cor_test = list(cor.test(well_diam, NR_Avg, use = "complete.obs")),
     .groups = "drop"
@@ -3384,7 +3388,7 @@ ggsave("persb_NR_corr_plot_abla.png", plot = persb_NR_corr_plot_abla, dpi = 600)
 # Compute R^2 for each tree_id
 p_SD_r2_values_accu <- persb_corr_data_accu %>%
   drop_na(well_diam, maximum_depth_cm) %>%  # Remove rows where either column is NA
-  group_by(burn_status) %>%
+  group_by(tree_id) %>%
   summarize(
     cor_test = list(cor.test(well_diam, maximum_depth_cm, use = "complete.obs")),
     .groups = "drop"
@@ -3431,7 +3435,7 @@ ggsave("persb_SD_corr_plot_accu.png", plot = persb_SD_corr_plot_accu, dpi = 600)
 # Compute R^2 for each tree_id
 p_SD_r2_values_abla <- persb_corr_data_abla %>%
   drop_na(well_diam, maximum_depth_cm) %>%  # Remove rows where either column is NA
-  group_by(burn_status) %>%
+  group_by(tree_id) %>%
   summarize(
     cor_test = list(cor.test(well_diam, maximum_depth_cm, use = "complete.obs")),
     .groups = "drop"
@@ -3473,6 +3477,92 @@ persb_SD_corr_plot_abla
 ggsave("persb_SD_corr_plot_abla.png", plot = persb_SD_corr_plot_abla, dpi = 600)
 ```
 
+```{r}
+# Wx Station Snow Depth Correlation
+# Compute R^2 for each tree_id
+p_wxSD_r2_values_accu <- persb_corr_data_accu %>%
+  drop_na(well_diam, SnowDepth_cm) %>%  # Remove rows where either column is NA
+  group_by(tree_id) %>%
+  summarize(
+    cor_test = list(cor.test(well_diam, SnowDepth_cm, use = "complete.obs")),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
+    p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
+    conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
+    conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
+    R2_label = paste0(
+      "R² = ", round(R2, 3), "\n",
+      "P-value = ", signif(p_value, 3), "\n"
+    )  # Include CI in the label
+  )
+
+# Scatterplot
+persb_SD_corr_plot_accu <- ggplot(persb_corr_data_accu, aes(x = SnowDepth_cm, y = well_diam, color = factor(tree_id))) +
+  geom_point(aes(shape = burn_status), size = 2, alpha = 0.7) + 
+  geom_smooth(method = "lm", color = "grey", se = TRUE) +
+  facet_wrap(~ tree_id) +  # Separate by tree_id
+  labs(
+    title = "PSZ: Accumulation, Snow Depth",
+    x = "Wx Station Daily Snow Depth (cm))",
+    y = "Well Diameter (cm)",
+    color = "Tree ID"
+  ) +
+  theme_bw() +
+  scale_color_manual(values = treeid_colors) + 
+  #remove color legend 
+  guides(color = "none") +
+  scale_shape_manual(name = "Burn Status", values = c("GB" = 16, "DB" = 15)) +
+  geom_text(data = p_wxSD_r2_values_accu, aes(x = Inf, y = Inf, label = R2_label),
+            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 4)
+
+persb_wxSD_corr_plot_accu
+```
+
+```{r}
+# Wx Station Snow Depth Correlation
+# Compute R^2 for each tree_id
+p_wxSD_r2_values_abla <- persb_corr_data_abla %>%
+  drop_na(well_diam, SnowDepth_cm) %>%  # Remove rows where either column is NA
+  group_by(tree_id) %>%
+  summarize(
+    cor_test = list(cor.test(well_diam, SnowDepth_cm, use = "complete.obs")),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
+    p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
+    conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
+    conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
+    R2_label = paste0(
+      "R² = ", round(R2, 3), "\n",
+      "P-value = ", signif(p_value, 3), "\n"
+    )  # Include CI in the label
+  )
+
+# Scatterplot
+persb_SD_corr_plot_abla <- ggplot(persb_corr_data_abla, aes(x = SnowDepth_cm, y = well_diam, color = factor(tree_id))) +
+  geom_point(aes(shape = burn_status), size = 2, alpha = 0.7) + 
+  geom_smooth(method = "lm", color = "grey", se = TRUE) +
+  facet_wrap(~ tree_id) +  # Separate by tree_id
+  labs(
+    title = "PSZ: Ablation, Snow Depth",
+    x = "Wx Station Daily Snow Depth (cm))",
+    y = "Well Diameter (cm)",
+    color = "Tree ID"
+  ) +
+  theme_bw() +
+  scale_color_manual(values = treeid_colors) + 
+  #remove color legend 
+  guides(color = "none") +
+  scale_shape_manual(name = "Burn Status", values = c("GB" = 16, "DB" = 15)) +
+  geom_text(data = p_wxSD_r2_values_abla, aes(x = Inf, y = Inf, label = R2_label),
+            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 4)
+
+persb_wxSD_corr_plot_abla
+```
+
 ### TSZ
 
 ```{r}
@@ -3496,7 +3586,7 @@ transb_corr_data_abla <- long_transb_treewell_diams_fullseason_V2 %>%
 # Compute R^2 for each tree_id
 t_AirTC_r2_values_accu <- transb_corr_data_accu %>%
   drop_na(well_diam, AirTC_Avg) %>%  # Remove rows where either column is NA
-  group_by(burn_status) %>%
+  group_by(tree_id) %>%
   summarize(
     cor_test = list(cor.test(well_diam, AirTC_Avg, use = "complete.obs")),
     .groups = "drop"
@@ -4058,6 +4148,10 @@ ggsave("transb_SD_corr_plot_abla.png", plot = transb_SD_corr_plot_abla, dpi = 60
 ## Cumulative Comparisons
 
 ### PSZ
+
+```{r}
+
+```
 
 ## New Snow Depth vs Diameter Scatterplots
 
