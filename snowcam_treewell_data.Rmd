@@ -376,8 +376,9 @@ filtered_transb_wx_15min <- transb_wx_15min_r %>%
   mutate(zone = "TSZ", burn_status = "burned") %>%
   filter(!is.nan(SWin_Avg)) %>%
   #adding in my own calculated NR_Avg column
+  mutate(SnowDepth_cm = (SnowDepth_m*100)) %>%
   mutate(NR_Avg_new = (SWin_Avg - SWout_Avg) + (LWin_Avg - LWout_Avg)) %>%
-  select(datetime, day, month, phase, zone, burn_status, NR_Avg_new, everything())
+  select(datetime, day, month, phase, zone, burn_status, NR_Avg_new, SnowDepth_cm, everything())
 ```
 
 ```{r}
@@ -397,6 +398,8 @@ filtered_transub_wx_15min <- transub_wx_15min_r %>%
       TRUE ~ NA_character_)) %>%
   mutate(zone = "TSZ", burn_status = "unburned") %>%
   #adding in my own calculated NR_Avg column
+  #adding in my own calculated NR_Avg column
+  mutate(SnowDepth_cm = (SnowDepth_m*100)) %>%
   mutate(NR_Avg_new = (SWin_Avg - SWout_Avg) + (LWin_Avg - LWout_Avg)) %>%
   select(datetime, day, month, phase, zone, burn_status, NR_Avg_new, everything())
 ```
@@ -418,6 +421,8 @@ filtered_persub_wx_hourly <- persub_wx_hourly_r %>%
       TRUE ~ NA_character_)) %>%
   mutate(zone = "PSZ", burn_status = "unburned") %>%
   #adding in my own calculated NR_Avg column
+  mutate(SnowDepth_cm = (SnowDepth_m*100)) %>%
+  #adding in my own calculated NR_Avg column
   mutate(NR_Avg_new = (SWin_Avg - SWout_Avg) + (LWin_Avg - LWout_Avg)) %>%
   select(datetime, day, month, phase, zone, burn_status, NR_Avg_new, everything())
 ```
@@ -438,6 +443,8 @@ filtered_persb_wx_hourly <- persb_wx_hourly_r %>%
       datetime >= sunset ~ "night",
       TRUE ~ NA_character_)) %>%
   mutate(zone = "PSZ", burn_status = "burned") %>%
+  #adding in my own calculated NR_Avg column
+  mutate(SnowDepth_cm = (SnowDepth_m*100)) %>%
  #adding in my own calculated NR_Avg column
   mutate(NR_Avg_new = (SWin_Avg - SWout_Avg) + (LWin_Avg - LWout_Avg)) %>%
   select(datetime, day, month, phase, zone, burn_status, NR_Avg_new, everything())
@@ -1304,7 +1311,8 @@ filtered_daily_transb_wx_15min_r <- filtered_transb_wx_15min %>%
     LWout_Avg = mean(LWout_Avg, na.rm = TRUE), 
     SWnet_Avg = mean(SWnet_Avg, na.rm = TRUE), 
     LWnet_Avg = mean(LWnet_Avg, na.rm = TRUE), 
-    NR_Avg = mean(NR_Avg, na.rm = TRUE))
+    NR_Avg = mean(NR_Avg, na.rm = TRUE), 
+    SnowDepth_cm = mean(SnowDepth_cm, na.rm = TRUE))
 ```
 
 ```{r}
@@ -1321,7 +1329,8 @@ filtered_daily_persb_wx_hourly_r <- filtered_persb_wx_hourly %>%
     LWout_Avg = mean(LWout_Avg, na.rm = TRUE), 
     SWnet_Avg = mean(SWnet_Avg, na.rm = TRUE), 
     LWnet_Avg = mean(LWnet_Avg, na.rm = TRUE), 
-    NR_Avg = mean(NR_Avg, na.rm = TRUE))
+    NR_Avg = mean(NR_Avg, na.rm = TRUE), 
+    SnowDepth_cm = mean(SnowDepth_cm, na.rm = TRUE))
 ```
 
 Plotting tree well diams + weather
@@ -2315,11 +2324,11 @@ p_SD_r2_values <- persb_corr_long %>%
 ```
 
 ```{r}
-# NetLW Correlation
+# SD Correlation
 # Compute R^2 for each tree_id
 p_SD_results <- persb_corr_long %>%
   drop_na(well_diam_diff, maximum_depth_cm) %>%
-  group_by(tree_id, season) %>%
+  group_by(tree_id) %>%
   summarize(
     cor_test = list(cor.test(well_diam_diff, maximum_depth_cm, use = "complete.obs")),
     .groups = "drop"
@@ -2336,13 +2345,13 @@ p_SD_results <- persb_corr_long %>%
   )
 
 # Scatterplot with facet_wrap
-persb_SD_corr_plot <- ggplot(persb_corr_long, aes(x = maximum_depth_cm, y = well_diam_diff, color = tree_id)) +
+persb_wxSD_corr_plot <- ggplot(persb_corr_long, aes(x = maximum_depth_cm, y = well_diam_diff, color = tree_id)) +
   geom_point(aes(shape = burn_status), size = 2, alpha = 0.7) +
   geom_smooth(method = "lm", color = "grey", se = TRUE) +
   facet_wrap(~ tree_id) +  # Separate by tree_id
   labs(
     title = "PSZ: Snow Depth",
-    x = "Daily Max Snow Depth (cm)",
+    x = "Daily Maximum Snow Depth (cm)",
     y = "Well Diameter Difference (cm)",
     color = "Tree ID"
   ) +
@@ -2383,6 +2392,49 @@ p_SD_r2_values_lag <- persb_SD_lagged_results %>%
   select(tree_id, R2, R2_label)
 
 p_SD_r2_values_lag
+```
+
+```{r}
+# Weather station SD Correlation
+# Compute R^2 for each tree_id
+p_wxSD_results <- persb_corr_long %>%
+  drop_na(well_diam_diff, SnowDepth_cm) %>%
+  group_by(tree_id, season) %>%
+  summarize(
+    cor_test = list(cor.test(well_diam_diff, SnowDepth_cm, use = "complete.obs")),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
+    p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
+    conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
+    conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
+    R2_label = paste0(
+      "R² = ", round(R2, 3), "\n",
+      "P-value = ", signif(p_value, 3), "\n"
+    )  # Include CI in the label
+  )
+
+# Scatterplot with facet_wrap
+persb_wxSD_corr_plot <- ggplot(persb_corr_long, aes(x = SnowDepth_cm, y = well_diam_diff, color = tree_id)) +
+  geom_point(aes(shape = burn_status), size = 2, alpha = 0.7) +
+  geom_smooth(method = "lm", color = "grey", se = TRUE) +
+  facet_wrap(~ tree_id + season) +  # Separate by tree_id
+  labs(
+    title = "PSZ: Snow Depth",
+    x = "Wx Station Daily Snow Depth (cm)",
+    y = "Well Diameter Difference (cm)",
+    color = "Tree ID"
+  ) +
+  theme_bw() +
+  scale_color_manual(values = treeid_colors) + 
+  #remove color legend 
+  guides(color = "none") +
+  scale_shape_manual(name = "Burn Status", values = c("GB" = 16, "DB" = 15)) +
+  geom_text(data = p_wxSD_results, aes(x = Inf, y = Inf, label = R2_label), 
+            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 4)
+
+persb_wxSD_corr_plot
 ```
 
 TSZ
@@ -2761,7 +2813,7 @@ t_SD_results <- transb_corr_long %>%
 transb_SD_corr_plot <- ggplot(transb_corr_long, aes(x = maximum_depth_cm, y = well_diam_diff, color = tree_id)) +
   geom_point(aes(shape = burn_status), size = 2, alpha = 0.7) +
   geom_smooth(method = "lm", color = "grey", se = TRUE) +
-  facet_wrap(~ tree_id) +  # Separate by tree_id
+  facet_wrap(~ tree_id + season) +  # Separate by tree_id
   labs(
     title = "TSZ: Snow Depth",
     x = "Daily Maximum Snow Depth (cm)",
@@ -2784,24 +2836,34 @@ ggsave("transb_SD_corr_plot.png", plot = transb_SD_corr_plot, dpi = 600)
 ```
 
 ```{r}
-#not using right now!
-t_single_SWin_r2_value <- transb_corr_long %>%
-  drop_na(well_diam_diff, SWin_Avg) %>%  # Remove NA values
-  summarize(R2 = cor(well_diam_diff, SWin_Avg, use = "complete.obs")^2) %>%
-  mutate(R2_label = paste0("R² = ", round(R2, 3)))  # Create label for plotting
-```
+# Weather station SD Correlation
+# Compute R^2 for each tree_id
+t_wxSD_results <-transb_corr_long %>%
+  drop_na(well_diam_diff, SnowDepth_cm) %>%
+  group_by(tree_id, season) %>%
+  summarize(
+    cor_test = list(cor.test(well_diam_diff, SnowDepth_cm, use = "complete.obs")),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
+    p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
+    conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
+    conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
+    R2_label = paste0(
+      "R² = ", round(R2, 3), "\n",
+      "P-value = ", signif(p_value, 3), "\n"
+    )  # Include CI in the label
+  )
 
-```{r}
-# Calculate overall R^2 for all points - NOT facet wrapping R^2 of plot!
-
-
-# Scatterplot colored by tree_id (without facet_wrap)
-transb_single_SWin_corr_plot <- ggplot(transb_corr_long, aes(x = SWin_Avg, y = well_diam_diff, color = tree_id)) +
+# Scatterplot with facet_wrap
+transb_wxSD_corr_plot <- ggplot(transb_corr_long, aes(x = SnowDepth_cm, y = well_diam_diff, color = tree_id)) +
   geom_point(aes(shape = burn_status), size = 2, alpha = 0.7) +
   geom_smooth(method = "lm", color = "grey", se = TRUE) +
+  facet_wrap(~ tree_id + season) +  # Separate by tree_id
   labs(
-    title = "TSZ, Well Diameter Difference vs. SWin",
-    x = "Daily Incoming SW (W/m^2)",
+    title = "TSZ: Snow Depth",
+    x = "Wx Station Daily Snow Depth (cm)",
     y = "Well Diameter Difference (cm)",
     color = "Tree ID"
   ) +
@@ -2810,38 +2872,10 @@ transb_single_SWin_corr_plot <- ggplot(transb_corr_long, aes(x = SWin_Avg, y = w
   #remove color legend 
   guides(color = "none") +
   scale_shape_manual(name = "Burn Status", values = c("GB" = 16, "DB" = 15)) +
-  geom_text(data = t_single_SWin_r2_value, aes(x = Inf, y = Inf, label = R2_label),
-            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 5)
+  geom_text(data = t_wxSD_results, aes(x = Inf, y = Inf, label = R2_label), 
+            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 4)
 
-transb_single_SWin_corr_plot
-```
-
-```{r}
-# Calculate overall R^2 for all points
-t_single_AirTC_r2_value <- transb_corr_long %>%
-  drop_na(well_diam_diff, AirTC_Avg) %>%  # Remove NA values
-  summarize(R2 = cor(well_diam_diff, AirTC_Avg, use = "complete.obs")^2) %>%
-  mutate(R2_label = paste0("R² = ", round(R2, 3)))  # Create label for plotting
-
-# Scatterplot colored by tree_id (without facet_wrap)
-transb_single_AirTC_corr_plot <- ggplot(transb_corr_long, aes(x = AirTC_Avg, y = well_diam_diff, color = tree_id)) +
-  geom_point(aes(shape = burn_status), size = 2, alpha = 0.7) +
-  geom_smooth(method = "lm", color = "grey", se = TRUE) +
-  labs(
-    title = "TSZ, Well Diameter Difference vs. Air Temp",
-    x = "Air Temperature (°C)",
-    y = "Well Diameter Difference (cm)",
-    color = "Tree ID"
-  ) +
-  theme_bw() +
-  scale_color_manual(values = treeid_colors) + 
-  #remove color legend 
-  guides(color = "none") +
-  scale_shape_manual(name = "Burn Status", values = c("GB" = 16, "DB" = 15)) +
-  geom_text(data = t_single_AirTC_r2_value, aes(x = Inf, y = Inf, label = R2_label),
-            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 5)
-
-transb_single_AirTC_corr_plot
+transb_wxSD_corr_plot
 ```
 
 ## New Approach
@@ -4020,6 +4054,10 @@ transb_SD_corr_plot_abla
 ```{r}
 ggsave("transb_SD_corr_plot_abla.png", plot = transb_SD_corr_plot_abla, dpi = 600)
 ```
+
+## Cumulative Comparisons
+
+### PSZ
 
 ## New Snow Depth vs Diameter Scatterplots
 
