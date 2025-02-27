@@ -1321,7 +1321,7 @@ filtered_daily_transb_wx_15min_r <- filtered_transb_wx_15min %>%
     cum_NR = sum(NR_Avg_new, na.rm = TRUE)) %>%
   #creating a rolling cumulative sum between days
   arrange(date) %>%
-  mutate(totalcum_AirTC = cumsum(cum_AirTC), totalcum_SWnet = cumsum(cum_SWnet), totalcum_LWnet = cumsum(cum_LWnet), totalcum_NR = cumsum(cum_NR))
+  mutate(totalcum_AirTC = cumsum(AirTC_Avg), totalcum_SWnet = cumsum(SWnet_Avg), totalcum_LWnet = cumsum(LWnet_Avg), totalcum_NR = cumsum(NR_Avg))
 ```
 
 ```{r}
@@ -1348,7 +1348,7 @@ filtered_daily_persb_wx_hourly_r <- filtered_persb_wx_hourly %>%
     cum_NR = sum(NR_Avg_new, na.rm = TRUE)) %>%
   #creating a rolling cumulative sum between days
   arrange(date) %>%
-  mutate(totalcum_AirTC = cumsum(cum_AirTC), totalcum_SWnet = cumsum(cum_SWnet), totalcum_LWnet = cumsum(cum_LWnet), totalcum_NR = cumsum(cum_NR))
+  mutate(totalcum_AirTC = cumsum(AirTC_Avg), totalcum_SWnet = cumsum(SWnet_Avg), totalcum_LWnet = cumsum(LWnet_Avg), totalcum_NR = cumsum(NR_Avg))
 ```
 
 Plotting tree well diams + weather
@@ -1812,7 +1812,8 @@ persb_daily_treetemp_data <- full_15min_ns %>%
   summarize(mean_tree_temp = mean((north_temp + south_temp)/2), cum_daily_tree_temp = sum(north_temp + south_temp)) %>%
   #adding total cumulative sum for entire period
   arrange(date) %>%
-  mutate(totalcum_treetemp = cumsum(cum_daily_tree_temp))
+  mutate(totalcum_treetemp_sum = cumsum(cum_daily_tree_temp)) %>%
+  mutate(totalcum_treetemp= cumsum(mean_tree_temp))
 ```
 
 ```{r}
@@ -1823,7 +1824,8 @@ transb_daily_treetemp_data <- full_15min_ns %>%
   summarize(mean_tree_temp = mean((north_temp + south_temp)/2), cum_daily_tree_temp = sum(north_temp + south_temp)) %>%
   #adding total cumulative sum for entire period
   arrange(date) %>%
-  mutate(totalcum_treetemp = cumsum(cum_daily_tree_temp))
+  mutate(totalcum_treetemp_sum = cumsum(cum_daily_tree_temp)) %>%
+  mutate(totalcum_treetemp= cumsum(mean_tree_temp))
 ```
 
 ### Correlation Tests
@@ -3564,16 +3566,14 @@ p_totalcumTreeTemp_r2_values_accu <- persb_corr_data_accu %>%
     cor_test = list(cor.test(well_diam, totalcum_treetemp, use = "complete.obs")),
     .groups = "drop"
   ) %>%
-  mutate(
+   mutate(
     R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
     p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
     conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
     conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
-    R2_label = paste0(
-      "R² = ", round(R2, 3), "\n",
-      "P-value = ", signif(p_value, 3), "\n"
-    )  # Include CI in the label
-  ) 
+    p_label = ifelse(p_value < 0.05, "p-value < 0.05", "p-value ≥ 0.05"),  # Conditional p-value label
+    R2_label = paste0("R² = ", formatC(R2, format = "f", digits = 2), "\n", p_label)  # Ensure two decimal places
+  )
 
 # Scatterplot
 persb_totalcumTreeTemp_corr_plot_accu <- ggplot(persb_corr_data_accu, aes(x = totalcum_treetemp, y = well_diam, color = factor(tree_id))) +
@@ -3581,18 +3581,18 @@ persb_totalcumTreeTemp_corr_plot_accu <- ggplot(persb_corr_data_accu, aes(x = to
   geom_smooth(method = "lm", color = "grey", se = TRUE) +
   facet_wrap(~ tree_id) +  # Separate by tree_id
   labs(
-    title = "PSZ: Accumulation, Cumulative Tree Temperature",
-    x = "Total Cumulative Tree Temperature (°C)",
+    title = "a) PSZ Accumulation",
+    x = "Cumulative Tree Temperature (°C)",
     y = "Well Diameter (cm)",
     color = "Tree ID"
   ) +
   theme_bw() +
   scale_color_manual(values = treeid_colors) + 
-  #remove color legend 
+  scale_x_continuous(labels = scales::label_comma()) + 
   guides(color = "none") +
   scale_shape_manual(name = "Burn Status", values = c("GB" = 16, "DB" = 15)) +
   geom_text(data = p_totalcumTreeTemp_r2_values_accu, aes(x = Inf, y = Inf, label = R2_label), 
-            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 4)
+            hjust = 1.1, vjust = 1.3, inherit.aes = FALSE, size = 4)
 
 persb_totalcumTreeTemp_corr_plot_accu
 ```
@@ -3612,11 +3612,9 @@ p_totalcumTreeTemp_r2_values_abla <- persb_corr_data_abla %>%
     p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
     conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
     conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
-    R2_label = paste0(
-      "R² = ", round(R2, 3), "\n",
-      "P-value = ", signif(p_value, 3), "\n"
-    )  # Include CI in the label
-  ) 
+    p_label = ifelse(p_value < 0.05, "p-value < 0.05", "p-value ≥ 0.05"),  # Conditional p-value label
+    R2_label = paste0("R² = ", formatC(R2, format = "f", digits = 2), "\n", p_label)  # Ensure two decimal places
+  )
 
 # Scatterplot
 persb_totalcumTreeTemp_corr_plot_abla <- ggplot(persb_corr_data_abla, aes(x = totalcum_treetemp, y = well_diam, color = factor(tree_id))) +
@@ -3624,18 +3622,19 @@ persb_totalcumTreeTemp_corr_plot_abla <- ggplot(persb_corr_data_abla, aes(x = to
   geom_smooth(method = "lm", color = "grey", se = TRUE) +
   facet_wrap(~ tree_id) +  # Separate by tree_id
   labs(
-    title = "PSZ: Ablation, Cumulative Tree Temperature",
-    x = "Total Cumulative Tree Temperature (°C)",
+    title = "b) PSZ Ablation",
+    x = "Cumulative Tree Temperature (°C)",
     y = "Well Diameter (cm)",
     color = "Tree ID"
   ) +
   theme_bw() +
   scale_color_manual(values = treeid_colors) + 
+  scale_x_continuous(labels = scales::label_comma())+  #remove color legend
   #remove color legend 
   guides(color = "none") +
   scale_shape_manual(name = "Burn Status", values = c("GB" = 16, "DB" = 15)) +
   geom_text(data = p_totalcumTreeTemp_r2_values_abla, aes(x = Inf, y = Inf, label = R2_label), 
-            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 4)
+            hjust = 1.1, vjust = 1.3, inherit.aes = FALSE, size = 4)
 
 persb_totalcumTreeTemp_corr_plot_abla
 ```
@@ -3941,10 +3940,8 @@ p_totalcumNR_r2_values_accu <- persb_corr_data_accu %>%
     p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
     conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
     conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
-    R2_label = paste0(
-      "R² = ", round(R2, 3), "\n",
-      "P-value = ", signif(p_value, 3), "\n"
-    )  # Include CI in the label
+    p_label = ifelse(p_value < 0.05, "p-value < 0.05", "p-value ≥ 0.05"),  # Conditional p-value label
+    R2_label = paste0("R² = ", formatC(R2, format = "f", digits = 2), "\n", p_label)  # Ensure two decimal places
   )
 
 # Scatterplot
@@ -3953,19 +3950,19 @@ persb_totalcumNR_corr_plot_accu <- ggplot(persb_corr_data_accu, aes(x = totalcum
   geom_smooth(method = "lm", color = "grey", se = TRUE) +
   facet_wrap(~ tree_id) +  # Separate by tree_id
   labs(
-    title = "PSZ: Accumulation, Cumulative Net Rad",
-    x = "Total Cumulative Net Radiation (MJ)",
+    title = "a) PSZ Accumulation",
+    x = "Cumulative Net Radiation (MJ)",
     y = "Well Diameter (cm)",
     color = "Tree ID"
   ) +
   theme_bw() +
   scale_color_manual(values = treeid_colors) + 
-  scale_x_continuous(labels = scales::label_number()) +  # Ensure numbers are not in scientific notation
+  scale_x_continuous(labels = scales::label_comma()) +
   #remove color legend 
   guides(color = "none") +
   scale_shape_manual(name = "Burn Status", values = c("GB" = 16, "DB" = 15)) +
   geom_text(data = p_totalcumNR_r2_values_accu, aes(x = Inf, y = Inf, label = R2_label),
-            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 4)
+            hjust = 1.1, vjust = 1.3, inherit.aes = FALSE, size = 4)
 
 persb_totalcumNR_corr_plot_accu
 ```
@@ -3985,10 +3982,8 @@ p_totalcumNR_r2_values_abla <- persb_corr_data_abla %>%
     p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
     conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
     conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
-    R2_label = paste0(
-      "R² = ", round(R2, 3), "\n",
-      "P-value = ", signif(p_value, 3), "\n"
-    )  # Include CI in the label
+    p_label = ifelse(p_value < 0.05, "p-value < 0.05", "p-value ≥ 0.05"),  # Conditional p-value label
+    R2_label = paste0("R² = ", formatC(R2, format = "f", digits = 2), "\n", p_label)  # Ensure two decimal places
   )
 
 # Scatterplot
@@ -3997,19 +3992,19 @@ persb_totalcumNR_corr_plot_abla <- ggplot(persb_corr_data_abla, aes(x = totalcum
   geom_smooth(method = "lm", color = "grey", se = TRUE) +
   facet_wrap(~ tree_id) +  # Separate by tree_id
   labs(
-    title = "PSZ: Ablation, Cumulative Net Rad",
-    x = "Total Cumulative Net Radiation (MJ)",
+    title = "b) PSZ Ablation",
+    x = "Cumulative Net Radiation (MJ)",
     y = "Well Diameter (cm)",
     color = "Tree ID"
   ) +
   theme_bw() +
   scale_color_manual(values = treeid_colors) + 
-  scale_x_continuous(labels = scales::label_number()) +  # Ensure numbers are not in scientific notation
+  scale_x_continuous(labels = scales::label_comma()) +
   #remove color legend 
   guides(color = "none") +
   scale_shape_manual(name = "Burn Status", values = c("GB" = 16, "DB" = 15)) +
   geom_text(data = p_totalcumNR_r2_values_accu, aes(x = Inf, y = Inf, label = R2_label),
-            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 4)
+            hjust = 1.1, vjust = 1.3, inherit.aes = FALSE, size = 4)
 
 persb_totalcumNR_corr_plot_abla
 ```
@@ -4146,7 +4141,7 @@ persb_SD_corr_plot_accu <- ggplot(persb_corr_data_accu, aes(x = SnowDepth_cm, y 
   guides(color = "none") +
   scale_shape_manual(name = "Burn Status", values = c("GB" = 16, "DB" = 15)) +
   geom_text(data = p_wxSD_r2_values_accu, aes(x = Inf, y = Inf, label = R2_label),
-            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 4)
+            hjust = 1.1, vjust = 1.3, inherit.aes = FALSE, size = 4)
 
 persb_wxSD_corr_plot_accu
 ```
@@ -4189,7 +4184,7 @@ persb_SD_corr_plot_abla <- ggplot(persb_corr_data_abla, aes(x = SnowDepth_cm, y 
   guides(color = "none") +
   scale_shape_manual(name = "Burn Status", values = c("GB" = 16, "DB" = 15)) +
   geom_text(data = p_wxSD_r2_values_abla, aes(x = Inf, y = Inf, label = R2_label),
-            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 4)
+            hjust = 1.1, vjust = 1.3, inherit.aes = FALSE, size = 4)
 
 persb_wxSD_corr_plot_abla
 ```
@@ -4462,11 +4457,9 @@ t_totalcumTreeTemp_r2_values_accu <- transb_corr_data_accu %>%
     p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
     conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
     conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
-    R2_label = paste0(
-      "R² = ", round(R2, 3), "\n",
-      "P-value = ", signif(p_value, 3), "\n"
-    )  # Include CI in the label
-  ) 
+    p_label = ifelse(p_value < 0.05, "p-value < 0.05", "p-value ≥ 0.05"),  # Conditional p-value label
+    R2_label = paste0("R² = ", formatC(R2, format = "f", digits = 2), "\n", p_label)  # Ensure two decimal places
+  )
 
 # Scatterplot
 transb_totalcumTreeTemp_corr_plot_accu <- ggplot(transb_corr_data_accu, aes(x = totalcum_treetemp, y = well_diam, color = factor(tree_id))) +
@@ -4474,8 +4467,8 @@ transb_totalcumTreeTemp_corr_plot_accu <- ggplot(transb_corr_data_accu, aes(x = 
   geom_smooth(method = "lm", color = "grey", se = TRUE) +
   facet_wrap(~ tree_id) +  # Separate by tree_id
   labs(
-    title = "TSZ: Accumulation, Total Cumulative Tree Temperature",
-    x = "Total Cumulative Tree Temperature (°C)",
+    title = "c) TSZ Accumulation",
+    x = "Cumulative Tree Temperature (°C)",
     y = "Well Diameter (cm)",
     color = "Tree ID"
   ) +
@@ -4485,7 +4478,7 @@ transb_totalcumTreeTemp_corr_plot_accu <- ggplot(transb_corr_data_accu, aes(x = 
   guides(color = "none") +
   scale_shape_manual(name = "Burn Status", values = c("GB" = 16, "DB" = 15)) +
   geom_text(data = t_totalcumTreeTemp_r2_values_accu, aes(x = Inf, y = Inf, label = R2_label), 
-            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 4)
+            hjust = 1.1, vjust = 1.3, inherit.aes = FALSE, size = 4)
 
 transb_totalcumTreeTemp_corr_plot_accu
 ```
@@ -4505,11 +4498,9 @@ t_totalcumTreeTemp_r2_values_abla <- transb_corr_data_abla %>%
     p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
     conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
     conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
-    R2_label = paste0(
-      "R² = ", round(R2, 3), "\n",
-      "P-value = ", signif(p_value, 3), "\n"
-    )  # Include CI in the label
-  ) 
+    p_label = ifelse(p_value < 0.05, "p-value < 0.05", "p-value ≥ 0.05"),  # Conditional p-value label
+    R2_label = paste0("R² = ", formatC(R2, format = "f", digits = 2), "\n", p_label)  # Ensure two decimal places
+  )
 
 # Scatterplot
 transb_totalcumTreeTemp_corr_plot_abla <- ggplot(transb_corr_data_abla, aes(x = totalcum_treetemp, y = well_diam, color = factor(tree_id))) +
@@ -4517,18 +4508,19 @@ transb_totalcumTreeTemp_corr_plot_abla <- ggplot(transb_corr_data_abla, aes(x = 
   geom_smooth(method = "lm", color = "grey", se = TRUE) +
   facet_wrap(~ tree_id) +  # Separate by tree_id
   labs(
-    title = "TSZ: Ablation, Total Cumulative Tree Temperature",
-    x = "Total Cumulative Tree Temperature (°C)",
+    title = "d) TSZ Ablation",
+    x = "Cumulative Tree Temperature (°C)",
     y = "Well Diameter (cm)",
     color = "Tree ID"
   ) +
   theme_bw() +
   scale_color_manual(values = treeid_colors) + 
+  scale_x_continuous(labels = scales::label_comma())+  #remove color legend
   #remove color legend 
   guides(color = "none") +
   scale_shape_manual(name = "Burn Status", values = c("GB" = 16, "DB" = 15)) +
   geom_text(data = t_totalcumTreeTemp_r2_values_abla, aes(x = Inf, y = Inf, label = R2_label), 
-            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 4)
+            hjust = 1.1, vjust = 1.3, inherit.aes = FALSE, size = 4)
 
 transb_totalcumTreeTemp_corr_plot_abla
 ```
@@ -4876,11 +4868,9 @@ t_totalcumNR_r2_values_accu <- transb_corr_data_accu %>%
     p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
     conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
     conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
-    R2_label = paste0(
-      "R² = ", round(R2, 3), "\n",
-      "P-value = ", signif(p_value, 3), "\n"
-    )  # Include CI in the label
-  ) 
+    p_label = ifelse(p_value < 0.05, "p-value < 0.05", "p-value ≥ 0.05"),  # Conditional p-value label
+    R2_label = paste0("R² = ", formatC(R2, format = "f", digits = 2), "\n", p_label)  # Ensure two decimal places
+  )
 
 # Scatterplot
 transb_totalcumNR_corr_plot_accu <- ggplot(transb_corr_data_accu, aes(x = totalcum_NR, y = well_diam, color = factor(tree_id))) +
@@ -4888,18 +4878,19 @@ transb_totalcumNR_corr_plot_accu <- ggplot(transb_corr_data_accu, aes(x = totalc
   geom_smooth(method = "lm", color = "grey", se = TRUE) +
   facet_wrap(~ tree_id) +  # Separate by tree_id
   labs(
-    title = "TSZ: Accumulation, Total Cumulative NR",
-    x = "Total Cumulative Net Radiation (MJ)",
+    title = "c) Accumulation",
+    x = "Cumulative Net Radiation (MJ)",
     y = "Well Diameter (cm)",
     color = "Tree ID"
   ) +
   theme_bw() +
   scale_color_manual(values = treeid_colors) + 
+  scale_x_continuous(labels = scales::label_comma()) +
   #remove color legend 
   guides(color = "none") +
   scale_shape_manual(name = "Burn Status", values = c("GB" = 16, "DB" = 15)) +
   geom_text(data = t_totalcumNR_r2_values_accu, aes(x = Inf, y = Inf, label = R2_label), 
-            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 4)
+            hjust = 1.1, vjust = 1.3, inherit.aes = FALSE, size = 4)
 
 transb_totalcumNR_corr_plot_accu
 ```
@@ -4917,10 +4908,8 @@ t_totalcumNR_r2_values_abla <- transb_corr_data_abla %>%
     p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
     conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
     conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
-    R2_label = paste0(
-      "R² = ", round(R2, 3), "\n",
-      "P-value = ", signif(p_value, 3), "\n"
-    )  # Include CI in the label
+    p_label = ifelse(p_value < 0.05, "p-value < 0.05", "p-value ≥ 0.05"),  # Conditional p-value label
+    R2_label = paste0("R² = ", formatC(R2, format = "f", digits = 2), "\n", p_label)  # Ensure two decimal places
   ) 
 
 # Scatterplot
@@ -4929,19 +4918,19 @@ transb_totalcumNR_corr_plot_abla <- ggplot(transb_corr_data_abla, aes(x = totalc
   geom_smooth(method = "lm", color = "grey", se = TRUE) +
   facet_wrap(~ tree_id) +  # Separate by tree_id
   labs(
-    title = "TSZ: Ablation, Total Cumulative NR",
-    x = "Total Cumulative Net Radiation (MJ)",
+    title = "d) Ablation",
+    x = "Cumulative Net Radiation (MJ)",
     y = "Well Diameter (cm)",
     color = "Tree ID"
   ) +
   theme_bw() +
   scale_color_manual(values = treeid_colors) + 
-  scale_x_continuous(labels = scales::label_number()) +  # Ensure numbers are not in scientific notation
+  scale_x_continuous(labels = scales::label_comma()) +  # Ensure numbers are not in scientific notation
   #remove color legend 
   guides(color = "none") +
   scale_shape_manual(name = "Burn Status", values = c("GB" = 16, "DB" = 15)) +
   geom_text(data = t_totalcumNR_r2_values_abla, aes(x = Inf, y = Inf, label = R2_label), 
-            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 4)
+            hjust = 1.1, vjust = 1.3, inherit.aes = FALSE, size = 4)
 
 transb_totalcumNR_corr_plot_abla
 ```
@@ -5125,6 +5114,8 @@ transb_wxSD_corr_plot_abla <- ggplot(transb_corr_data_abla, aes(x = SnowDepth_cm
 
 transb_wxSD_corr_plot_abla
 ```
+
+Arrangin
 
 ## Cumulative Comparisons
 
