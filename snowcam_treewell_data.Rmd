@@ -1301,35 +1301,8 @@ persb_treewell_reset_dataframe_V2 <- long_persb_high_treewell_diams_fullseason_V
 filtered_daily_transb_wx_15min_r <- filtered_transb_wx_15min %>%
   filter(day >= "2024-02-02" & day <= "2024-05-23") %>%
   filter(phase == "day") %>%
-  #converting radiation values to MJ per day
-  mutate(SWin_Avg = SWin_Avg * 86.4, LWin_Avg = LWin_Avg * 86.4, SWout_Avg = SWout_Avg * 86.4, LWout_Avg = LWout_Avg * 86.4, SWnet_Avg = SWnet_Avg * 86.4, LWnet_Avg = LWnet_Avg * 86.4, NR_Avg_new = NR_Avg_new * 86.4) %>%
-  group_by(date) %>%
-  summarize(
-    AirTC_Avg = mean(AirTC_Avg, na.rm = TRUE), 
-    WS_ms_Avg = mean(WS_ms_Avg, na.rm = TRUE), 
-    SWin_Avg = mean(SWin_Avg, na.rm = TRUE), 
-    SWout_Avg = mean(SWout_Avg, na.rm = TRUE), 
-    LWin_Avg = mean(LWin_Avg, na.rm = TRUE), 
-    LWout_Avg = mean(LWout_Avg, na.rm = TRUE), 
-    SWnet_Avg = mean(SWnet_Avg, na.rm = TRUE), 
-    LWnet_Avg = mean(LWnet_Avg, na.rm = TRUE), 
-    NR_Avg = mean(NR_Avg_new, na.rm = TRUE), 
-    SnowDepth_cm = mean(SnowDepth_cm, na.rm = TRUE), 
-    cum_AirTC = sum(AirTC_Avg, na.rm = TRUE), 
-    cum_SWnet = sum(SWnet_Avg, na.rm = TRUE), 
-    cum_LWnet = sum(LWnet_Avg, na.rm = TRUE), 
-    cum_NR = sum(NR_Avg_new, na.rm = TRUE)) %>%
-  #creating a rolling cumulative sum between days
-  arrange(date) %>%
-  mutate(totalcum_AirTC = cumsum(AirTC_Avg), totalcum_SWnet = cumsum(SWnet_Avg), totalcum_LWnet = cumsum(LWnet_Avg), totalcum_NR = cumsum(NR_Avg))
-```
-
-```{r}
-filtered_daily_persb_wx_hourly_r <- filtered_persb_wx_hourly %>%
-  filter(day >= "2024-02-02" & day <= "2024-05-23") %>%
-  filter(phase == "day") %>%
-  #converting radiation values to MJ per day
-  mutate(SWin_Avg = SWin_Avg * 86.4, LWin_Avg = LWin_Avg * 86.4, SWout_Avg = SWout_Avg * 86.4, LWout_Avg = LWout_Avg * 86.4, SWnet_Avg = SWnet_Avg * 86.4, LWnet_Avg = LWnet_Avg * 86.4, NR_Avg_new = NR_Avg_new * 86.4) %>%
+  #converting radiation values from W/m^2 to MJ/m^2 per day
+  mutate(SWin_Avg = (SWin_Avg * 86400/1000000), LWin_Avg = (LWin_Avg * 86400/1000000), SWout_Avg = (SWout_Avg * 86400/1000000), LWout_Avg = (LWout_Avg * 86400/1000000), SWnet_Avg = (SWnet_Avg * 86400/1000000), LWnet_Avg = (LWnet_Avg * 86400/1000000), NR_Avg_new = (NR_Avg_new * 86400/1000000)) %>%
   group_by(date) %>%
   summarize(
     AirTC_Avg = mean(AirTC_Avg, na.rm = TRUE), 
@@ -1348,7 +1321,34 @@ filtered_daily_persb_wx_hourly_r <- filtered_persb_wx_hourly %>%
     cum_NR = sum(NR_Avg_new, na.rm = TRUE)) %>%
   #creating a rolling cumulative sum between days
   arrange(date) %>%
-  mutate(totalcum_AirTC = cumsum(AirTC_Avg), totalcum_SWnet = cumsum(SWnet_Avg), totalcum_LWnet = cumsum(LWnet_Avg), totalcum_NR = cumsum(NR_Avg))
+  mutate(totalcum_AirTC = cumsum(AirTC_Avg), totalcum_SWnet = cumsum(SWnet_Avg), totalcum_LWnet = cumsum(LWnet_Avg), totalcum_NR = cumsum(NR_Avg), totalcum_SnowDepth = cumsum(SnowDepth_cm))
+```
+
+```{r}
+filtered_daily_persb_wx_hourly_r <- filtered_persb_wx_hourly %>%
+  filter(day >= "2024-02-02" & day <= "2024-05-23") %>%
+  filter(phase == "day") %>%
+   #converting radiation values from W/m^2 to MJ/m^2 per day
+  mutate(SWin_Avg = (SWin_Avg * 86400/1000000), LWin_Avg = (LWin_Avg * 86400/1000000), SWout_Avg = (SWout_Avg * 86400/1000000), LWout_Avg = (LWout_Avg * 86400/1000000), SWnet_Avg = (SWnet_Avg * 86400/1000000), LWnet_Avg = (LWnet_Avg * 86400/1000000), NR_Avg_new = (NR_Avg_new * 86400/1000000)) %>%
+  group_by(date) %>%
+  summarize(
+    AirTC_Avg = mean(AirTC_Avg, na.rm = TRUE), 
+    WS_ms_Avg = mean(WS_ms_Avg, na.rm = TRUE), 
+    SWin_Avg = mean(SWin_Avg, na.rm = TRUE), 
+    SWout_Avg = mean(SWout_Avg, na.rm = TRUE), 
+    LWin_Avg = mean(LWin_Avg, na.rm = TRUE), 
+    LWout_Avg = mean(LWout_Avg, na.rm = TRUE), 
+    SWnet_Avg = mean(SWnet_Avg, na.rm = TRUE), 
+    LWnet_Avg = mean(LWnet_Avg, na.rm = TRUE), 
+    NR_Avg = mean(NR_Avg_new, na.rm = TRUE), 
+    SnowDepth_cm = mean(SnowDepth_cm, na.rm = TRUE),
+    cum_AirTC = sum(AirTC_Avg, na.rm = TRUE), 
+    cum_SWnet = sum(SWnet_Avg, na.rm = TRUE), 
+    cum_LWnet = sum(LWnet_Avg, na.rm = TRUE), 
+    cum_NR = sum(NR_Avg_new, na.rm = TRUE)) %>%
+  #creating a rolling cumulative sum between days
+  arrange(date) %>%
+  mutate(totalcum_AirTC = cumsum(AirTC_Avg), totalcum_SWnet = cumsum(SWnet_Avg), totalcum_LWnet = cumsum(LWnet_Avg), totalcum_NR = cumsum(NR_Avg), totalcum_SnowDepth = cumsum(SnowDepth_cm))
 ```
 
 Plotting tree well diams + weather
@@ -3579,10 +3579,10 @@ p_totalcumTreeTemp_r2_values_accu <- persb_corr_data_accu %>%
 persb_totalcumTreeTemp_corr_plot_accu <- ggplot(persb_corr_data_accu, aes(x = totalcum_treetemp, y = well_diam, color = factor(tree_id))) +
   geom_point(aes(shape = burn_status), size = 2, alpha = 0.7) + 
   geom_smooth(method = "lm", color = "grey", se = TRUE) +
-  facet_wrap(~ tree_id) +  # Separate by tree_id
+  facet_wrap(~ tree_id, nrow = 1) +  # Separate by tree_id
   labs(
-    title = "a) PSZ Accumulation",
-    x = "Cumulative Tree Temperature (°C)",
+    title = "i) Accumulation",
+    x = NULL,
     y = "Well Diameter (cm)",
     color = "Tree ID"
   ) +
@@ -3620,16 +3620,16 @@ p_totalcumTreeTemp_r2_values_abla <- persb_corr_data_abla %>%
 persb_totalcumTreeTemp_corr_plot_abla <- ggplot(persb_corr_data_abla, aes(x = totalcum_treetemp, y = well_diam, color = factor(tree_id))) +
   geom_point(aes(shape = burn_status), size = 2, alpha = 0.7) + 
   geom_smooth(method = "lm", color = "grey", se = TRUE) +
-  facet_wrap(~ tree_id) +  # Separate by tree_id
+  facet_wrap(~ tree_id, nrow = 1) +  # Separate by tree_id
   labs(
-    title = "b) PSZ Ablation",
+    title = "ii) Ablation",
     x = "Cumulative Tree Temperature (°C)",
     y = "Well Diameter (cm)",
     color = "Tree ID"
   ) +
   theme_bw() +
   scale_color_manual(values = treeid_colors) + 
-  scale_x_continuous(labels = scales::label_comma())+  #remove color legend
+  scale_x_continuous(labels = scales::label_comma(), limits = c(225, 375), breaks = (breaks = seq(250, 350, by = 50))) + 
   #remove color legend 
   guides(color = "none") +
   scale_shape_manual(name = "Burn Status", values = c("GB" = 16, "DB" = 15)) +
@@ -3637,6 +3637,17 @@ persb_totalcumTreeTemp_corr_plot_abla <- ggplot(persb_corr_data_abla, aes(x = to
             hjust = 1.1, vjust = 1.3, inherit.aes = FALSE, size = 4)
 
 persb_totalcumTreeTemp_corr_plot_abla
+```
+
+```{r}
+PSZ_totalcum_TreeTemp <- ggarrange(persb_totalcumTreeTemp_corr_plot_accu, persb_totalcumTreeTemp_corr_plot_abla, nrow = 2, ncol = 1, common.legend = TRUE, legend = "none")
+
+PSZ_totalcum_TreeTemp <- annotate_figure(
+  PSZ_totalcum_TreeTemp, 
+  top = text_grob("a) PSZ", hjust = 0, x = 0.02)
+)
+
+PSZ_totalcum_TreeTemp
 ```
 
 \*\* when I include only ablation dates, the R\^2 value increases substantially
@@ -3948,10 +3959,10 @@ p_totalcumNR_r2_values_accu <- persb_corr_data_accu %>%
 persb_totalcumNR_corr_plot_accu <- ggplot(persb_corr_data_accu, aes(x = totalcum_NR, y = well_diam, color = factor(tree_id))) +
   geom_point(aes(shape = burn_status), size = 2, alpha = 0.7) + 
   geom_smooth(method = "lm", color = "grey", se = TRUE) +
-  facet_wrap(~ tree_id) +  # Separate by tree_id
+  facet_wrap(~ tree_id, nrow = 1) +  # Separate by tree_id
   labs(
-    title = "a) PSZ Accumulation",
-    x = "Cumulative Net Radiation (MJ)",
+    title = "i) Accumulation",
+    x = NULL,
     y = "Well Diameter (cm)",
     color = "Tree ID"
   ) +
@@ -3990,10 +4001,10 @@ p_totalcumNR_r2_values_abla <- persb_corr_data_abla %>%
 persb_totalcumNR_corr_plot_abla <- ggplot(persb_corr_data_abla, aes(x = totalcum_NR, y = well_diam, color = factor(tree_id))) +
   geom_point(aes(shape = burn_status), size = 2, alpha = 0.7) + 
   geom_smooth(method = "lm", color = "grey", se = TRUE) +
-  facet_wrap(~ tree_id) +  # Separate by tree_id
+  facet_wrap(~ tree_id, nrow = 1) +  # Separate by tree_id
   labs(
-    title = "b) PSZ Ablation",
-    x = "Cumulative Net Radiation (MJ)",
+    title = "ii) Ablation",
+    x = "Cumulative Net Radiation (MJ/m²)",
     y = "Well Diameter (cm)",
     color = "Tree ID"
   ) +
@@ -4007,6 +4018,17 @@ persb_totalcumNR_corr_plot_abla <- ggplot(persb_corr_data_abla, aes(x = totalcum
             hjust = 1.1, vjust = 1.3, inherit.aes = FALSE, size = 4)
 
 persb_totalcumNR_corr_plot_abla
+```
+
+```{r}
+PSZ_totalcum_NR <- ggarrange(persb_totalcumNR_corr_plot_accu, persb_totalcumNR_corr_plot_abla, nrow = 2, ncol = 1, common.legend = TRUE, legend = "none")
+
+PSZ_totalcum_NR <- annotate_figure(
+  PSZ_totalcum_NR, 
+  top = text_grob("a) PSZ", hjust = 0, x = 0.02)
+)
+
+PSZ_totalcum_NR
 ```
 
 ```{r}
@@ -4465,16 +4487,16 @@ t_totalcumTreeTemp_r2_values_accu <- transb_corr_data_accu %>%
 transb_totalcumTreeTemp_corr_plot_accu <- ggplot(transb_corr_data_accu, aes(x = totalcum_treetemp, y = well_diam, color = factor(tree_id))) +
   geom_point(aes(shape = burn_status), size = 2, alpha = 0.7) + 
   geom_smooth(method = "lm", color = "grey", se = TRUE) +
-  facet_wrap(~ tree_id) +  # Separate by tree_id
+  facet_wrap(~ tree_id, nrow = 1) +  # Separate by tree_id
   labs(
-    title = "c) TSZ Accumulation",
-    x = "Cumulative Tree Temperature (°C)",
+    title = "i) Accumulation",
+    x = NULL,
     y = "Well Diameter (cm)",
     color = "Tree ID"
   ) +
   theme_bw() +
   scale_color_manual(values = treeid_colors) + 
-  #remove color legend 
+  scale_x_continuous(labels = scales::label_comma()) + 
   guides(color = "none") +
   scale_shape_manual(name = "Burn Status", values = c("GB" = 16, "DB" = 15)) +
   geom_text(data = t_totalcumTreeTemp_r2_values_accu, aes(x = Inf, y = Inf, label = R2_label), 
@@ -4506,16 +4528,16 @@ t_totalcumTreeTemp_r2_values_abla <- transb_corr_data_abla %>%
 transb_totalcumTreeTemp_corr_plot_abla <- ggplot(transb_corr_data_abla, aes(x = totalcum_treetemp, y = well_diam, color = factor(tree_id))) +
   geom_point(aes(shape = burn_status), size = 2, alpha = 0.7) + 
   geom_smooth(method = "lm", color = "grey", se = TRUE) +
-  facet_wrap(~ tree_id) +  # Separate by tree_id
+  facet_wrap(~ tree_id, nrow = 1) +  # Separate by tree_id
   labs(
-    title = "d) TSZ Ablation",
+    title = "ii) Ablation",
     x = "Cumulative Tree Temperature (°C)",
     y = "Well Diameter (cm)",
     color = "Tree ID"
   ) +
   theme_bw() +
-  scale_color_manual(values = treeid_colors) + 
-  scale_x_continuous(labels = scales::label_comma())+  #remove color legend
+ scale_color_manual(values = treeid_colors) + 
+  scale_x_continuous(labels = scales::label_comma()) + 
   #remove color legend 
   guides(color = "none") +
   scale_shape_manual(name = "Burn Status", values = c("GB" = 16, "DB" = 15)) +
@@ -4523,6 +4545,17 @@ transb_totalcumTreeTemp_corr_plot_abla <- ggplot(transb_corr_data_abla, aes(x = 
             hjust = 1.1, vjust = 1.3, inherit.aes = FALSE, size = 4)
 
 transb_totalcumTreeTemp_corr_plot_abla
+```
+
+```{r}
+TSZ_totalcum_TreeTemp <- ggarrange(transb_totalcumTreeTemp_corr_plot_accu, transb_totalcumTreeTemp_corr_plot_abla, nrow = 2, ncol = 1, common.legend = TRUE, legend = "none")
+
+TSZ_totalcum_TreeTemp <- annotate_figure(
+  TSZ_totalcum_TreeTemp, 
+  top = text_grob("b) TSZ", hjust = 0, x = 0.02)
+)
+
+TSZ_totalcum_TreeTemp
 ```
 
 ```{r}
@@ -4876,10 +4909,10 @@ t_totalcumNR_r2_values_accu <- transb_corr_data_accu %>%
 transb_totalcumNR_corr_plot_accu <- ggplot(transb_corr_data_accu, aes(x = totalcum_NR, y = well_diam, color = factor(tree_id))) +
   geom_point(aes(shape = burn_status), size = 2, alpha = 0.7) + 
   geom_smooth(method = "lm", color = "grey", se = TRUE) +
-  facet_wrap(~ tree_id) +  # Separate by tree_id
+  facet_wrap(~ tree_id, nrow = 1) +  # Separate by tree_id
   labs(
-    title = "c) Accumulation",
-    x = "Cumulative Net Radiation (MJ)",
+    title = "i) Accumulation",
+    x = NULL,
     y = "Well Diameter (cm)",
     color = "Tree ID"
   ) +
@@ -4916,10 +4949,10 @@ t_totalcumNR_r2_values_abla <- transb_corr_data_abla %>%
 transb_totalcumNR_corr_plot_abla <- ggplot(transb_corr_data_abla, aes(x = totalcum_NR, y = well_diam, color = factor(tree_id))) +
   geom_point(aes(shape = burn_status), size = 2, alpha = 0.7) + 
   geom_smooth(method = "lm", color = "grey", se = TRUE) +
-  facet_wrap(~ tree_id) +  # Separate by tree_id
+  facet_wrap(~ tree_id, nrow = 1) +  # Separate by tree_id
   labs(
-    title = "d) Ablation",
-    x = "Cumulative Net Radiation (MJ)",
+    title = "ii) Ablation",
+    x = "Cumulative Net Radiation (MJ/m²)",
     y = "Well Diameter (cm)",
     color = "Tree ID"
   ) +
@@ -4933,6 +4966,17 @@ transb_totalcumNR_corr_plot_abla <- ggplot(transb_corr_data_abla, aes(x = totalc
             hjust = 1.1, vjust = 1.3, inherit.aes = FALSE, size = 4)
 
 transb_totalcumNR_corr_plot_abla
+```
+
+```{r}
+TSZ_totalcum_NR <- ggarrange(transb_totalcumNR_corr_plot_accu, transb_totalcumNR_corr_plot_abla, nrow = 2, ncol = 1, common.legend = TRUE, legend = "none")
+
+TSZ_totalcum_NR <- annotate_figure(
+  TSZ_totalcum_NR, 
+  top = text_grob("b) TSZ", hjust = 0, x = 0.02)
+)
+
+TSZ_totalcum_NR
 ```
 
 ```{r}
@@ -5115,7 +5159,29 @@ transb_wxSD_corr_plot_abla <- ggplot(transb_corr_data_abla, aes(x = SnowDepth_cm
 transb_wxSD_corr_plot_abla
 ```
 
-Arrangin
+### Arranging Corr Plots for Export
+
+```{r}
+#Tree Temp
+comb_corr_treetemp <- ggarrange(PSZ_totalcum_TreeTemp, TSZ_totalcum_TreeTemp, nrow = 2, ncol = 1, common.legend = TRUE, legend = "none")
+
+comb_corr_treetemp
+```
+
+```{r}
+ggsave("comb_corr_treetemp.png", width = 8, height = 10, plot = comb_corr_treetemp, dpi = 600)
+```
+
+```{r}
+#NR
+comb_corr_NR<- ggarrange(PSZ_totalcum_NR, TSZ_totalcum_NR, nrow = 2, ncol = 1, common.legend = TRUE, legend = "none")
+
+comb_corr_NR
+```
+
+```{r}
+ggsave("comb_corr_NR.png", width = 8, height = 10, plot = comb_corr_NR, dpi = 600)
+```
 
 ## Cumulative Comparisons
 
