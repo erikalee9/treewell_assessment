@@ -5295,3 +5295,303 @@ comb_snowdepth_scatterplot_V3
 ggsave(filename = "comb_snowdepth_scatterplot_V3.png", plot = comb_snowdepth_scatterplot_V3, dpi = 600)
 
 ```
+
+## Volume Calculations
+
+PSZ
+
+\*\* this might be a little trickier, since the DB snow depth might be slightly different as it's form a different camera
+
+```{r}
+vol_persb_corr_data_accu <- persb_corr_data_accu %>%
+  #group_by(date, tree_id) %>%
+  mutate(rad_treewell_cm2 = well_diam/2, 
+         vol_treewell_cm3 = (2/3) * pi * rad_treewell_cm2^3, 
+         #radius of cylinder w/ diameter of 150 cm
+         rad_cylinder_cm2 = 150/2,
+         #creating the volume of the tree using snow camera snowdepth
+         vol_treedsnow_cm3 = pi * rad_cylinder_cm2^2 * maximum_depth_cm, 
+         #volumne of treed area with treewell subtracted
+         vol_tree_cm3 = vol_treedsnow_cm3 - vol_treewell_cm3, 
+         #creating the volume of the snow under sensor
+         vol_sensor_cm3 = pi * rad_cylinder_cm2^2 * SnowDepth_cm, 
+         #converting volumne to m^3
+         vol_sensor_m3 = vol_sensor_cm3/1e6,
+         vol_tree_m3 = vol_tree_cm3/1e6)
+```
+
+```{r}
+vol_persb_corr_data_abla <- persb_corr_data_abla %>%
+  #group_by(date, tree_id) %>%
+  mutate(rad_treewell_cm2 = well_diam/2, 
+         vol_treewell_cm3 = (2/3) * pi * rad_treewell_cm2^3, 
+         #radius of cylinder w/ diameter of 150 cm
+         rad_cylinder_cm2 = 150/2,
+         #creating the volume of the tree using snow camera snowdepth
+         vol_treedsnow_cm3 = pi * rad_cylinder_cm2^2 * maximum_depth_cm, 
+         #volumne of treed area with treewell subtracted
+         vol_tree_cm3 = vol_treedsnow_cm3 - vol_treewell_cm3, 
+         #creating the volume of the snow under sensor
+         vol_sensor_cm3 = pi * rad_cylinder_cm2^2 * SnowDepth_cm, 
+         #converting volumne to m^3
+         vol_sensor_m3 = vol_sensor_cm3/1e6,
+         vol_tree_m3 = vol_tree_cm3/1e6)
+```
+
+```{r}
+#full season volume dataframe
+fullseason_vol_persb <- rbind(vol_persb_corr_data_accu, vol_persb_corr_data_abla) %>%
+  select(-time_mst) %>%
+  mutate(season = case_when(
+    date < as.Date("2024-05-06") ~ "accumulation",
+    date >= as.Date("2024-05-06") ~ "ablation"
+  )) %>%
+  select(date, zone, conditions, treewell_developed, reset, season, burn_status, tree_id, everything())
+```
+
+TSZ
+
+```{r}
+vol_transb_corr_data_accu <- transb_corr_data_accu %>%
+  #group_by(date, tree_id) %>%
+  mutate(rad_treewell_cm2 = well_diam/2, 
+         vol_treewell_cm3 = (2/3) * pi * rad_treewell_cm2^3, 
+         #radius of cylinder w/ diameter of 150 cm
+         rad_cylinder_cm2 = 150/2,
+         #creating the volume of the tree using snow camera snowdepth
+         vol_treedsnow_cm3 = pi * rad_cylinder_cm2^2 * maximum_depth_cm, 
+         #volumne of treed area with treewell subtracted
+         vol_tree_cm3 = vol_treedsnow_cm3 - vol_treewell_cm3, 
+         #creating the volume of the snow under sensor
+         #vol_sensor_cm3 = pi * rad_cylinder_cm2^2 * SnowDepth_cm, 
+         vol_sensor_cm3 = pi* rad_cylinder_cm2^2*maximum_depth_cm, 
+         #converting volumne to m^3
+         vol_sensor_m3 = vol_sensor_cm3/1e6,
+         vol_tree_m3 = vol_tree_cm3/1e6)
+```
+
+```{r}
+vol_transb_corr_data_abla <- transb_corr_data_abla %>%
+  select(-id) %>%
+  #group_by(date, tree_id) %>%
+  mutate(rad_treewell_cm2 = well_diam/2, 
+         vol_treewell_cm3 = (2/3) * pi * rad_treewell_cm2^3, 
+         #radius of cylinder w/ diameter of 150 cm
+         rad_cylinder_cm2 = 150/2,
+         #creating the volume of the tree using snow camera snowdepth
+         vol_treedsnow_cm3 = pi * rad_cylinder_cm2^2 * maximum_depth_cm, 
+         #volumne of treed area with treewell subtracted
+         vol_tree_cm3 = vol_treedsnow_cm3 - vol_treewell_cm3, 
+         #creating the volume of the snow under sensor
+         #vol_sensor_cm3 = pi * rad_cylinder_cm2^2 * SnowDepth_cm, 
+         vol_sensor_cm3 = pi* rad_cylinder_cm2^2*maximum_depth_cm, 
+         #converting volumne to m^3
+         vol_sensor_m3 = vol_sensor_cm3/1e6,
+         vol_tree_m3 = vol_tree_cm3/1e6)
+```
+
+```{r}
+#full season volume dataframe
+fullseason_vol_transb <- rbind(vol_transb_corr_data_accu, vol_transb_corr_data_abla) %>%
+  select(-c(species, mortality, time_mst)) %>%
+  mutate(season = case_when(
+    date < as.Date("2024-04-01") ~ "accumulation",
+    date >= as.Date("2024-04-01") ~ "ablation"
+  )) %>%
+  select(date, zone, conditions, treewell_developed, reset, season, burn_status, tree_id, everything())
+```
+
+### Plotting
+
+```{r}
+#correlation... don't know if I am running this yet!
+p_vol_SWE_corr_results <- fullseason_vol_persb %>%
+  drop_na(well_diam, maximum_depth_cm) %>%  # Remove rows where either column is NA
+  group_by(tree_id) %>%
+  summarize(
+    cor_test = list(cor.test(well_diam, maximum_depth_cm, use = "complete.obs")),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R² (square of correlation coefficient)
+    p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
+    R2_label = paste0("R² = ", round(R2, 3), ", p = ", signif(p_value, 3))
+  ) %>%
+  select(-cor_test)  # Remove the list column
+```
+
+```{r}
+# Scatterplot
+persb_vol_SWE_accu_plot <- ggplot(vol_persb_corr_data_accu) +
+  geom_point(aes(x = date, y = vol_sensor_m3, color = "blue", shape = burn_status), size = 2, alpha = 0.7) + 
+  geom_point(aes(x = date, y = vol_tree_m3, color = "red", shape = burn_status), size = 2, alpha = 0.7) + 
+  #geom_smooth(method = "lm", color = "grey", se = TRUE) +
+  facet_wrap(~ tree_id,  nrow = 1, ncol = 4) +  # Separate by tree_id
+  labs(
+    title = "a) PSZ",
+    x = "Date",
+    y = "SWE Volume (m³)",
+    color = "Tree ID"
+  ) +
+  theme_bw() +
+ # scale_color_manual(values = treeid_colors) + 
+  #scale_y_continuous(limits = c(NA, 200)) + 
+  #remove color legend 
+  guides(color = "none") +
+  scale_shape_manual(name = "Burn Status", values = c("GB" = 16, "DB" = 15))
+  #geom_text(data = p_SD_r2_values_abla_V2, aes(x = Inf, y = Inf, label = R2_label),
+           ## hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 4)
+
+persb_vol_SWE_accu_plot
+```
+
+```{r}
+persb_vol_SWE_abla_plot <- ggplot(vol_persb_corr_data_abla) +
+  geom_point(aes(x = date, y = vol_sensor_m3, color = "blue", shape = burn_status), size = 2, alpha = 0.7) + 
+  geom_point(aes(x = date, y = vol_tree_m3, color = "red", shape = burn_status), size = 2, alpha = 0.7) + 
+  #geom_smooth(method = "lm", color = "grey", se = TRUE) +
+  facet_wrap(~ tree_id,  nrow = 1, ncol = 4) +  # Separate by tree_id
+  labs(
+    title = "b) PSZ Ablation",
+    x = "Date",
+    y = "SWE Volume (m³)",
+    color = "Tree ID"
+  ) +
+  theme_bw() +
+ # scale_color_manual(values = treeid_colors) + 
+  #scale_y_continuous(limits = c(NA, 200)) + 
+  #remove color legend 
+  guides(color = "none") +
+  scale_shape_manual(name = "Burn Status", values = c("GB" = 16, "DB" = 15))
+  #geom_text(data = p_SD_r2_values_abla_V2, aes(x = Inf, y = Inf, label = R2_label),
+           ## hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 4)
+
+persb_vol_SWE_abla_plot
+```
+
+TSZ
+
+```{r}
+#creating individual dataframes by tree to see if I can compare tree to tree better
+transb_col_tree1_accu <- vol_transb_corr_data_accu %>%
+  filter(tree_id == "1")
+  
+transb_col_tree2_accu <- vol_transb_corr_data_accu %>%
+  filter(tree_id == "2")
+
+transb_col_tree3_accu <- vol_transb_corr_data_accu %>%
+  filter(tree_id == "3")
+
+transb_col_tree4_accu <- vol_transb_corr_data_accu %>%
+  filter(tree_id == "4")
+```
+
+```{r}
+transb_col_tree1_abla <- vol_transb_corr_data_abla %>%
+  filter(tree_id == "1")
+  
+transb_col_tree2_abla <- vol_transb_corr_data_abla %>%
+  filter(tree_id == "2")
+
+transb_col_tree3_abla <- vol_transb_corr_data_abla %>%
+  filter(tree_id == "3")
+
+transb_col_tree4_abla <- vol_transb_corr_data_abla %>%
+  filter(tree_id == "4")
+```
+
+```{r}
+transb_vol_SWE_accu_plot <- ggplot(vol_transb_corr_data_accu) +
+  geom_point(aes(x = date, y = vol_sensor_m3, color = "blue", shape = burn_status), size = 2, alpha = 0.7) + 
+  geom_point(aes(x = date, y = vol_tree_m3, color = "red", shape = burn_status), size = 2, alpha = 0.7) + 
+  #geom_smooth(method = "lm", color = "grey", se = TRUE) +
+  facet_wrap(~ tree_id,  nrow = 1, ncol = 4) +  # Separate by tree_id
+  labs(
+    title = "a) TSZ Accumulation",
+    x = "Date",
+    y = "SWE Volume (m³)",
+    color = "Tree ID"
+  ) +
+  theme_bw() +
+ # scale_color_manual(values = treeid_colors) + 
+  #scale_y_continuous(limits = c(NA, 200)) + 
+  #remove color legend 
+  guides(color = "none") +
+  scale_shape_manual(name = "Burn Status", values = c("GB" = 16, "DB" = 15))
+  #geom_text(data = p_SD_r2_values_abla_V2, aes(x = Inf, y = Inf, label = R2_label),
+           ## hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 4)
+
+transb_vol_SWE_accu_plot
+```
+
+```{r}
+transb_vol_SWE_abla_plot <- ggplot(vol_transb_corr_data_abla) +
+  geom_point(aes(x = date, y = vol_sensor_m3, color = "blue", shape = burn_status), size = 2, alpha = 0.7) + 
+  geom_point(aes(x = date, y = vol_tree_m3, color = "red", shape = burn_status), size = 2, alpha = 0.7) + 
+  #geom_smooth(method = "lm", color = "grey", se = TRUE) +
+  facet_wrap(~ tree_id,  nrow = 1, ncol = 4) +  # Separate by tree_id
+  labs(
+    title = "a) TSZ Accumulation",
+    x = "Date",
+    y = "SWE Volume (m³)",
+    color = "Tree ID"
+  ) +
+  theme_bw() +
+ # scale_color_manual(values = treeid_colors) + 
+  #scale_y_continuous(limits = c(NA, 200)) + 
+  #remove color legend 
+  guides(color = "none") +
+  scale_shape_manual(name = "Burn Status", values = c("GB" = 16, "DB" = 15))
+  #geom_text(data = p_SD_r2_values_abla_V2, aes(x = Inf, y = Inf, label = R2_label),
+           ## hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 4)
+
+transb_vol_SWE_abla_plot
+```
+
+```{r}
+#lineplot version
+
+transb_vol_SWE_accu_lineplot <- ggplot() +
+  geom_line(data = vol_transb_corr_data_accu, aes(x = date, y = vol_sensor_cm3, color = "Sensor Volume", linetype = burn_status), linewidth = 1, alpha = 0.7) + 
+  geom_line(data = transb_col_tree1_accu, aes(x = date, y = vol_sensor_cm3, color = "tree 1", linetype = burn_status), linewidth = 1, alpha = 0.7) + 
+  geom_line(data = transb_col_tree2_accu, aes(x = date, y = vol_tree_cm3, color = "tree 2", linetype = burn_status), linewidth = 1, alpha = 0.7) + 
+  geom_line(data = transb_col_tree3_accu, aes(x = date, y = vol_tree_cm3, color = "tree 3", linetype = burn_status), linewidth = 1, alpha = 0.7) +
+  geom_line(data = transb_col_tree4_accu, aes(x = date, y = vol_tree_cm3, color = "tree 4", linetype = burn_status), linewidth = 1, alpha = 0.7) +
+  #facet_wrap(~ tree_id, nrow = 1, ncol = 4) +  # Separate by tree_id
+  labs(
+    title = "a) TSZ Accumulation",
+    x = "Date",
+    y = "SWE Volume (cm³)",
+    color = "Volume Type",
+    linetype = "Burn Status"
+  ) +
+  theme_bw() +
+  scale_color_manual(values = c("Sensor Volume" = "blue", "tree 1" = "red", "tree 2" = "green", "tree 3" = "purple", "tree 4" = "black")) +
+  scale_linetype_manual(values = c("GB" = "solid", "DB" = "dashed")) +  # Custom linetypes
+  guides(color = guide_legend(title = "Volume Type"), linetype = guide_legend(title = "Burn Status"))
+
+transb_vol_SWE_accu_lineplot
+```
+
+```{r}
+transb_vol_SWE_abla_lineplot <- ggplot() +
+  geom_line(data = vol_transb_corr_data_abla, aes(x = date, y = vol_sensor_cm3, color = "Sensor Volume", linetype = burn_status), linewidth = 1, alpha = 0.7) + 
+  geom_line(data = transb_col_tree1_abla, aes(x = date, y = vol_sensor_cm3, color = "tree 1", linetype = burn_status), linewidth = 1, alpha = 0.7) + 
+  geom_line(data = transb_col_tree2_abla, aes(x = date, y = vol_tree_cm3, color = "tree 2", linetype = burn_status), linewidth = 1, alpha = 0.7) + 
+  geom_line(data = transb_col_tree3_abla, aes(x = date, y = vol_tree_cm3, color = "tree 3", linetype = burn_status), linewidth = 1, alpha = 0.7) +
+  geom_line(data = transb_col_tree4_abla, aes(x = date, y = vol_tree_cm3, color = "tree 4", linetype = burn_status), linewidth = 1, alpha = 0.7) +
+  facet_wrap(~ tree_id, nrow = 1, ncol = 4) +  # Separate by tree_id
+  labs(
+    title = "b) TSZ Ablation",
+    x = "Date",
+    y = "SWE Volume (cm³)",
+    color = "Volume Type",
+    linetype = "Burn Status"
+  ) +
+  theme_bw() +
+  scale_color_manual(values = c("Sensor Volume" = "blue", "tree 1" = "red", "tree 2" = "green", "tree 3" = "purple", "tree 4" = "black")) +
+  scale_linetype_manual(values = c("GB" = "solid", "DB" = "dashed")) +  # Custom linetypes
+  guides(color = guide_legend(title = "Volume Type"), linetype = guide_legend(title = "Burn Status"))
+
+transb_vol_SWE_abla_lineplot
+```
