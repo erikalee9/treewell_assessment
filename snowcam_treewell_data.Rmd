@@ -5363,8 +5363,7 @@ vol_transb_corr_data_accu <- transb_corr_data_accu %>%
          #volumne of treed area with treewell subtracted
          vol_tree_cm3 = vol_treedsnow_cm3 - vol_treewell_cm3, 
          #creating the volume of the snow under sensor
-         #vol_sensor_cm3 = pi * rad_cylinder_cm2^2 * SnowDepth_cm, 
-         vol_sensor_cm3 = pi* rad_cylinder_cm2^2*maximum_depth_cm, 
+         vol_sensor_cm3 = pi * rad_cylinder_cm2^2 * SnowDepth_cm, 
          #converting volumne to m^3
          vol_sensor_m3 = vol_sensor_cm3/1e6,
          vol_tree_m3 = vol_tree_cm3/1e6)
@@ -5383,8 +5382,7 @@ vol_transb_corr_data_abla <- transb_corr_data_abla %>%
          #volumne of treed area with treewell subtracted
          vol_tree_cm3 = vol_treedsnow_cm3 - vol_treewell_cm3, 
          #creating the volume of the snow under sensor
-         #vol_sensor_cm3 = pi * rad_cylinder_cm2^2 * SnowDepth_cm, 
-         vol_sensor_cm3 = pi* rad_cylinder_cm2^2*maximum_depth_cm, 
+         vol_sensor_cm3 = pi * rad_cylinder_cm2^2 * SnowDepth_cm, 
          #converting volumne to m^3
          vol_sensor_m3 = vol_sensor_cm3/1e6,
          vol_tree_m3 = vol_tree_cm3/1e6)
@@ -5423,8 +5421,8 @@ p_vol_SWE_corr_results <- fullseason_vol_persb %>%
 ```{r}
 # Scatterplot
 persb_vol_SWE_accu_plot <- ggplot(vol_persb_corr_data_accu) +
-  geom_point(aes(x = date, y = vol_sensor_m3, color = "blue", shape = burn_status), size = 2, alpha = 0.7) + 
-  geom_point(aes(x = date, y = vol_tree_m3, color = "red", shape = burn_status), size = 2, alpha = 0.7) + 
+  geom_point(aes(x = date, y = vol_sensor_m3, color = "Open canopy", shape = burn_status), size = 2, alpha = 0.7) + 
+  geom_point(aes(x = date, y = vol_tree_m3, color = "Tree area", shape = burn_status), size = 2, alpha = 0.7) + 
   #geom_smooth(method = "lm", color = "grey", se = TRUE) +
   facet_wrap(~ tree_id,  nrow = 1, ncol = 4) +  # Separate by tree_id
   labs(
@@ -5438,7 +5436,8 @@ persb_vol_SWE_accu_plot <- ggplot(vol_persb_corr_data_accu) +
   #scale_y_continuous(limits = c(NA, 200)) + 
   #remove color legend 
   guides(color = "none") +
-  scale_shape_manual(name = "Burn Status", values = c("GB" = 16, "DB" = 15))
+  scale_shape_manual(name = "Burn Status", values = c("GB" = 16, "DB" = 15)) + 
+scale_color_manual(values = c("Open canopy" = "blue", "Tree area" = "red"))  # Correct color mapping
   #geom_text(data = p_SD_r2_values_abla_V2, aes(x = Inf, y = Inf, label = R2_label),
            ## hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 4)
 
@@ -5447,12 +5446,12 @@ persb_vol_SWE_accu_plot
 
 ```{r}
 persb_vol_SWE_abla_plot <- ggplot(vol_persb_corr_data_abla) +
-  geom_point(aes(x = date, y = vol_sensor_m3, color = "blue", shape = burn_status), size = 2, alpha = 0.7) + 
-  geom_point(aes(x = date, y = vol_tree_m3, color = "red", shape = burn_status), size = 2, alpha = 0.7) + 
+  geom_point(aes(x = date, y = vol_sensor_m3, color = "Open canopy", shape = burn_status), size = 2, alpha = 0.7) + 
+  geom_point(aes(x = date, y = vol_tree_m3, color = "Tree area", shape = burn_status), size = 2, alpha = 0.7) + 
   #geom_smooth(method = "lm", color = "grey", se = TRUE) +
   facet_wrap(~ tree_id,  nrow = 1, ncol = 4) +  # Separate by tree_id
   labs(
-    title = "b) PSZ Ablation",
+    title = "a) PSZ",
     x = "Date",
     y = "SWE Volume (m³)",
     color = "Tree ID"
@@ -5462,11 +5461,163 @@ persb_vol_SWE_abla_plot <- ggplot(vol_persb_corr_data_abla) +
   #scale_y_continuous(limits = c(NA, 200)) + 
   #remove color legend 
   guides(color = "none") +
-  scale_shape_manual(name = "Burn Status", values = c("GB" = 16, "DB" = 15))
-  #geom_text(data = p_SD_r2_values_abla_V2, aes(x = Inf, y = Inf, label = R2_label),
-           ## hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 4)
+  scale_shape_manual(name = "Burn Status", values = c("GB" = 16, "DB" = 15)) + 
+scale_color_manual(values = c("Open canopy" = "blue", "Tree area" = "red"))
 
 persb_vol_SWE_abla_plot
+```
+
+```{r}
+#creating individual dataframes by tree to see if I can compare tree to tree better
+persb_col_tree1_accu <- vol_persb_corr_data_accu %>%
+  filter(tree_id == "1")
+  
+persb_col_tree2_accu <- vol_persb_corr_data_accu %>%
+  filter(tree_id == "2")
+
+persb_col_tree3_accu <- vol_persb_corr_data_accu %>%
+  filter(tree_id == "3")
+
+persb_col_tree4_accu <- vol_persb_corr_data_accu %>%
+  filter(tree_id == "4")
+```
+
+```{r}
+persb_col_tree1_abla <- vol_persb_corr_data_abla %>%
+  filter(tree_id == "1", vol_tree_m3 >= 0)
+  
+persb_col_tree2_abla <- vol_persb_corr_data_abla %>%
+  filter(tree_id == "2", vol_tree_m3 >= 0)
+
+persb_col_tree3_abla <- vol_persb_corr_data_abla %>%
+  filter(tree_id == "3", vol_tree_m3 >= 0)
+
+persb_col_tree4_abla <- vol_persb_corr_data_abla %>%
+  filter(tree_id == "4", vol_tree_m3 >= 0)
+```
+
+```{r}
+persb_col_tree1 <- fullseason_vol_persb%>%
+  filter(tree_id == "1", vol_tree_m3 >= 0)
+  
+persb_col_tree2 <- fullseason_vol_persb%>%
+  filter(tree_id == "2", vol_tree_m3 >= 0)
+
+persb_col_tree3 <- fullseason_vol_persb%>%
+  filter(tree_id == "3", vol_tree_m3 >= 0)
+
+persb_col_tree4 <- fullseason_vol_persb%>%
+  filter(tree_id == "4", vol_tree_m3 >= 0)
+```
+
+```{r}
+persb_vol_SWE_fullseason_lineplot <- ggplot() + 
+  # Line denoting ablation season
+  geom_vline(xintercept = as.Date('2024-05-06'), color = "grey23", linetype = "dashed", linewidth = 0.6, alpha = 0.8) +
+  geom_line(data = fullseason_vol_persb, aes(x = date, y = vol_sensor_m3, color = "open canopy", linetype = "open canopy"), linewidth = 1, alpha = 0.8) + 
+  geom_line(data = persb_col_tree1, aes(x = date, y = vol_tree_m3, color = "tree 1", linetype = "tree 1"), linewidth = 1, alpha = 0.8) + 
+  geom_line(data = persb_col_tree2, aes(x = date, y = vol_tree_m3, color = "tree 2", linetype = "tree 2"), linewidth = 1, alpha = 0.8) + 
+  geom_line(data = persb_col_tree3, aes(x = date, y = vol_tree_m3, color = "tree 3", linetype = "tree 3"), linewidth = 1, alpha = 0.8) +
+  geom_line(data = persb_col_tree4, aes(x = date, y = vol_tree_m3, color = "tree 4", linetype = "tree 4"), linewidth = 1, alpha = 0.8) +  
+
+  facet_wrap(~ tree_id, nrow = 1, ncol = 4) +  
+  labs(
+    title = "a) PSZ",
+    x = NULL,
+    y = "Volume of SWE (m³)",
+    color = NULL,
+    linetype = NULL  # This ensures linetype and color share the same legend
+  ) +
+  theme_bw() +
+  scale_y_continuous(limits = c(0, 3)) + 
+  # Custom colors
+  scale_color_manual(values = c("open canopy" = "grey30", 
+                                "tree 1" = "#1B7837", 
+                                "tree 2" = "#D95F02", 
+                                "tree 3" = "#2166AC", 
+                                "tree 4" = "grey10")) +
+
+  # Only tree 4 gets a dashed line, all others solid
+  scale_linetype_manual(values = c("open canopy" = "solid",
+                                   "tree 1" = "solid",
+                                   "tree 2" = "solid",
+                                   "tree 3" = "solid",
+                                   "tree 4" = "dashed"))
+
+persb_vol_SWE_fullseason_lineplot
+
+```
+
+```{r}
+#NOT USING
+persb_vol_SWE_accu_lineplot <- ggplot() +
+  geom_line(data = vol_persb_corr_data_accu, aes(x = date, y = vol_sensor_m3, color = "open canopy", linetype = "open canopy"), linewidth = 1, alpha = 0.8) + 
+  geom_line(data = persb_col_tree1_accu, aes(x = date, y = vol_tree_m3, color = "tree 1", linetype = "tree 1"), linewidth = 1, alpha = 0.8) + 
+  geom_line(data = persb_col_tree2_accu, aes(x = date, y = vol_tree_m3, color = "tree 2", linetype = "tree 2"), linewidth = 1, alpha = 0.8) + 
+  geom_line(data = persb_col_tree3_accu, aes(x = date, y = vol_tree_m3, color = "tree 3", linetype = "tree 3"), linewidth = 1, alpha = 0.8) +
+  geom_line(data = persb_col_tree4_accu, aes(x = date, y = vol_tree_m3, color = "tree 4", linetype = "tree 4"), linewidth = 1, alpha = 0.8) +  # Only tree 4 has dashed line
+  
+  facet_wrap(~ tree_id, nrow = 1, ncol = 4) +  
+  labs(
+    title = "a) PSZ Accumulation",
+    x = "Date",
+    y = "Volume of SWE (m³)",
+    color = NULL,
+    linetype = NULL  # This ensures linetype and color share the same legend
+  ) +
+  theme_bw() +
+  
+  # Custom colors
+  scale_color_manual(values = c("open canopy" = "grey30", 
+                                "tree 1" = "#1B7837", 
+                                "tree 2" = "#D95F02", 
+                                "tree 3" = "#2166AC", 
+                                "tree 4" = "grey10")) +
+  
+  # Only tree 4 gets a dashed line, all others solid
+  scale_linetype_manual(values = c("open canopy" = "solid",
+                                   "tree 1" = "solid",
+                                   "tree 2" = "solid",
+                                   "tree 3" = "solid",
+                                   "tree 4" = "dashed"))
+
+persb_vol_SWE_accu_lineplot
+```
+
+```{r}
+#NOT USING
+persb_vol_SWE_abla_lineplot <- ggplot() +
+  geom_line(data = vol_persb_corr_data_abla, aes(x = date, y = vol_sensor_m3, color = "open canopy", linetype = "open canopy"), linewidth = 1, alpha = 0.8) + 
+  geom_line(data = persb_col_tree1_abla, aes(x = date, y = vol_tree_m3, color = "tree 1", linetype = "tree 1"), linewidth = 1, alpha = 0.8) + 
+  geom_line(data = persb_col_tree2_abla, aes(x = date, y = vol_tree_m3, color = "tree 2", linetype = "tree 2"), linewidth = 1, alpha = 0.8) + 
+  geom_line(data = persb_col_tree3_abla, aes(x = date, y = vol_tree_m3, color = "tree 3", linetype = "tree 3"), linewidth = 1, alpha = 0.8) +
+  geom_line(data = persb_col_tree4_abla, aes(x = date, y = vol_tree_m3, color = "tree 4", linetype = "tree 4"), linewidth = 1, alpha = 0.8) +  # Only tree 4 has dashed line
+  
+  facet_wrap(~ tree_id, nrow = 1, ncol = 4) +  
+  labs(
+    title = "a) PSZ",
+    x = NULL,
+    y = "Volume of SWE (m³)",
+    color = NULL,
+    linetype = NULL  # This ensures linetype and color share the same legend
+  ) +
+  theme_bw() +
+  scale_y_continuous(limits = c(0, 2)) + 
+  # Custom colors
+  scale_color_manual(values = c("open canopy" = "grey30", 
+                                "tree 1" = "#1B7837", 
+                                "tree 2" = "#D95F02", 
+                                "tree 3" = "#2166AC", 
+                                "tree 4" = "grey10")) +
+  
+  # Only tree 4 gets a dashed line, all others solid
+  scale_linetype_manual(values = c("open canopy" = "solid",
+                                   "tree 1" = "solid",
+                                   "tree 2" = "solid",
+                                   "tree 3" = "solid",
+                                   "tree 4" = "dashed"))
+
+persb_vol_SWE_abla_lineplot
 ```
 
 TSZ
@@ -5488,16 +5639,67 @@ transb_col_tree4_accu <- vol_transb_corr_data_accu %>%
 
 ```{r}
 transb_col_tree1_abla <- vol_transb_corr_data_abla %>%
-  filter(tree_id == "1")
+  filter(tree_id == "1", vol_tree_m3 >= 0)
   
 transb_col_tree2_abla <- vol_transb_corr_data_abla %>%
-  filter(tree_id == "2")
+  filter(tree_id == "2", vol_tree_m3 >= 0)
 
 transb_col_tree3_abla <- vol_transb_corr_data_abla %>%
-  filter(tree_id == "3")
+  filter(tree_id == "3", vol_tree_m3 >= 0)
 
 transb_col_tree4_abla <- vol_transb_corr_data_abla %>%
-  filter(tree_id == "4")
+  filter(tree_id == "4", vol_tree_m3 >= 0)
+```
+
+```{r}
+transb_col_tree1 <- fullseason_vol_transb %>%
+  filter(tree_id == "1", vol_tree_m3 >= 0)
+  
+transb_col_tree2 <- fullseason_vol_transb %>%
+  filter(tree_id == "2", vol_tree_m3 >= 0)
+
+transb_col_tree3 <- fullseason_vol_transb %>%
+  filter(tree_id == "3", vol_tree_m3 >= 0)
+
+transb_col_tree4 <- fullseason_vol_transb %>%
+  filter(tree_id == "4", vol_tree_m3 >= 0)
+```
+
+```{r}
+transb_vol_SWE_fullseason_lineplot <- ggplot() + 
+  # Line denoting ablation season
+  geom_vline(xintercept = as.Date('2024-04-01'), color = "grey23", linetype = "dashed", linewidth = 0.6, alpha = 0.8) +
+  geom_line(data = fullseason_vol_transb, aes(x = date, y = vol_sensor_m3, color = "open canopy", linetype = "open canopy"), linewidth = 1, alpha = 0.8) + 
+  geom_line(data = transb_col_tree1, aes(x = date, y = vol_tree_m3, color = "tree 1", linetype = "tree 1"), linewidth = 1, alpha = 0.8) + 
+  geom_line(data = transb_col_tree2, aes(x = date, y = vol_tree_m3, color = "tree 2", linetype = "tree 2"), linewidth = 1, alpha = 0.8) + 
+  geom_line(data = transb_col_tree3, aes(x = date, y = vol_tree_m3, color = "tree 3", linetype = "tree 3"), linewidth = 1, alpha = 0.8) +
+  geom_line(data = transb_col_tree4, aes(x = date, y = vol_tree_m3, color = "tree 4", linetype = "tree 4"), linewidth = 1, alpha = 0.8) +  
+
+  facet_wrap(~ tree_id, nrow = 1, ncol = 4) +  
+  labs(
+    title = "b) TSZ",
+    x = "Date",
+    y = "Volume of SWE (m³)",
+    color = NULL,
+    linetype = NULL  # This ensures linetype and color share the same legend
+  ) +
+  theme_bw() +
+  scale_y_continuous(limits = c(0, 3)) + 
+  # Custom colors
+  scale_color_manual(values = c("open canopy" = "grey30", 
+                                "tree 1" = "#1B7837", 
+                                "tree 2" = "#D95F02", 
+                                "tree 3" = "#2166AC", 
+                                "tree 4" = "grey10")) +
+
+  # Only tree 4 gets a dashed line, all others solid
+  scale_linetype_manual(values = c("open canopy" = "solid",
+                                   "tree 1" = "solid",
+                                   "tree 2" = "solid",
+                                   "tree 3" = "solid",
+                                   "tree 4" = "dashed"))
+
+transb_vol_SWE_fullseason_lineplot
 ```
 
 ```{r}
@@ -5509,7 +5711,7 @@ transb_vol_SWE_accu_plot <- ggplot(vol_transb_corr_data_accu) +
   labs(
     title = "a) TSZ Accumulation",
     x = "Date",
-    y = "SWE Volume (m³)",
+    y = "Volume of SWE (m³)",
     color = "Tree ID"
   ) +
   theme_bw() +
@@ -5533,7 +5735,7 @@ transb_vol_SWE_abla_plot <- ggplot(vol_transb_corr_data_abla) +
   labs(
     title = "a) TSZ Accumulation",
     x = "Date",
-    y = "SWE Volume (m³)",
+    y = "Volume of SWE (m³)",
     color = "Tree ID"
   ) +
   theme_bw() +
@@ -5549,49 +5751,119 @@ transb_vol_SWE_abla_plot
 ```
 
 ```{r}
-#lineplot version
-
 transb_vol_SWE_accu_lineplot <- ggplot() +
-  geom_line(data = vol_transb_corr_data_accu, aes(x = date, y = vol_sensor_cm3, color = "Sensor Volume", linetype = burn_status), linewidth = 1, alpha = 0.7) + 
-  geom_line(data = transb_col_tree1_accu, aes(x = date, y = vol_sensor_cm3, color = "tree 1", linetype = burn_status), linewidth = 1, alpha = 0.7) + 
-  geom_line(data = transb_col_tree2_accu, aes(x = date, y = vol_tree_cm3, color = "tree 2", linetype = burn_status), linewidth = 1, alpha = 0.7) + 
-  geom_line(data = transb_col_tree3_accu, aes(x = date, y = vol_tree_cm3, color = "tree 3", linetype = burn_status), linewidth = 1, alpha = 0.7) +
-  geom_line(data = transb_col_tree4_accu, aes(x = date, y = vol_tree_cm3, color = "tree 4", linetype = burn_status), linewidth = 1, alpha = 0.7) +
-  #facet_wrap(~ tree_id, nrow = 1, ncol = 4) +  # Separate by tree_id
+  geom_line(data = vol_transb_corr_data_accu, aes(x = date, y = vol_sensor_m3, color = "open canopy", linetype = "open canopy"), linewidth = 1, alpha = 0.8) + 
+  geom_line(data = transb_col_tree1_accu, aes(x = date, y = vol_tree_m3, color = "tree 1", linetype = "tree 1"), linewidth = 1, alpha = 0.8) + 
+  geom_line(data = transb_col_tree2_accu, aes(x = date, y = vol_tree_m3, color = "tree 2", linetype = "tree 2"), linewidth = 1, alpha = 0.8) + 
+  geom_line(data = transb_col_tree3_accu, aes(x = date, y = vol_tree_m3, color = "tree 3", linetype = "tree 3"), linewidth = 1, alpha = 0.8) +
+  geom_line(data = transb_col_tree4_accu, aes(x = date, y = vol_tree_m3, color = "tree 4", linetype = "tree 4"), linewidth = 1, alpha = 0.8) +  # Only tree 4 has dashed line
+  
+  facet_wrap(~ tree_id, nrow = 1, ncol = 4) +  
   labs(
     title = "a) TSZ Accumulation",
     x = "Date",
-    y = "SWE Volume (cm³)",
-    color = "Volume Type",
-    linetype = "Burn Status"
+    y = "Volume of SWE (m³)",
+    color = NULL,
+    linetype = NULL  # This ensures linetype and color share the same legend
   ) +
   theme_bw() +
-  scale_color_manual(values = c("Sensor Volume" = "blue", "tree 1" = "red", "tree 2" = "green", "tree 3" = "purple", "tree 4" = "black")) +
-  scale_linetype_manual(values = c("GB" = "solid", "DB" = "dashed")) +  # Custom linetypes
-  guides(color = guide_legend(title = "Volume Type"), linetype = guide_legend(title = "Burn Status"))
+  
+  # Custom colors
+  scale_color_manual(values = c("open canopy" = "grey30", 
+                                "tree 1" = "#1B7837", 
+                                "tree 2" = "#D95F02", 
+                                "tree 3" = "#2166AC", 
+                                "tree 4" = "grey10")) +
+  
+  # Only tree 4 gets a dashed line, all others solid
+  scale_linetype_manual(values = c("open canopy" = "solid",
+                                   "tree 1" = "solid",
+                                   "tree 2" = "solid",
+                                   "tree 3" = "solid",
+                                   "tree 4" = "dashed"))
 
 transb_vol_SWE_accu_lineplot
+
 ```
 
 ```{r}
 transb_vol_SWE_abla_lineplot <- ggplot() +
-  geom_line(data = vol_transb_corr_data_abla, aes(x = date, y = vol_sensor_cm3, color = "Sensor Volume", linetype = burn_status), linewidth = 1, alpha = 0.7) + 
-  geom_line(data = transb_col_tree1_abla, aes(x = date, y = vol_sensor_cm3, color = "tree 1", linetype = burn_status), linewidth = 1, alpha = 0.7) + 
-  geom_line(data = transb_col_tree2_abla, aes(x = date, y = vol_tree_cm3, color = "tree 2", linetype = burn_status), linewidth = 1, alpha = 0.7) + 
-  geom_line(data = transb_col_tree3_abla, aes(x = date, y = vol_tree_cm3, color = "tree 3", linetype = burn_status), linewidth = 1, alpha = 0.7) +
-  geom_line(data = transb_col_tree4_abla, aes(x = date, y = vol_tree_cm3, color = "tree 4", linetype = burn_status), linewidth = 1, alpha = 0.7) +
-  facet_wrap(~ tree_id, nrow = 1, ncol = 4) +  # Separate by tree_id
+  geom_line(data = vol_transb_corr_data_abla, aes(x = date, y = vol_sensor_m3, color = "open canopy", linetype = "open canopy"), linewidth = 1, alpha = 0.8) + 
+  geom_line(data = transb_col_tree1_abla, aes(x = date, y = vol_tree_m3, color = "tree 1", linetype = "tree 1"), linewidth = 1, alpha = 0.8) + 
+  geom_line(data = transb_col_tree2_abla, aes(x = date, y = vol_tree_m3, color = "tree 2", linetype = "tree 2"), linewidth = 1, alpha = 0.8) + 
+  geom_line(data = transb_col_tree3_abla, aes(x = date, y = vol_tree_m3, color = "tree 3", linetype = "tree 3"), linewidth = 1, alpha = 0.8) +
+  geom_line(data = transb_col_tree4_abla, aes(x = date, y = vol_tree_m3, color = "tree 4", linetype = "tree 4"), linewidth = 1, alpha = 0.8) +  # Only tree 4 has dashed line
+  
+  facet_wrap(~ tree_id, nrow = 1, ncol = 4) +  
   labs(
-    title = "b) TSZ Ablation",
+    title = "b) TSZ",
     x = "Date",
-    y = "SWE Volume (cm³)",
-    color = "Volume Type",
-    linetype = "Burn Status"
+    y = "Volume of SWE (m³)",
+    color = NULL,
+    linetype = NULL  # This ensures linetype and color share the same legend
   ) +
   theme_bw() +
-  scale_color_manual(values = c("Sensor Volume" = "blue", "tree 1" = "red", "tree 2" = "green", "tree 3" = "purple", "tree 4" = "black")) +
-  scale_linetype_manual(values = c("GB" = "solid", "DB" = "dashed")) +  # Custom linetypes
-  guides(color = guide_legend(title = "Volume Type"), linetype = guide_legend(title = "Burn Status"))
+  scale_y_continuous(limits = c(0, 2)) + 
+  # Custom colors
+  scale_color_manual(values = c("open canopy" = "grey30", 
+                                "tree 1" = "#1B7837", 
+                                "tree 2" = "#D95F02", 
+                                "tree 3" = "#2166AC", 
+                                "tree 4" = "grey10")) +
+  
+  # Only tree 4 gets a dashed line, all others solid
+  scale_linetype_manual(values = c("open canopy" = "solid",
+                                   "tree 1" = "solid",
+                                   "tree 2" = "solid",
+                                   "tree 3" = "solid",
+                                   "tree 4" = "dashed"))
 
 transb_vol_SWE_abla_lineplot
+```
+
+```{r}
+
+snowdepth_comp_TSZ <- ggplot() + 
+  geom_line(data = fullseason_vol_transb, aes(x = date, y = SnowDepth_cm, color = "Sensor Depth"), linewidth = 1, alpha = 0.7) + 
+  geom_line(data = fullseason_vol_transb, aes(x = date, y = maximum_depth_cm, color = "Tree/Camera Depth"), linewidth = 1, alpha = 0.7) + 
+  facet_wrap(~tree_id) +
+  scale_color_manual(values = c("Sensor Depth" = "blue", "Tree/Camera Depth" = "red")) +  # Correct color mapping
+  labs(color = "Depth Type")  # Change legend title
+
+snowdepth_comp_TSZ
+```
+
+```{r}
+snowdepth_comp_PSZ <- ggplot() + 
+  geom_line(data = fullseason_vol_persb, aes(x = date, y = SnowDepth_cm, color = "Sensor Depth"), linewidth = 1, alpha = 0.7) + 
+  geom_line(data = fullseason_vol_persb, aes(x = date, y = maximum_depth_cm, color = "Tree/Camera Depth"), linewidth = 1, alpha = 0.7) + 
+  facet_wrap(~tree_id) +
+  scale_color_manual(values = c("Sensor Depth" = "blue", "Tree/Camera Depth" = "red")) +  # Correct color mapping
+  labs(color = "Depth Type")  # Change legend title
+
+snowdepth_comp_PSZ
+```
+
+Combining plots
+
+```{r}
+comb_fullseason_SWEvol <- ggarrange(persb_vol_SWE_fullseason_lineplot, transb_vol_SWE_fullseason_lineplot, nrow = 2, ncol = 1, common.legend = TRUE, legend = "right")
+
+comb_fullseason_SWEvol
+```
+
+```{r}
+ggsave("comb_fullseason_SWEvol.png", height = 5, width = 8, plot = comb_fullseason_SWEvol, dpi = 600)
+```
+
+```{r}
+#ablation ONLY combined plot
+
+comb_abla_SWEvol <- ggarrange(persb_vol_SWE_abla_lineplot, transb_vol_SWE_abla_lineplot, nrow = 2, ncol = 1, common.legend = TRUE, legend = "right")
+
+comb_abla_SWEvol
+```
+
+```{r}
+ggsave("comb_abla_SWEvol.png", height = 5, width = 8, plot = comb_abla_SWEvol, dpi = 600)
 ```
