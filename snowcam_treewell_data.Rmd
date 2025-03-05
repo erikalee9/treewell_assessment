@@ -5514,7 +5514,7 @@ persb_col_tree4 <- fullseason_vol_persb%>%
 persb_vol_SWE_fullseason_lineplot <- ggplot() + 
   # Line denoting ablation season
   geom_vline(xintercept = as.Date('2024-05-06'), color = "grey23", linetype = "dashed", linewidth = 0.6, alpha = 0.8) +
-  geom_line(data = fullseason_vol_persb, aes(x = date, y = vol_sensor_m3, color = "open canopy", linetype = "open canopy"), linewidth = 1, alpha = 0.8) + 
+  geom_line(data = fullseason_vol_persb, aes(x = date, y = vol_sensor_m3, color = "open area", linetype = "open area"), linewidth = 1, alpha = 0.8) + 
   geom_line(data = persb_col_tree1, aes(x = date, y = vol_tree_m3, color = "tree 1", linetype = "tree 1"), linewidth = 1, alpha = 0.8) + 
   geom_line(data = persb_col_tree2, aes(x = date, y = vol_tree_m3, color = "tree 2", linetype = "tree 2"), linewidth = 1, alpha = 0.8) + 
   geom_line(data = persb_col_tree3, aes(x = date, y = vol_tree_m3, color = "tree 3", linetype = "tree 3"), linewidth = 1, alpha = 0.8) +
@@ -5524,21 +5524,21 @@ persb_vol_SWE_fullseason_lineplot <- ggplot() +
   labs(
     title = "a) PSZ",
     x = NULL,
-    y = "Volume of SWE (m³)",
+    y = "Snow Volume (m³)",
     color = NULL,
     linetype = NULL  # This ensures linetype and color share the same legend
   ) +
   theme_bw() +
   scale_y_continuous(limits = c(0, 3)) + 
   # Custom colors
-  scale_color_manual(values = c("open canopy" = "grey30", 
+  scale_color_manual(values = c("open area" = "grey30", 
                                 "tree 1" = "#1B7837", 
                                 "tree 2" = "#D95F02", 
                                 "tree 3" = "#2166AC", 
                                 "tree 4" = "grey10")) +
 
   # Only tree 4 gets a dashed line, all others solid
-  scale_linetype_manual(values = c("open canopy" = "solid",
+  scale_linetype_manual(values = c("open area" = "solid",
                                    "tree 1" = "solid",
                                    "tree 2" = "solid",
                                    "tree 3" = "solid",
@@ -5587,7 +5587,7 @@ persb_vol_SWE_accu_lineplot
 ```{r}
 #NOT USING
 persb_vol_SWE_abla_lineplot <- ggplot() +
-  geom_line(data = vol_persb_corr_data_abla, aes(x = date, y = vol_sensor_m3, color = "open canopy", linetype = "open canopy"), linewidth = 1, alpha = 0.8) + 
+  geom_line(data = vol_persb_corr_data_abla, aes(x = date, y = vol_sensor_m3, color = "open area", linetype = "open area"), linewidth = 1, alpha = 0.8) + 
   geom_line(data = persb_col_tree1_abla, aes(x = date, y = vol_tree_m3, color = "tree 1", linetype = "tree 1"), linewidth = 1, alpha = 0.8) + 
   geom_line(data = persb_col_tree2_abla, aes(x = date, y = vol_tree_m3, color = "tree 2", linetype = "tree 2"), linewidth = 1, alpha = 0.8) + 
   geom_line(data = persb_col_tree3_abla, aes(x = date, y = vol_tree_m3, color = "tree 3", linetype = "tree 3"), linewidth = 1, alpha = 0.8) +
@@ -5597,21 +5597,21 @@ persb_vol_SWE_abla_lineplot <- ggplot() +
   labs(
     title = "a) PSZ",
     x = NULL,
-    y = "Volume of SWE (m³)",
+    y = "Snow Volume (m³)",
     color = NULL,
     linetype = NULL  # This ensures linetype and color share the same legend
   ) +
   theme_bw() +
   scale_y_continuous(limits = c(0, 2)) + 
   # Custom colors
-  scale_color_manual(values = c("open canopy" = "grey30", 
+  scale_color_manual(values = c("open area" = "grey30", 
                                 "tree 1" = "#1B7837", 
                                 "tree 2" = "#D95F02", 
                                 "tree 3" = "#2166AC", 
                                 "tree 4" = "grey10")) +
   
   # Only tree 4 gets a dashed line, all others solid
-  scale_linetype_manual(values = c("open canopy" = "solid",
+  scale_linetype_manual(values = c("open area" = "solid",
                                    "tree 1" = "solid",
                                    "tree 2" = "solid",
                                    "tree 3" = "solid",
@@ -5669,7 +5669,7 @@ transb_col_tree4 <- fullseason_vol_transb %>%
 transb_vol_SWE_fullseason_lineplot <- ggplot() + 
   # Line denoting ablation season
   geom_vline(xintercept = as.Date('2024-04-01'), color = "grey23", linetype = "dashed", linewidth = 0.6, alpha = 0.8) +
-  geom_line(data = fullseason_vol_transb, aes(x = date, y = vol_sensor_m3, color = "open canopy", linetype = "open canopy"), linewidth = 1, alpha = 0.8) + 
+  geom_line(data = fullseason_vol_transb, aes(x = date, y = vol_sensor_m3, color = "open area", linetype = "open area"), linewidth = 1, alpha = 0.8) + 
   geom_line(data = transb_col_tree1, aes(x = date, y = vol_tree_m3, color = "tree 1", linetype = "tree 1"), linewidth = 1, alpha = 0.8) + 
   geom_line(data = transb_col_tree2, aes(x = date, y = vol_tree_m3, color = "tree 2", linetype = "tree 2"), linewidth = 1, alpha = 0.8) + 
   geom_line(data = transb_col_tree3, aes(x = date, y = vol_tree_m3, color = "tree 3", linetype = "tree 3"), linewidth = 1, alpha = 0.8) +
@@ -5679,21 +5679,21 @@ transb_vol_SWE_fullseason_lineplot <- ggplot() +
   labs(
     title = "b) TSZ",
     x = "Date",
-    y = "Volume of SWE (m³)",
+    y = "Snow Volume (m³)",
     color = NULL,
     linetype = NULL  # This ensures linetype and color share the same legend
   ) +
   theme_bw() +
   scale_y_continuous(limits = c(0, 3)) + 
   # Custom colors
-  scale_color_manual(values = c("open canopy" = "grey30", 
+  scale_color_manual(values = c("open area" = "grey30", 
                                 "tree 1" = "#1B7837", 
                                 "tree 2" = "#D95F02", 
                                 "tree 3" = "#2166AC", 
                                 "tree 4" = "grey10")) +
 
   # Only tree 4 gets a dashed line, all others solid
-  scale_linetype_manual(values = c("open canopy" = "solid",
+  scale_linetype_manual(values = c("open area" = "solid",
                                    "tree 1" = "solid",
                                    "tree 2" = "solid",
                                    "tree 3" = "solid",
@@ -5788,7 +5788,7 @@ transb_vol_SWE_accu_lineplot
 
 ```{r}
 transb_vol_SWE_abla_lineplot <- ggplot() +
-  geom_line(data = vol_transb_corr_data_abla, aes(x = date, y = vol_sensor_m3, color = "open canopy", linetype = "open canopy"), linewidth = 1, alpha = 0.8) + 
+  geom_line(data = vol_transb_corr_data_abla, aes(x = date, y = vol_sensor_m3, color = "open area", linetype = "open area"), linewidth = 1, alpha = 0.8) + 
   geom_line(data = transb_col_tree1_abla, aes(x = date, y = vol_tree_m3, color = "tree 1", linetype = "tree 1"), linewidth = 1, alpha = 0.8) + 
   geom_line(data = transb_col_tree2_abla, aes(x = date, y = vol_tree_m3, color = "tree 2", linetype = "tree 2"), linewidth = 1, alpha = 0.8) + 
   geom_line(data = transb_col_tree3_abla, aes(x = date, y = vol_tree_m3, color = "tree 3", linetype = "tree 3"), linewidth = 1, alpha = 0.8) +
@@ -5798,21 +5798,21 @@ transb_vol_SWE_abla_lineplot <- ggplot() +
   labs(
     title = "b) TSZ",
     x = "Date",
-    y = "Volume of SWE (m³)",
+    y = "Snow Volume (m³)",
     color = NULL,
     linetype = NULL  # This ensures linetype and color share the same legend
   ) +
   theme_bw() +
   scale_y_continuous(limits = c(0, 2)) + 
   # Custom colors
-  scale_color_manual(values = c("open canopy" = "grey30", 
+  scale_color_manual(values = c("open area" = "grey30", 
                                 "tree 1" = "#1B7837", 
                                 "tree 2" = "#D95F02", 
                                 "tree 3" = "#2166AC", 
                                 "tree 4" = "grey10")) +
   
   # Only tree 4 gets a dashed line, all others solid
-  scale_linetype_manual(values = c("open canopy" = "solid",
+  scale_linetype_manual(values = c("open area" = "solid",
                                    "tree 1" = "solid",
                                    "tree 2" = "solid",
                                    "tree 3" = "solid",
@@ -5866,4 +5866,148 @@ comb_abla_SWEvol
 
 ```{r}
 ggsave("comb_abla_SWEvol.png", height = 5, width = 8, plot = comb_abla_SWEvol, dpi = 600)
+```
+
+### Stats
+
+Calculating the change in volume between open and treed areas - by tree ID & season
+
+```{r}
+#PSZ full season
+stats_PSZ_vol <- fullseason_vol_persb %>%
+  group_by(tree_id, season) %>%
+  filter(!is.na(vol_sensor_m3), !is.na(vol_tree_m3)) %>%  # Remove NAs only for volume calculations
+  summarize(
+    initial_vol_sensor = first(vol_sensor_m3),
+    initial_vol_tree = first(vol_tree_m3),
+    final_vol_sensor = last(vol_sensor_m3),
+    final_vol_tree = last(vol_tree_m3),
+    abs_change_sensor = final_vol_sensor - initial_vol_sensor,
+    abs_change_tree = final_vol_tree - initial_vol_tree,
+    percent_change_sensor = (abs_change_sensor / initial_vol_sensor) * 100,
+    percent_change_tree = (abs_change_tree / initial_vol_tree) * 100,
+    total_days = as.numeric(difftime(max(date), min(date), units = "days")),  # Ensure 'date' is in Date format
+    rate_change_sensor_per_day = abs_change_sensor / total_days,  # Rate of change per day (sensor)
+    rate_change_tree_per_day = abs_change_tree / total_days  # Rate of change per day (tree)
+  )
+```
+
+```{r}
+stats_TSZ_vol <- fullseason_vol_transb %>%
+  group_by(tree_id, season) %>%
+  filter(!is.na(vol_sensor_m3), !is.na(vol_tree_m3)) %>%  # Remove NAs only for volume calculations
+  summarize(
+    initial_vol_sensor = first(vol_sensor_m3),
+    initial_vol_tree = first(vol_tree_m3),
+    final_vol_sensor = last(vol_sensor_m3),
+    final_vol_tree = last(vol_tree_m3),
+    abs_change_sensor = final_vol_sensor - initial_vol_sensor,
+    abs_change_tree = final_vol_tree - initial_vol_tree,
+    percent_change_sensor = (abs_change_sensor / initial_vol_sensor) * 100,
+    percent_change_tree = (abs_change_tree / initial_vol_tree) * 100,
+    total_days = as.numeric(difftime(max(date), min(date), units = "days")),  # Ensure 'date' is in Date format
+    rate_change_sensor_per_day = abs_change_sensor / total_days,  # Rate of change per day (sensor)
+    rate_change_tree_per_day = abs_change_tree / total_days  # Rate of change per day (tree)
+  )
+```
+
+by burn status & season
+
+```{r}
+stats_PSZ_vol_DBGB <- fullseason_vol_persb %>%
+  group_by(burn_status, season) %>%
+  filter(!is.na(vol_sensor_m3), !is.na(vol_tree_m3)) %>%  # Remove NAs only for volume calculations
+  summarize(
+    initial_vol_sensor = first(vol_sensor_m3),
+    initial_vol_tree = first(vol_tree_m3),
+    final_vol_sensor = last(vol_sensor_m3),
+    final_vol_tree = last(vol_tree_m3),
+    abs_change_sensor = final_vol_sensor - initial_vol_sensor,
+    abs_change_tree = final_vol_tree - initial_vol_tree,
+    percent_change_sensor = (abs_change_sensor / initial_vol_sensor) * 100,
+    percent_change_tree = (abs_change_tree / initial_vol_tree) * 100,
+    total_days = as.numeric(difftime(max(date), min(date), units = "days")),  # Ensure 'date' is in Date format
+    rate_change_sensor_per_day = abs_change_sensor / total_days,  # Rate of change per day (sensor)
+    rate_change_tree_per_day = abs_change_tree / total_days  # Rate of change per day (tree)
+  )
+```
+
+```{r}
+stats_TSZ_vol_DBGB <- fullseason_vol_transb %>%
+  group_by(burn_status, season) %>%
+  filter(!is.na(vol_sensor_m3), !is.na(vol_tree_m3)) %>%  # Remove NAs only for volume calculations
+  summarize(
+    initial_vol_sensor = first(vol_sensor_m3),
+    initial_vol_tree = first(vol_tree_m3),
+    final_vol_sensor = last(vol_sensor_m3),
+    final_vol_tree = last(vol_tree_m3),
+    abs_change_sensor = final_vol_sensor - initial_vol_sensor,
+    abs_change_tree = final_vol_tree - initial_vol_tree,
+    percent_change_sensor = (abs_change_sensor / initial_vol_sensor) * 100,
+    percent_change_tree = (abs_change_tree / initial_vol_tree) * 100,
+    total_days = as.numeric(difftime(max(date), min(date), units = "days")),  # Ensure 'date' is in Date format
+    rate_change_sensor_per_day = abs_change_sensor / total_days,  # Rate of change per day (sensor)
+    rate_change_tree_per_day = abs_change_tree / total_days  # Rate of change per day (tree)
+  )
+```
+
+Total difference, not separated by tree
+
+```{r}
+#PSZ full season
+stats_PSZ_vol_full <- fullseason_vol_persb %>%
+  group_by(season) %>%
+  filter(!is.na(vol_sensor_m3), !is.na(vol_tree_m3)) %>%  # Remove NAs only for volume calculations
+  summarize(
+    initial_vol_sensor = first(vol_sensor_m3),
+    initial_vol_tree = first(vol_tree_m3),
+    final_vol_sensor = last(vol_sensor_m3),
+    final_vol_tree = last(vol_tree_m3),
+    abs_change_sensor = final_vol_sensor - initial_vol_sensor,
+    abs_change_tree = final_vol_tree - initial_vol_tree,
+    percent_change_sensor = (abs_change_sensor / initial_vol_sensor) * 100,
+    percent_change_tree = (abs_change_tree / initial_vol_tree) * 100,
+    total_days = as.numeric(difftime(max(date), min(date), units = "days")),  # Ensure 'date' is in Date format
+    rate_change_sensor_per_day = abs_change_sensor / total_days,  # Rate of change per day (sensor)
+    rate_change_tree_per_day = abs_change_tree / total_days  # Rate of change per day (tree)
+  )
+```
+
+```{r}
+stats_TSZ_vol_full <- fullseason_vol_transb %>%
+  group_by(season) %>%
+  filter(!is.na(vol_sensor_m3), !is.na(vol_tree_m3)) %>%  # Remove NAs only for volume calculations
+  summarize(
+    initial_vol_sensor = first(vol_sensor_m3),
+    initial_vol_tree = first(vol_tree_m3),
+    final_vol_sensor = last(vol_sensor_m3),
+    final_vol_tree = last(vol_tree_m3),
+    abs_change_sensor = final_vol_sensor - initial_vol_sensor,
+    abs_change_tree = final_vol_tree - initial_vol_tree,
+    percent_change_sensor = (abs_change_sensor / initial_vol_sensor) * 100,
+    percent_change_tree = (abs_change_tree / initial_vol_tree) * 100,
+    total_days = as.numeric(difftime(max(date), min(date), units = "days")),  # Ensure 'date' is in Date format
+    rate_change_sensor_per_day = abs_change_sensor / total_days,  # Rate of change per day (sensor)
+    rate_change_tree_per_day = abs_change_tree / total_days  # Rate of change per day (tree)
+  )
+```
+
+Exporting tables
+
+```{r}
+write_csv(stats_PSZ_vol, "stats_PSZ_vol_treeID.csv")
+
+write_csv(stats_TSZ_vol, "stats_TSZ_vol_treeID.csv")
+```
+
+```{r}
+write_csv(stats_PSZ_vol_DBGB, "stats_PSZ_vol_DBGB.csv")
+
+write_csv(stats_TSZ_vol_DBGB, "stats_TSZ_vol_DBGB.csv")
+```
+
+```{r}
+write_csv(stats_PSZ_vol_full, "stats_PSZ_vol_mean.csv")
+
+write_csv(stats_TSZ_vol_full, "stats_TSZ_vol_mean.csv")
 ```
