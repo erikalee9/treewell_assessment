@@ -6011,3 +6011,127 @@ write_csv(stats_PSZ_vol_full, "stats_PSZ_vol_mean.csv")
 
 write_csv(stats_TSZ_vol_full, "stats_TSZ_vol_mean.csv")
 ```
+
+Differenced Data V2
+
+Percent differenced data by day, then grouped
+
+```{r}
+diff_stats_PSZ_vol<- fullseason_vol_persb %>%
+  filter(!is.na(vol_sensor_m3), !is.na(vol_tree_m3)) %>%
+  mutate(vol_perc_diff_m3 = ((vol_sensor_m3-vol_tree_m3)/vol_sensor_m3)*100) %>%
+  group_by(tree_id, season) %>%
+  summarize(min_perc_diff = min(vol_perc_diff_m3, na.rm = TRUE),
+            max_perc_diff = max(vol_perc_diff_m3, na.rm = TRUE), 
+            median_perc_diff = median(vol_perc_diff_m3, na.rm = TRUE), 
+            mean_perc_diff = mean(vol_perc_diff_m3, na.rm = TRUE))
+```
+
+```{r}
+diff_stats_TSZ_vol<- fullseason_vol_transb %>%
+  filter(!is.na(vol_sensor_m3), !is.na(vol_tree_m3)) %>%
+  mutate(vol_perc_diff_m3 = ((vol_sensor_m3-vol_tree_m3)/vol_sensor_m3)*100) %>%
+  group_by(tree_id, season) %>%
+  summarize(min_perc_diff = min(vol_perc_diff_m3, na.rm = TRUE),
+            max_perc_diff = max(vol_perc_diff_m3, na.rm = TRUE), 
+            median_perc_diff = median(vol_perc_diff_m3, na.rm = TRUE), 
+            mean_perc_diff = mean(vol_perc_diff_m3, na.rm = TRUE))
+```
+
+```{r}
+write_csv(diff_stats_PSZ_vol, "diff_stats_PSZ_vol.csv")
+
+write_csv(diff_stats_TSZ_vol, "diff_stats_TSZ_vol.csv")
+```
+
+## Tree Diam vs Well Diam V2
+
+Correlating full seasons tree vs well diameters
+
+```{r}
+# Tree Diam 
+# Compute R^2 for each tree_id
+p_treevswelldiam_accu_results <- persb_corr_data_accu %>%
+  drop_na(tree_diam, well_diam) %>%
+  group_by(tree_id) %>%
+  summarize(
+    cor_test = list(cor.test(well_diam, tree_diam, use = "complete.obs")),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
+    p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
+    conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
+    conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
+    R2_label = paste0(
+      "R² = ", round(R2, 3), "\n",
+      "P-value = ", signif(p_value, 3), "\n"
+    )  # Include CI in the label
+  )
+
+
+# Scatterplot
+persb_treevswelldiam_corr_plot_accu <- ggplot(persb_corr_data_accu, aes(x = tree_diam, y = well_diam, color = factor(tree_id))) +
+  geom_point(aes(shape = burn_status), size = 2, alpha = 0.7) +
+  geom_smooth(method = "lm", color = "grey", se = TRUE) +
+  facet_wrap(~ tree_id) +  # Separate by tree_id
+  labs(
+    title = "PSZ: Tree Diameter vs Well Diameter, Accumulation",
+    x = "Tree Diameter (cm))",
+    y = "Well Diameter (cm)",
+    color = "Tree ID"
+  ) +
+  theme_bw() +
+  scale_color_manual(values = treeid_colors) + 
+  #remove color legend 
+  guides(color = "none") +
+  scale_shape_manual(name = "Burn Status", values = c("GB" = 16, "DB" = 15)) +
+  geom_text(data = p_treevswelldiam_accu_results, aes(x = Inf, y = Inf, label = R2_label), 
+            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 4)
+
+persb_treevswelldiam_corr_plot_accu
+```
+
+```{r}
+# Tree Diam 
+# Compute R^2 for each tree_id
+p_treevswelldiam_abla_results <- persb_corr_data_abla %>%
+  drop_na(tree_diam, well_diam) %>%
+  group_by(tree_id) %>%
+  summarize(
+    cor_test = list(cor.test(well_diam, tree_diam, use = "complete.obs")),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
+    p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
+    conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
+    conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
+    R2_label = paste0(
+      "R² = ", round(R2, 3), "\n",
+      "P-value = ", signif(p_value, 3), "\n"
+    )  # Include CI in the label
+  )
+
+
+# Scatterplot
+persb_treevswelldiam_corr_plot_abla <- ggplot(persb_corr_data_abla, aes(x = tree_diam, y = well_diam, color = factor(tree_id))) +
+  geom_point(aes(shape = burn_status), size = 2, alpha = 0.7) +
+  geom_smooth(method = "lm", color = "grey", se = TRUE) +
+  facet_wrap(~ tree_id) +  # Separate by tree_id
+  labs(
+    title = "PSZ: Tree Diameter vs Well Diameter, Ablation",
+    x = "Tree Diameter (cm))",
+    y = "Well Diameter (cm)",
+    color = "Tree ID"
+  ) +
+  theme_bw() +
+  scale_color_manual(values = treeid_colors) + 
+  #remove color legend 
+  guides(color = "none") +
+  scale_shape_manual(name = "Burn Status", values = c("GB" = 16, "DB" = 15)) +
+  geom_text(data = p_treevswelldiam_abla_results, aes(x = Inf, y = Inf, label = R2_label), 
+            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 4)
+
+persb_treevswelldiam_corr_plot_abla
+```
