@@ -6065,8 +6065,7 @@ PSZ_MRD_MAD_stats <- fullseason_vol_persb %>%
     min_avg_diff = min(abs(vol_sensor_m3 - vol_tree_m3), na.rm = TRUE),
     min_rel_diff =min(abs(vol_sensor_m3 - vol_tree_m3) / ((vol_sensor_m3 + vol_tree_m3) / 2), na.rm = TRUE),
     max_avg_diff = max(abs(vol_sensor_m3 - vol_tree_m3), na.rm = TRUE),
-    max_rel_diff =max(abs(vol_sensor_m3 - vol_tree_m3) / ((vol_sensor_m3 + vol_tree_m3) / 2), na.rm = TRUE),
-  )
+    max_rel_diff =max(abs(vol_sensor_m3 - vol_tree_m3) / ((vol_sensor_m3 + vol_tree_m3) / 2), na.rm = TRUE)
 ```
 
 ```{r}
@@ -6078,11 +6077,10 @@ TSZ_MRD_MAD_stats <- fullseason_vol_transb %>%
     min_avg_diff = min(abs(vol_sensor_m3 - vol_tree_m3), na.rm = TRUE),
     min_rel_diff =min(abs(vol_sensor_m3 - vol_tree_m3) / ((vol_sensor_m3 + vol_tree_m3) / 2), na.rm = TRUE) * 100, 
     max_avg_diff = max(abs(vol_sensor_m3 - vol_tree_m3), na.rm = TRUE),
-    max_rel_diff =max(abs(vol_sensor_m3 - vol_tree_m3) / ((vol_sensor_m3 + vol_tree_m3) / 2), na.rm = TRUE) *100,
-  )
+    max_rel_diff =max(abs(vol_sensor_m3 - vol_tree_m3) / ((vol_sensor_m3 + vol_tree_m3) / 2), na.rm = TRUE) *100)
 ```
 
-#### Tree Diam vs Well Diam V2
+## Tree Diam vs Well Diam V2
 
 Correlating full seasons tree vs well diameters
 
@@ -6406,4 +6404,32 @@ diff_stats_TSZ_SWE <- SWE_fullseason_vol_transb %>%
             max_perc_diff = max(SWE_perc_diff_m3, na.rm = TRUE), 
             median_perc_diff = median(SWE_perc_diff_m3, na.rm = TRUE), 
             mean_perc_diff = mean(SWE_perc_diff_m3, na.rm = TRUE))
+```
+
+#### MAD/MRD stats
+
+```{r}
+PSZ_SWE_MRD_MAD_stats <- SWE_fullseason_vol_persb %>%
+  group_by(tree_id, season) %>%
+  summarise(
+    mean_avg_diff = mean(abs(SWE_sensor_kgm3 - SWE_tree_kgm3), na.rm = TRUE),
+    mean_rel_diff = mean(abs(SWE_sensor_kgm3 - SWE_tree_kgm3) / ((SWE_sensor_kgm3 + SWE_tree_kgm3) / 2) * 100, na.rm = TRUE), 
+    min_avg_diff = min(abs(SWE_sensor_kgm3 - SWE_tree_kgm3), na.rm = TRUE),
+    min_rel_diff = min(abs(SWE_sensor_kgm3 - SWE_tree_kgm3) / ((SWE_sensor_kgm3 + SWE_tree_kgm3) / 2) * 100, na.rm = TRUE),
+    max_avg_diff = max(abs(SWE_sensor_kgm3 - SWE_tree_kgm3), na.rm = TRUE),
+    max_rel_diff = max(abs(SWE_sensor_kgm3 - SWE_tree_kgm3) / ((SWE_sensor_kgm3 + SWE_tree_kgm3) / 2) * 100, na.rm = TRUE)
+  )
+```
+
+```{r}
+TSZ_SWE_MRD_MAD_stats <- SWE_fullseason_vol_transb %>%
+  group_by(tree_id, season) %>%
+  summarise(
+    mean_avg_diff = mean(abs(SWE_sensor_kgm3 - SWE_tree_kgm3), na.rm = TRUE),
+    mean_rel_diff = mean(abs(SWE_sensor_kgm3 - SWE_tree_kgm3) / ((SWE_sensor_kgm3 + SWE_tree_kgm3) / 2) * 100, na.rm = TRUE), 
+    min_avg_diff = min(abs(SWE_sensor_kgm3 - SWE_tree_kgm3), na.rm = TRUE),
+    min_rel_diff = min(abs(SWE_sensor_kgm3 - SWE_tree_kgm3) / ((SWE_sensor_kgm3 + SWE_tree_kgm3) / 2) * 100, na.rm = TRUE),
+    max_avg_diff = max(abs(SWE_sensor_kgm3 - SWE_tree_kgm3), na.rm = TRUE),
+    max_rel_diff = max(abs(SWE_sensor_kgm3 - SWE_tree_kgm3) / ((SWE_sensor_kgm3 + SWE_tree_kgm3) / 2) * 100, na.rm = TRUE)
+  )
 ```
