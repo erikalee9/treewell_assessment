@@ -3583,18 +3583,29 @@ persb_totalcumTreeTemp_corr_plot_accu <- ggplot(persb_corr_data_accu, aes(x = to
   geom_smooth(method = "lm", color = "grey", se = TRUE) +
   facet_wrap(~ tree_id, nrow = 1) +  # Separate by tree_id
   labs(
-    title = "i) Accumulation",
+    title = "a) PSZ",
     x = NULL,
     y = "Well Diameter (m)",
     color = "Tree ID"
   ) +
   theme_bw() +
   scale_color_manual(values = treeid_colors) + 
-  scale_x_continuous(labels = scales::label_comma()) + 
+  scale_x_continuous(breaks = c(-100, 0, 100, 200), 
+                     labels = c("-100", "0", "100", "200")) +
+  scale_y_continuous(breaks = c(0.4, 0.8, 1.2, 1.6),
+                     labels = c("0.4", "0.8", "1.2", "1.6"))+
+  expand_limits(x = c(-100, 200), y = c(0.5, 2.0)) + 
   guides(color = "none") +
   scale_shape_manual(name = NULL, values = c("GB" = 16, "DB" = 15)) +
   geom_text(data = p_totalcumTreeTemp_r2_values_accu, aes(x = Inf, y = Inf, label = R2_label), 
-            hjust = 1.1, vjust = 1.3, inherit.aes = FALSE, size = 4)
+            hjust = 1.1, vjust = 1.3, inherit.aes = FALSE, size = 4) + 
+  theme(
+    strip.text = element_text(size = 11),  # Facet title size
+    axis.title = element_text(size = 11),  # Axis title size
+    axis.text = element_text(size = 11),  # Axis tick labels
+    legend.title = element_text(size = 11),  # Legend title size
+    legend.text = element_text(size = 10)  # Legend labels size
+  )
 
 persb_totalcumTreeTemp_corr_plot_accu
 ```
@@ -3624,19 +3635,30 @@ persb_totalcumTreeTemp_corr_plot_abla <- ggplot(persb_corr_data_abla, aes(x = to
   geom_smooth(method = "lm", color = "grey", se = TRUE) +
   facet_wrap(~ tree_id, nrow = 1) +  # Separate by tree_id
   labs(
-    title = "ii) Ablation",
-    x = "Cumulative Tree Temperature (°C)",
+    title = "a) PSZ",
+    x = NULL,
     y = "Well Diameter (m)",
     color = "Tree ID"
   ) +
   theme_bw() +
   scale_color_manual(values = treeid_colors) + 
-  scale_x_continuous(labels = scales::label_comma(), limits = c(225, 375), breaks = (breaks = seq(250, 350, by = 50))) + 
+  scale_x_continuous(breaks = c(200, 250, 300, 350), 
+                     labels = c("200", "250", "300", "350")) +
+  scale_y_continuous(breaks = c(0.5, 1.0, 1.5, 2.0),
+                     labels = c("0.5", "1.0", "1.5", "2.0"))+
+  expand_limits(x = c(200, 350), y = c(0.5, 2.0)) + 
   #remove color legend 
   guides(color = "none") +
   scale_shape_manual(name = NULL, values = c("GB" = 16, "DB" = 15)) +
   geom_text(data = p_totalcumTreeTemp_r2_values_abla, aes(x = Inf, y = Inf, label = R2_label), 
-            hjust = 1.1, vjust = 1.3, inherit.aes = FALSE, size = 4)
+            hjust = 1.1, vjust = 1.3, inherit.aes = FALSE, size = 4) + 
+  theme(
+    strip.text = element_text(size = 11),  # Facet title size
+    axis.title = element_text(size = 11),  # Axis title size
+    axis.text = element_text(size = 11),  # Axis tick labels
+    legend.title = element_text(size = 11),  # Legend title size
+    legend.text = element_text(size = 10)  # Legend labels size
+  )
 
 persb_totalcumTreeTemp_corr_plot_abla
 ```
@@ -3963,7 +3985,7 @@ persb_totalcumNR_corr_plot_accu <- ggplot(persb_corr_data_accu, aes(x = totalcum
   geom_smooth(method = "lm", color = "grey", se = TRUE) +
   facet_wrap(~ tree_id, nrow = 1) +  # Separate by tree_id
   labs(
-    title = "i) Accumulation",
+    title = "a) PSZ",
     x = NULL,
     y = "Well Diameter (m)",
     color = "Tree ID"
@@ -3971,11 +3993,21 @@ persb_totalcumNR_corr_plot_accu <- ggplot(persb_corr_data_accu, aes(x = totalcum
   theme_bw() +
   scale_color_manual(values = treeid_colors) + 
   scale_x_continuous(labels = scales::label_comma()) +
+  scale_y_continuous(breaks = c(0.5, 1.0, 1.5, 2.0),
+                     labels = c("0.5", "1.0", "1.5", "2.0"))+
+  expand_limits(y = c(0.5, 2.0)) + 
   #remove color legend 
   guides(color = "none") +
   scale_shape_manual(name = NULL, values = c("GB" = 16, "DB" = 15)) +
   geom_text(data = p_totalcumNR_r2_values_accu, aes(x = Inf, y = Inf, label = R2_label),
-            hjust = 1.1, vjust = 1.3, inherit.aes = FALSE, size = 4)
+            hjust = 1.1, vjust = 1.3, inherit.aes = FALSE, size = 4) + 
+  theme(
+    strip.text = element_text(size = 11),  # Facet title size
+    axis.title = element_text(size = 11),  # Axis title size
+    axis.text = element_text(size = 11),  # Axis tick labels
+    legend.title = element_text(size = 11),  # Legend title size
+    legend.text = element_text(size = 10)  # Legend labels size
+  )
 
 persb_totalcumNR_corr_plot_accu
 ```
@@ -4005,25 +4037,33 @@ persb_totalcumNR_corr_plot_abla <- ggplot(persb_corr_data_abla, aes(x = totalcum
   geom_smooth(method = "lm", color = "grey", se = TRUE) +
   facet_wrap(~ tree_id, nrow = 1) +  # Separate by tree_id
   labs(
-    title = "ii) Ablation",
-    x = "Cumulative Net Radiation (MJ/m²)",
+    title = "a) PSZ",
+    x = NULL,
     y = "Well Diameter (m)",
     color = "Tree ID"
   ) +
   theme_bw() +
   scale_color_manual(values = treeid_colors) + 
-  scale_x_continuous(labels = scales::label_comma()) +
-  #remove color legend 
+  scale_y_continuous(breaks = c(0.5, 1.0, 1.5, 2.0),
+                     labels = c("0.5", "1.0", "1.5", "2.0"))+
+  expand_limits(y = c(0.5, 2.0)) + 
   guides(color = "none") +
   scale_shape_manual(name = NULL, values = c("GB" = 16, "DB" = 15)) +
-  geom_text(data = p_totalcumNR_r2_values_accu, aes(x = Inf, y = Inf, label = R2_label),
-            hjust = 1.1, vjust = 1.3, inherit.aes = FALSE, size = 4)
+  geom_text(data = p_totalcumNR_r2_values_abla, aes(x = Inf, y = Inf, label = R2_label), 
+            hjust = 1.1, vjust = 1.3, inherit.aes = FALSE, size = 4) + 
+  theme(
+    strip.text = element_text(size = 11),  # Facet title size
+    axis.title = element_text(size = 11),  # Axis title size
+    axis.text = element_text(size = 11),  # Axis tick labels
+    legend.title = element_text(size = 11),  # Legend title size
+    legend.text = element_text(size = 10)  # Legend labels size
+  )
 
 persb_totalcumNR_corr_plot_abla
 ```
 
 ```{r}
-PSZ_totalcum_NR <- ggarrange(persb_totalcumNR_corr_plot_accu, persb_totalcumNR_corr_plot_abla, nrow = 2, ncol = 1, common.legend = TRUE, legend = "none")
+PSZ_totalcum_NR <- ggarrange(persb_totalcumNR_corr_plot_accu, persb_totalcumNR_corr_plot_abla, nrow = 2, ncol = 1, align = "hv", common.legend = TRUE, legend = "none")
 
 PSZ_totalcum_NR <- annotate_figure(
   PSZ_totalcum_NR, 
@@ -4494,7 +4534,7 @@ transb_totalcumTreeTemp_corr_plot_accu <- ggplot(transb_corr_data_accu, aes(x = 
   facet_wrap(~ tree_id, nrow = 1) +  # Separate by tree_id
   labs(
     title = "i) Accumulation",
-    x = NULL,
+    x = "Cumulative Temperature (°C)
     y = "Well Diameter (m)",
     color = "Tree ID"
   ) +
@@ -4504,7 +4544,14 @@ transb_totalcumTreeTemp_corr_plot_accu <- ggplot(transb_corr_data_accu, aes(x = 
   guides(color = "none") +
   scale_shape_manual(name = NULL, values = c("GB" = 16, "DB" = 15)) +
   geom_text(data = t_totalcumTreeTemp_r2_values_accu, aes(x = Inf, y = Inf, label = R2_label), 
-            hjust = 1.1, vjust = 1.3, inherit.aes = FALSE, size = 4)
+            hjust = 1.1, vjust = 1.3, inherit.aes = FALSE, size = 4) + 
+  theme(
+    strip.text = element_text(size = 11),  # Facet title size
+    axis.title = element_text(size = 11),  # Axis title size
+    axis.text = element_text(size = 11),  # Axis tick labels
+    legend.title = element_text(size = 11),  # Legend title size
+    legend.text = element_text(size = 10)  # Legend labels size
+  )
 
 transb_totalcumTreeTemp_corr_plot_accu
 ```
@@ -4534,7 +4581,7 @@ transb_totalcumTreeTemp_corr_plot_abla <- ggplot(transb_corr_data_abla, aes(x = 
   geom_smooth(method = "lm", color = "grey", se = TRUE) +
   facet_wrap(~ tree_id, nrow = 1) +  # Separate by tree_id
   labs(
-    title = "ii) Ablation",
+    title = "b) TSZ",
     x = "Cumulative Tree Temperature (°C)",
     y = "Well Diameter (m)",
     color = "Tree ID"
@@ -4542,17 +4589,25 @@ transb_totalcumTreeTemp_corr_plot_abla <- ggplot(transb_corr_data_abla, aes(x = 
   theme_bw() +
  scale_color_manual(values = treeid_colors) + 
   scale_x_continuous(labels = scales::label_comma()) + 
+  scale_y_continuous(labels = scales::number_format(accuracy = 0.1)) +
   #remove color legend 
   guides(color = "none") +
   scale_shape_manual(name = NULL, values = c("GB" = 16, "DB" = 15)) +
   geom_text(data = t_totalcumTreeTemp_r2_values_abla, aes(x = Inf, y = Inf, label = R2_label), 
-            hjust = 1.1, vjust = 1.3, inherit.aes = FALSE, size = 4)
+            hjust = 1.1, vjust = 1.3, inherit.aes = FALSE, size = 4) + 
+  theme(
+    strip.text = element_text(size = 11),  # Facet title size
+    axis.title = element_text(size = 11),  # Axis title size
+    axis.text = element_text(size = 11),  # Axis tick labels
+    legend.title = element_text(size = 11),  # Legend title size
+    legend.text = element_text(size = 10)  # Legend labels size
+  )
 
 transb_totalcumTreeTemp_corr_plot_abla
 ```
 
 ```{r}
-TSZ_totalcum_TreeTemp <- ggarrange(transb_totalcumTreeTemp_corr_plot_accu, transb_totalcumTreeTemp_corr_plot_abla, nrow = 2, ncol = 1, common.legend = TRUE, legend = "bottom")
+TSZ_totalcum_TreeTemp <- ggarrange(transb_totalcumTreeTemp_corr_plot_accu, transb_totalcumTreeTemp_corr_plot_abla, nrow = 2, ncol = 1, align = "hv", common.legend = TRUE, legend = "bottom")
 
 TSZ_totalcum_TreeTemp <- annotate_figure(
   TSZ_totalcum_TreeTemp, 
@@ -4915,19 +4970,32 @@ transb_totalcumNR_corr_plot_accu <- ggplot(transb_corr_data_accu, aes(x = totalc
   geom_smooth(method = "lm", color = "grey", se = TRUE) +
   facet_wrap(~ tree_id, nrow = 1) +  # Separate by tree_id
   labs(
-    title = "i) Accumulation",
-    x = NULL,
+    title = "b) TSZ",
+    x = "Cumulative Net Radiation (MJ/m²)",
     y = "Well Diameter (m)",
     color = "Tree ID"
   ) +
   theme_bw() +
   scale_color_manual(values = treeid_colors) + 
-  scale_x_continuous(labels = scales::label_comma()) +
+  scale_x_continuous(breaks = c(0, 75, 150, 225),
+                     labels = c("0", "75", "150", "225")) + 
+  scale_y_continuous(
+  breaks = c(0.1, 0.2, 0.3, 0.4),  # Manually set your 4 desired breaks
+  labels = scales::number_format(accuracy = 0.1)  # Ensure one decimal place
+) + 
+  expand_limits(x = c(0, 225), y = c(0.1, 0.4)) + 
   #remove color legend 
   guides(color = "none") +
   scale_shape_manual(name = NULL, values = c("GB" = 16, "DB" = 15)) +
   geom_text(data = t_totalcumNR_r2_values_accu, aes(x = Inf, y = Inf, label = R2_label), 
-            hjust = 1.1, vjust = 1.3, inherit.aes = FALSE, size = 4)
+            hjust = 1.1, vjust = 1.3, inherit.aes = FALSE, size = 4) + 
+  theme(
+    strip.text = element_text(size = 11),  # Facet title size
+    axis.title = element_text(size = 11),  # Axis title size
+    axis.text = element_text(size = 11),  # Axis tick labels
+    legend.title = element_text(size = 11),  # Legend title size
+    legend.text = element_text(size = 10)  # Legend labels size
+  )
 
 transb_totalcumNR_corr_plot_accu
 ```
@@ -4955,25 +5023,35 @@ transb_totalcumNR_corr_plot_abla <- ggplot(transb_corr_data_abla, aes(x = totalc
   geom_smooth(method = "lm", color = "grey", se = TRUE) +
   facet_wrap(~ tree_id, nrow = 1) +  # Separate by tree_id
   labs(
-    title = "ii) Ablation",
+    title = "b) TSZ",
     x = "Cumulative Net Radiation (MJ/m²)",
     y = "Well Diameter (m)",
     color = "Tree ID"
   ) +
   theme_bw() +
   scale_color_manual(values = treeid_colors) + 
-  scale_x_continuous(labels = scales::label_comma()) +  # Ensure numbers are not in scientific notation
-  #remove color legend 
+  scale_x_continuous(labels = scales::label_comma()) +
+  scale_y_continuous(breaks = c(0.3, 0.6, 0.9, 1.2),
+                     labels = c("0.3", "0.6", "0.9", "1.2"))+
+  expand_limits(y = c(0.3, 1.2)) + 
+  # Remove color legend 
   guides(color = "none") +
   scale_shape_manual(name = NULL, values = c("GB" = 16, "DB" = 15)) +
   geom_text(data = t_totalcumNR_r2_values_abla, aes(x = Inf, y = Inf, label = R2_label), 
-            hjust = 1.1, vjust = 1.3, inherit.aes = FALSE, size = 4)
+            hjust = 1.1, vjust = 1.3, inherit.aes = FALSE, size = 4) + 
+  theme(
+    strip.text = element_text(size = 11),  # Facet title size
+    axis.title = element_text(size = 11),  # Axis title size
+    axis.text = element_text(size = 11),  # Axis tick labels
+    legend.title = element_text(size = 11),  # Legend title size
+    legend.text = element_text(size = 10)  # Legend labels size
+  )
 
 transb_totalcumNR_corr_plot_abla
 ```
 
 ```{r}
-TSZ_totalcum_NR <- ggarrange(transb_totalcumNR_corr_plot_accu, transb_totalcumNR_corr_plot_abla, nrow = 2, ncol = 1, common.legend = TRUE, legend = "bottom")
+TSZ_totalcum_NR <- ggarrange(transb_totalcumNR_corr_plot_accu, transb_totalcumNR_corr_plot_abla, nrow = 2, ncol = 1, align = "hv", common.legend = TRUE, legend = "bottom")
 
 TSZ_totalcum_NR <- annotate_figure(
   TSZ_totalcum_NR, 
@@ -5178,13 +5256,31 @@ ggsave("comb_corr_treetemp.png", width = 8, height = 10, plot = comb_corr_treete
 
 ```{r}
 #NR
-comb_corr_NR<- ggarrange(PSZ_totalcum_NR, TSZ_totalcum_NR, nrow = 2, ncol = 1, common.legend = TRUE, legend = "none")
+comb_corr_NR<- ggarrange(PSZ_totalcum_NR, TSZ_totalcum_NR, nrow = 2, ncol = 1, common.legend = TRUE, legend = "none", align = "hv")
 
 comb_corr_NR
 ```
 
 ```{r}
 ggsave("comb_corr_NR.png", width = 8, height = 10, plot = comb_corr_NR, dpi = 600)
+```
+
+Individual Plots
+
+V2 - by accumulation and ablation season
+
+NR
+
+```{r}
+comb_totalcumNR_abla <- ggarrange(persb_totalcumNR_corr_plot_abla, transb_totalcumNR_corr_plot_abla, nrow = 2, ncol = 1, align = "hv", common.legend = TRUE, legend = "bottom")
+
+comb_totalcumNR_abla
+```
+
+```{r}
+comb_totalcumNR_accu <- ggarrange(persb_totalcumNR_corr_plot_accu, transb_totalcumNR_corr_plot_accu, nrow = 2, ncol = 1, align = "hv", common.legend = TRUE, legend = "bottom")
+
+comb_totalcumNR_accu
 ```
 
 ## Cumulative Comparisons
