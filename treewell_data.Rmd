@@ -406,44 +406,70 @@ treewell_alldates_plot
 \*\* The below plot is the best i have thus far.
 
 ```{r}
-treewell_exploration_plot <- ggplot(data = treewell_Tapril_Pmay) +
-  geom_point(aes(x = dbh, y = treewell_diameter, color = as.character(date), shape = tree_mort), size = 3) +  # Convert date to character
-  geom_smooth(aes(x = dbh, y = treewell_diameter), method = 'lm', se = TRUE, color = "grey") +
+#wrangling data so that it is in meters and matches snowcam data formats
+treewell_Tapril_Pmay <- treewell_Tapril_Pmay %>%
+  mutate(tree_mort = case_when(
+    tree_mort == "db" ~ "DB",
+    tree_mort == "gb" ~ "GB",
+    TRUE ~ tree_mort  # Keep other values unchanged
+  )) %>%
+  mutate(dbh_m = dbh/100, treewell_diameter_m = treewell_diameter/100)
+```
+
+```{r}
+treewell_manual_stats <- treewell_Tapril_Pmay %>%
+  drop_na(treewell_diameter_m, dbh_m) %>%
+  group_by(zone) %>%
+  summarize(
+    cor_test = list(cor.test(dbh_m, treewell_diameter_m, use = "complete.obs")),
+    .groups = "drop"
+  ) %>%
+   mutate(
+    R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
+    p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
+    conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
+    conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
+    p_label = ifelse(p_value < 0.05, "p-value < 0.05", "p-value ≥ 0.05"),  # Conditional p-value label
+    R2_label = paste0("R² = ", formatC(R2, format = "f", digits = 2), "\n", p_label)  # Ensure two decimal places
+  )
+
+# Scatterplot
+treewell_manual_scatterplot <- ggplot(treewell_Tapril_Pmay, aes(x = dbh_m, y = treewell_diameter_m, color = factor(zone))) +
+  geom_point(aes(shape = tree_mort), size = 2, alpha = 0.7) + 
+  geom_smooth(method = "lm", color = "grey", se = TRUE) +
+  facet_wrap(~ zone, nrow = 1) +  # Separate by tree_id
   labs(
-    #title = "Tree Diameter vs Well Size", 
-       x = "Tree Diameter (cm)", 
-       y = "Well Diameter (cm)") +
-  theme_bw() +
-  facet_wrap(~ zone, strip.position = "top") + 
-  scale_color_manual(name = "Observation Date", values = c(
-    "2024-04-12" = "#2166AC",
-    "2024-05-03" = "#D95F02"),
+    x = "Tree Diameter (m)",
+    y = "Well Diameter (m)",
+    color = "Burn Status"
+  ) +
+  scale_color_manual(name = NULL, values = c(
+    "PSZ" = "#2166AC",
+    "TSZ" = "#D95F02"),
     guide = "none"
 ) +
-  scale_shape_manual(values = c("db" = 15, "gb" = 16),
-    name = "Burn Status",          # Set the legend title for shape
-    labels = c("DB" = "db", "GB" = "gb")  # Set custom labels for shape
-  ) +
-  theme(legend.position = "bottom") +
-  stat_regline_equation(
-    aes(x = dbh, y = treewell_diameter, label = ..rr.label..),
-    label.x = 10,  # Adjust x position of the label as needed
-    label.y = 150,  # Adjust y position of the label as needed
-    size = 4,      # Size of the text
-    color = "black"
-  ) +
-    theme(
-    legend.text = element_text(size = 11))
+  theme_bw() +
+  scale_x_continuous(labels = scales::label_comma()) + 
+  guides(color = "none") +
+  scale_shape_manual(name = NULL, values = c("GB" = 16, "DB" = 15)) +
+  geom_text(data = treewell_manual_stats, aes(x = Inf, y = Inf, label = R2_label), 
+            hjust = 1.1, vjust = 1.3, inherit.aes = FALSE, size = 4) + 
+  theme(
+    strip.text = element_text(size = 11),  # Facet title size
+    axis.title = element_text(size = 11),  # Axis title size
+    axis.text = element_text(size = 11),  # Axis tick labels
+    legend.text = element_text(size = 10), legend.position = "bottom"
+  )
 
-treewell_exploration_plot
+treewell_manual_scatterplot
 ```
 
 ```{r}
 ggsave(
-  filename = "tree_vs_well_diam_manuelmeasurements_scatterplot_V2.png",  # File name
-  plot = treewell_exploration_plot,           # The arranged plot object
-  #width = ,                                          # Adjust width as needed
-  #height = 18,                                         # Adjust height as needed
+  filename = "treewell_manual_scatterplot.png",  # File name
+  plot = treewell_manual_scatterplot,           # The arranged plot object
+  width = 7,                                          # Adjust width as needed
+  height = 5,                                         # Adjust height as needed
   dpi = 600                                            # High resolution
 )
 ```
