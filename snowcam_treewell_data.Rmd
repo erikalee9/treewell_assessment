@@ -3273,6 +3273,8 @@ persb_corr_data_abla<- comb_persb_treewell_diam_fullseason %>%
   mutate(well_diam_m = well_diam/100, SnowDepth_m = SnowDepth_cm/100)
 ```
 
+Air Temp
+
 ```{r}
 #not using right now!
 p_AirTC_r2_values_accu <- persb_corr_data_accu %>%
@@ -3375,6 +3377,8 @@ persb_AirTC_corr_plot_abla
 ```{r}
 ggsave("persb_AirTC_corr_plot_abla.png", plot = persb_AirTC_corr_plot_abla, dpi = 600)
 ```
+
+Tree Temp
 
 ```{r}
 # Tree Temp Correlation
@@ -5313,23 +5317,645 @@ comb_totalcumNR_accu
 ggsave("comb_totalcumNR_accu.png", width = 7.5, height = 6, plot = comb_totalcumNR_accu, dpi = 600)
 ```
 
-## Cumulative Comparisons
+##   Tree Temp correlation
 
-### PSZ
+Correlating tree temp with various energy budget values, during accumulation and ablation
 
-Tree Diam Diff Data
+### Cumulative
+
+#### PSZ
 
 ```{r}
-cum_persb_corr_data_accu <- persb_corr_data_accu %>%
-  group_by(tree_id) %>%
-  arrange(tree_id, date) %>%  # Ensure data is ordered by date within each tree
-  mutate(cum_AirTC_Avg = cumsum(AirTC_Avg)) %>%
-  select(-time_mst) %>%
-  mutate(NetSW_MJperd = SWnet_Avg * 86.4, NetLW_MJperd = LWnet_Avg * 86.4, NR_MJperd = NR_Avg * 86.4) %>%
-  mutate(cum_SW_MJ = cumsum(NetSW_MJperd), cum_LW_MJ = cumsum(NetLW_MJperd), cum_NR_MJ = cumsum(NR_MJperd))
+# AirTC Correlation
+p_AirTree_accu_results <- persb_corr_data_accu %>%
+  drop_na(totalcum_treetemp, totalcum_AirTC) %>%
+  #don't have to group by tree, because this data is just comparing the weather station data, not tree data!
+  #group_by(tree_id) %>%
+  summarize(
+    cor_test = list(cor.test(totalcum_treetemp, totalcum_AirTC, use = "complete.obs")),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
+    p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
+    conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
+    conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
+    R2_label = paste0(
+      "R² = ", round(R2, 3), "\n",
+      "P-value = ", signif(p_value, 3), "\n"
+    )  # Include CI in the label
+  )
+
+p_AirTree_abla_results <- persb_corr_data_abla %>%
+  drop_na(totalcum_treetemp, totalcum_AirTC) %>%
+  #don't have to group by tree, because this data is just comparing the weather station data, not tree data!
+  #group_by(tree_id) %>%
+  summarize(
+    cor_test = list(cor.test(totalcum_treetemp, totalcum_AirTC, use = "complete.obs")),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
+    p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
+    conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
+    conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
+    R2_label = paste0(
+      "R² = ", round(R2, 3), "\n",
+      "P-value = ", signif(p_value, 3), "\n"
+    )  # Include CI in the label
+  )
 ```
 
-## New Snow Depth vs Diameter Scatterplots
+```{r}
+p_SWTree_accu_results <- persb_corr_data_accu %>%
+  drop_na(totalcum_treetemp, totalcum_SWnet) %>%
+  #don't have to group by tree, because this data is just comparing the weather station data, not tree data!
+  #group_by(tree_id) %>%
+  summarize(
+    cor_test = list(cor.test(totalcum_treetemp, totalcum_SWnet, use = "complete.obs")),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
+    p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
+    conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
+    conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
+    R2_label = paste0(
+      "R² = ", round(R2, 3), "\n",
+      "P-value = ", signif(p_value, 3), "\n"
+    )  # Include CI in the label
+  )
+
+p_SWTree_abla_results <- persb_corr_data_abla %>%
+  drop_na(totalcum_treetemp, totalcum_SWnet) %>%
+  #don't have to group by tree, because this data is just comparing the weather station data, not tree data!
+  #group_by(tree_id) %>%
+  summarize(
+    cor_test = list(cor.test(totalcum_treetemp, totalcum_SWnet, use = "complete.obs")),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
+    p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
+    conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
+    conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
+    R2_label = paste0(
+      "R² = ", round(R2, 3), "\n",
+      "P-value = ", signif(p_value, 3), "\n"
+    )  # Include CI in the label
+  )
+```
+
+```{r}
+p_LWTree_accu_results <- persb_corr_data_accu %>%
+  drop_na(totalcum_treetemp, totalcum_LWnet) %>%
+  #don't have to group by tree, because this data is just comparing the weather station data, not tree data!
+  #group_by(tree_id) %>%
+  summarize(
+    cor_test = list(cor.test(totalcum_treetemp, totalcum_LWnet, use = "complete.obs")),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
+    p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
+    conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
+    conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
+    R2_label = paste0(
+      "R² = ", round(R2, 3), "\n",
+      "P-value = ", signif(p_value, 3), "\n"
+    )  # Include CI in the label
+  )
+
+p_LWTree_abla_results <- persb_corr_data_abla %>%
+  drop_na(totalcum_treetemp, totalcum_LWnet) %>%
+  #don't have to group by tree, because this data is just comparing the weather station data, not tree data!
+  #group_by(tree_id) %>%
+  summarize(
+    cor_test = list(cor.test(totalcum_treetemp, totalcum_LWnet, use = "complete.obs")),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
+    p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
+    conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
+    conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
+    R2_label = paste0(
+      "R² = ", round(R2, 3), "\n",
+      "P-value = ", signif(p_value, 3), "\n"
+    )  # Include CI in the label
+  )
+```
+
+```{r}
+p_NRTree_accu_results <- persb_corr_data_accu %>%
+  drop_na(totalcum_treetemp, totalcum_NR) %>%
+  #don't have to group by tree, because this data is just comparing the weather station data, not tree data!
+  #group_by(tree_id) %>%
+  summarize(
+    cor_test = list(cor.test(totalcum_treetemp, totalcum_NR, use = "complete.obs")),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
+    p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
+    conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
+    conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
+    R2_label = paste0(
+      "R² = ", round(R2, 3), "\n",
+      "P-value = ", signif(p_value, 3), "\n"
+    )  # Include CI in the label
+  )
+
+p_NRTree_abla_results <- persb_corr_data_abla %>%
+  drop_na(totalcum_treetemp, totalcum_NR) %>%
+  #don't have to group by tree, because this data is just comparing the weather station data, not tree data!
+  #group_by(tree_id) %>%
+  summarize(
+    cor_test = list(cor.test(totalcum_treetemp, totalcum_NR, use = "complete.obs")),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
+    p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
+    conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
+    conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
+    R2_label = paste0(
+      "R² = ", round(R2, 3), "\n",
+      "P-value = ", signif(p_value, 3), "\n"
+    )  # Include CI in the label
+  )
+```
+
+#### TSZ
+
+```{r}
+# AirTC Correlation
+t_AirTree_accu_results <- transb_corr_data_accu %>%
+  drop_na(totalcum_treetemp, totalcum_AirTC) %>%
+  #don't have to group by tree, because this data is just comparing the weather station data, not tree data!
+  #group_by(tree_id) %>%
+  summarize(
+    cor_test = list(cor.test(totalcum_treetemp, totalcum_AirTC, use = "complete.obs")),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
+    p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
+    conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
+    conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
+    R2_label = paste0(
+      "R² = ", round(R2, 3), "\n",
+      "P-value = ", signif(p_value, 3), "\n"
+    )  # Include CI in the label
+  )
+
+t_AirTree_abla_results <- transb_corr_data_abla %>%
+  drop_na(totalcum_treetemp, totalcum_AirTC) %>%
+  #don't have to group by tree, because this data is just comparing the weather station data, not tree data!
+  #group_by(tree_id) %>%
+  summarize(
+    cor_test = list(cor.test(totalcum_treetemp, totalcum_AirTC, use = "complete.obs")),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
+    p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
+    conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
+    conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
+    R2_label = paste0(
+      "R² = ", round(R2, 3), "\n",
+      "P-value = ", signif(p_value, 3), "\n"
+    )  # Include CI in the label
+  )
+```
+
+```{r}
+t_SWTree_accu_results <- transb_corr_data_accu %>%
+  drop_na(totalcum_treetemp, totalcum_SWnet) %>%
+  #don't have to group by tree, because this data is just comparing the weather station data, not tree data!
+  #group_by(tree_id) %>%
+  summarize(
+    cor_test = list(cor.test(totalcum_treetemp, totalcum_SWnet, use = "complete.obs")),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
+    p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
+    conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
+    conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
+    R2_label = paste0(
+      "R² = ", round(R2, 3), "\n",
+      "P-value = ", signif(p_value, 3), "\n"
+    )  # Include CI in the label
+  )
+
+t_SWTree_abla_results <- transb_corr_data_abla %>%
+  drop_na(totalcum_treetemp, totalcum_SWnet) %>%
+  #don't have to group by tree, because this data is just comparing the weather station data, not tree data!
+  #group_by(tree_id) %>%
+  summarize(
+    cor_test = list(cor.test(totalcum_treetemp, totalcum_SWnet, use = "complete.obs")),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
+    p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
+    conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
+    conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
+    R2_label = paste0(
+      "R² = ", round(R2, 3), "\n",
+      "P-value = ", signif(p_value, 3), "\n"
+    )  # Include CI in the label
+  )
+```
+
+```{r}
+t_LWTree_accu_results <- transb_corr_data_accu %>%
+  drop_na(totalcum_treetemp, totalcum_LWnet) %>%
+  #don't have to group by tree, because this data is just comparing the weather station data, not tree data!
+  #group_by(tree_id) %>%
+  summarize(
+    cor_test = list(cor.test(totalcum_treetemp, totalcum_LWnet, use = "complete.obs")),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
+    p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
+    conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
+    conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
+    R2_label = paste0(
+      "R² = ", round(R2, 3), "\n",
+      "P-value = ", signif(p_value, 3), "\n"
+    )  # Include CI in the label
+  )
+
+t_LWTree_abla_results <- transb_corr_data_abla %>%
+  drop_na(totalcum_treetemp, totalcum_LWnet) %>%
+  #don't have to group by tree, because this data is just comparing the weather station data, not tree data!
+  #group_by(tree_id) %>%
+  summarize(
+    cor_test = list(cor.test(totalcum_treetemp, totalcum_LWnet, use = "complete.obs")),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
+    p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
+    conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
+    conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
+    R2_label = paste0(
+      "R² = ", round(R2, 3), "\n",
+      "P-value = ", signif(p_value, 3), "\n"
+    )  # Include CI in the label
+  )
+```
+
+```{r}
+t_NRTree_accu_results <- transb_corr_data_accu %>%
+  drop_na(totalcum_treetemp, totalcum_NR) %>%
+  #don't have to group by tree, because this data is just comparing the weather station data, not tree data!
+  #group_by(tree_id) %>%
+  summarize(
+    cor_test = list(cor.test(totalcum_treetemp, totalcum_NR, use = "complete.obs")),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
+    p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
+    conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
+    conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
+    R2_label = paste0(
+      "R² = ", round(R2, 3), "\n",
+      "P-value = ", signif(p_value, 3), "\n"
+    )  # Include CI in the label
+  )
+
+t_NRTree_abla_results <- transb_corr_data_abla %>%
+  drop_na(totalcum_treetemp, totalcum_NR) %>%
+  #don't have to group by tree, because this data is just comparing the weather station data, not tree data!
+  #group_by(tree_id) %>%
+  summarize(
+    cor_test = list(cor.test(totalcum_treetemp, totalcum_NR, use = "complete.obs")),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
+    p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
+    conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
+    conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
+    R2_label = paste0(
+      "R² = ", round(R2, 3), "\n",
+      "P-value = ", signif(p_value, 3), "\n"
+    )  # Include CI in the label
+  )
+```
+
+### Daily Mean
+
+#### PSZ
+
+```{r}
+p_dailyAirTree_accu_results <- persb_corr_data_accu %>%
+  drop_na(mean_tree_temp, AirTC_Avg) %>%
+  #don't have to group by tree, because this data is just comparing the weather station data, not tree data!
+  #group_by(tree_id) %>%
+  summarize(
+    cor_test = list(cor.test(mean_tree_temp, AirTC_Avg, use = "complete.obs")),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
+    p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
+    conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
+    conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
+    R2_label = paste0(
+      "R² = ", round(R2, 3), "\n",
+      "P-value = ", signif(p_value, 3), "\n"
+    )  # Include CI in the label
+  )
+
+p_dailyAirTree_abla_results <- persb_corr_data_abla%>%
+  drop_na(mean_tree_temp, AirTC_Avg) %>%
+  #don't have to group by tree, because this data is just comparing the weather station data, not tree data!
+  #group_by(tree_id) %>%
+  summarize(
+    cor_test = list(cor.test(mean_tree_temp, AirTC_Avg, use = "complete.obs")),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
+    p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
+    conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
+    conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
+    R2_label = paste0(
+      "R² = ", round(R2, 3), "\n",
+      "P-value = ", signif(p_value, 3), "\n"
+    )  # Include CI in the label
+  )
+```
+
+```{r}
+p_dailySWTree_accu_results <- persb_corr_data_accu %>%
+  drop_na(mean_tree_temp, SWnet_Avg) %>%
+  #don't have to group by tree, because this data is just comparing the weather station data, not tree data!
+  #group_by(tree_id) %>%
+  summarize(
+    cor_test = list(cor.test(mean_tree_temp, SWnet_Avg, use = "complete.obs")),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
+    p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
+    conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
+    conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
+    R2_label = paste0(
+      "R² = ", round(R2, 3), "\n",
+      "P-value = ", signif(p_value, 3), "\n"
+    )  # Include CI in the label
+  )
+
+p_dailySWTree_abla_results <- persb_corr_data_abla %>%
+  drop_na(mean_tree_temp, SWnet_Avg) %>%
+  #don't have to group by tree, because this data is just comparing the weather station data, not tree data!
+  #group_by(tree_id) %>%
+  summarize(
+    cor_test = list(cor.test(mean_tree_temp, SWnet_Avg, use = "complete.obs")),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
+    p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
+    conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
+    conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
+    R2_label = paste0(
+      "R² = ", round(R2, 3), "\n",
+      "P-value = ", signif(p_value, 3), "\n"
+    )  # Include CI in the label
+  )
+```
+
+```{r}
+p_dailyLWTree_accu_results <- persb_corr_data_accu %>%
+  drop_na(mean_tree_temp, LWnet_Avg) %>%
+  summarize(
+    cor_test = list(cor.test(mean_tree_temp, LWnet_Avg, use = "complete.obs")),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
+    p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
+    conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
+    conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
+    R2_label = paste0(
+      "R² = ", round(R2, 3), "\n",
+      "P-value = ", signif(p_value, 3), "\n"
+    )  # Include CI in the label
+  )
+
+p_dailyLWTree_abla_results <- persb_corr_data_abla %>%
+  drop_na(mean_tree_temp, LWnet_Avg) %>%
+  summarize(
+    cor_test = list(cor.test(mean_tree_temp, LWnet_Avg, use = "complete.obs")),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
+    p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
+    conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
+    conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
+    R2_label = paste0(
+      "R² = ", round(R2, 3), "\n",
+      "P-value = ", signif(p_value, 3), "\n"
+    )  # Include CI in the label
+  )
+```
+
+```{r}
+p_dailyNRTree_accu_results <- persb_corr_data_accu %>%
+  drop_na(mean_tree_temp, NR_Avg) %>%
+  summarize(
+    cor_test = list(cor.test(mean_tree_temp, NR_Avg, use = "complete.obs")),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
+    p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
+    conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
+    conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
+    R2_label = paste0(
+      "R² = ", round(R2, 3), "\n",
+      "P-value = ", signif(p_value, 3), "\n"
+    )  # Include CI in the label
+  )
+
+p_dailyNRTree_abla_results <- persb_corr_data_abla %>%
+  drop_na(mean_tree_temp, NR_Avg) %>%
+  summarize(
+    cor_test = list(cor.test(mean_tree_temp, NR_Avg, use = "complete.obs")),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
+    p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
+    conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
+    conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
+    R2_label = paste0(
+      "R² = ", round(R2, 3), "\n",
+      "P-value = ", signif(p_value, 3), "\n"
+    )  # Include CI in the label
+  )
+```
+
+#### TSZ
+
+```{r}
+t_dailyAirTree_accu_results <- transb_corr_data_accu %>%
+  drop_na(mean_tree_temp, AirTC_Avg) %>%
+  summarize(
+    cor_test = list(cor.test(mean_tree_temp, AirTC_Avg, use = "complete.obs")),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
+    p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
+    conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
+    conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
+    R2_label = paste0(
+      "R² = ", round(R2, 3), "\n",
+      "P-value = ", signif(p_value, 3), "\n"
+    )  # Include CI in the label
+  )
+
+t_dailyAirTree_abla_results <- transb_corr_data_abla%>%
+  drop_na(mean_tree_temp, AirTC_Avg) %>%
+  summarize(
+    cor_test = list(cor.test(mean_tree_temp, AirTC_Avg, use = "complete.obs")),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
+    p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
+    conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
+    conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
+    R2_label = paste0(
+      "R² = ", round(R2, 3), "\n",
+      "P-value = ", signif(p_value, 3), "\n"
+    )  # Include CI in the label
+  )
+```
+
+```{r}
+t_dailySWTree_accu_results <- transb_corr_data_accu %>%
+  drop_na(mean_tree_temp, SWnet_Avg) %>%
+  #don't have to group by tree, because this data is just comparing the weather station data, not tree data!
+  #group_by(tree_id) %>%
+  summarize(
+    cor_test = list(cor.test(mean_tree_temp, SWnet_Avg, use = "complete.obs")),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
+    p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
+    conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
+    conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
+    R2_label = paste0(
+      "R² = ", round(R2, 3), "\n",
+      "P-value = ", signif(p_value, 3), "\n"
+    )  # Include CI in the label
+  )
+
+t_dailySWTree_abla_results <- transb_corr_data_abla %>%
+  drop_na(mean_tree_temp, SWnet_Avg) %>%
+  #don't have to group by tree, because this data is just comparing the weather station data, not tree data!
+  #group_by(tree_id) %>%
+  summarize(
+    cor_test = list(cor.test(mean_tree_temp, SWnet_Avg, use = "complete.obs")),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
+    p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
+    conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
+    conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
+    R2_label = paste0(
+      "R² = ", round(R2, 3), "\n",
+      "P-value = ", signif(p_value, 3), "\n"
+    )  # Include CI in the label
+  )
+```
+
+```{r}
+t_dailyLWTree_accu_results <- transb_corr_data_accu %>%
+  drop_na(mean_tree_temp, LWnet_Avg) %>%
+  summarize(
+    cor_test = list(cor.test(mean_tree_temp, LWnet_Avg, use = "complete.obs")),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
+    p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
+    conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
+    conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
+    R2_label = paste0(
+      "R² = ", round(R2, 3), "\n",
+      "P-value = ", signif(p_value, 3), "\n"
+    )  # Include CI in the label
+  )
+
+t_dailyLWTree_abla_results <- transb_corr_data_abla %>%
+  drop_na(mean_tree_temp, LWnet_Avg) %>%
+  summarize(
+    cor_test = list(cor.test(mean_tree_temp, LWnet_Avg, use = "complete.obs")),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
+    p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
+    conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
+    conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
+    R2_label = paste0(
+      "R² = ", round(R2, 3), "\n",
+      "P-value = ", signif(p_value, 3), "\n"
+    )  # Include CI in the label
+  )
+```
+
+```{r}
+t_dailyNRTree_accu_results <- transb_corr_data_accu %>%
+  drop_na(mean_tree_temp, NR_Avg) %>%
+  summarize(
+    cor_test = list(cor.test(mean_tree_temp, NR_Avg, use = "complete.obs")),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
+    p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
+    conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
+    conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
+    R2_label = paste0(
+      "R² = ", round(R2, 3), "\n",
+      "P-value = ", signif(p_value, 3), "\n"
+    )  # Include CI in the label
+  )
+
+t_dailyNRTree_abla_results <- transb_corr_data_abla %>%
+  drop_na(mean_tree_temp, NR_Avg) %>%
+  summarize(
+    cor_test = list(cor.test(mean_tree_temp, NR_Avg, use = "complete.obs")),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
+    p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
+    conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
+    conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
+    R2_label = paste0(
+      "R² = ", round(R2, 3), "\n",
+      "P-value = ", signif(p_value, 3), "\n"
+    )  # Include CI in the label
+  )
+```
+
+##  New Snow Depth vs Diameter Scatterplots
 
 PSZ
 
@@ -5354,7 +5980,7 @@ p_SD_r2_values_abla_V2 <- persb_corr_data_abla_V2 %>%
     conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
     p_label = ifelse(p_value < 0.05, "p-value < 0.05", "p-value ≥ 0.05"),  # Conditional p-value label
     R2_label = paste0("R² = ", formatC(R2, format = "f", digits = 2), "\n", p_label)  # Ensure two decimal places
-  ) 
+  )
 
  # Create label for plotting
 
@@ -6788,4 +7414,50 @@ ggsave("transb_snowcam_tree_well_corr_plot_abla.png",
       height = 6.5, 
        width = 8, 
        plot = transb_tree_well_corr_plot_abla, dpi = 600)
+```
+
+V2 - this is where the tree diameter is subtracted from the well diameter, then correlated to tree diam
+
+```{r}
+comb_persb_treewell_diam_abla_V2 <- comb_persb_treewell_diam_fullseason %>%
+  filter(date >= "2024-05-06" & date <= "2024-05-17") %>%
+  mutate(tree_diam_m = tree_diam/100, well_diam_m = well_diam/100, welldiam_minustree_m = well_diam_m-tree_diam_m)
+
+p_treewelldiam_camera_results_V2 <- comb_persb_treewell_diam_abla_V2 %>%
+  drop_na(welldiam_minustree_m, tree_diam_m) %>%
+  group_by(date) %>%
+  filter(n() >= 2) %>%  # Ensure at least 2 observations per group
+  summarize(
+    cor_test = list(tryCatch(cor.test(welldiam_minustree_m, tree_diam_m, use = "complete.obs"), 
+                             error = function(e) return(NA))), 
+    .groups = "drop"
+  ) %>%
+  mutate(
+    R2 = map_dbl(cor_test, ~ ifelse(is.list(.x), .x$estimate^2, NA)),  
+    p_value = map_dbl(cor_test, ~ ifelse(is.list(.x), .x$p.value, NA)),  
+    conf_low = map_dbl(cor_test, ~ if (is.list(.x) && "conf.int" %in% names(.x)) .x$conf.int[1] else NA),  
+    conf_high = map_dbl(cor_test, ~ if (is.list(.x) && "conf.int" %in% names(.x)) .x$conf.int[2] else NA), 
+    R2_label = paste0("R² = ", formatC(R2, format = "f", digits = 2)))
+```
+
+```{r}
+comb_transb_treewell_diam_abla_V2 <- long_transb_treewell_diams_fullseason_V2 %>%
+  filter(date >= "2024-04-02" & date <= "2024-04-12") %>%
+  mutate(tree_diam_m = tree_diam/100, well_diam_m = well_diam/100, welldiam_minustree_m = well_diam_m-tree_diam_m)
+
+t_treewelldiam_camera_results_V2 <- comb_transb_treewell_diam_abla_V2 %>%
+  drop_na(welldiam_minustree_m, tree_diam_m) %>%
+  group_by(date) %>%
+  filter(n() >= 2) %>%  # Ensure at least 2 observations per group
+  summarize(
+    cor_test = list(tryCatch(cor.test(welldiam_minustree_m, tree_diam_m, use = "complete.obs"), 
+                             error = function(e) return(NA))), 
+    .groups = "drop"
+  ) %>%
+  mutate(
+    R2 = map_dbl(cor_test, ~ ifelse(is.list(.x), .x$estimate^2, NA)),  
+    p_value = map_dbl(cor_test, ~ ifelse(is.list(.x), .x$p.value, NA)),  
+    conf_low = map_dbl(cor_test, ~ if (is.list(.x) && "conf.int" %in% names(.x)) .x$conf.int[1] else NA),  
+    conf_high = map_dbl(cor_test, ~ if (is.list(.x) && "conf.int" %in% names(.x)) .x$conf.int[2] else NA), 
+    R2_label = paste0("R² = ", formatC(R2, format = "f", digits = 2)))
 ```
