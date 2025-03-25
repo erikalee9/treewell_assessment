@@ -5656,8 +5656,7 @@ t_NRTree_abla_results <- transb_corr_data_abla %>%
 ```{r}
 p_dailyAirTree_accu_results <- persb_corr_data_accu %>%
   drop_na(mean_tree_temp, AirTC_Avg) %>%
-  #don't have to group by tree, because this data is just comparing the weather station data, not tree data!
-  #group_by(tree_id) %>%
+  filter(tree_id == "1") %>%
   summarize(
     cor_test = list(cor.test(mean_tree_temp, AirTC_Avg, use = "complete.obs")),
     .groups = "drop"
@@ -5675,8 +5674,7 @@ p_dailyAirTree_accu_results <- persb_corr_data_accu %>%
 
 p_dailyAirTree_abla_results <- persb_corr_data_abla%>%
   drop_na(mean_tree_temp, AirTC_Avg) %>%
-  #don't have to group by tree, because this data is just comparing the weather station data, not tree data!
-  #group_by(tree_id) %>%
+  filter(tree_id == "1") %>%
   summarize(
     cor_test = list(cor.test(mean_tree_temp, AirTC_Avg, use = "complete.obs")),
     .groups = "drop"
@@ -5696,8 +5694,7 @@ p_dailyAirTree_abla_results <- persb_corr_data_abla%>%
 ```{r}
 p_dailySWTree_accu_results <- persb_corr_data_accu %>%
   drop_na(mean_tree_temp, SWnet_Avg) %>%
-  #don't have to group by tree, because this data is just comparing the weather station data, not tree data!
-  #group_by(tree_id) %>%
+  filter(tree_id == "1") %>%
   summarize(
     cor_test = list(cor.test(mean_tree_temp, SWnet_Avg, use = "complete.obs")),
     .groups = "drop"
@@ -5715,8 +5712,7 @@ p_dailySWTree_accu_results <- persb_corr_data_accu %>%
 
 p_dailySWTree_abla_results <- persb_corr_data_abla %>%
   drop_na(mean_tree_temp, SWnet_Avg) %>%
-  #don't have to group by tree, because this data is just comparing the weather station data, not tree data!
-  #group_by(tree_id) %>%
+  filter(tree_id == "1") %>%
   summarize(
     cor_test = list(cor.test(mean_tree_temp, SWnet_Avg, use = "complete.obs")),
     .groups = "drop"
@@ -5736,6 +5732,7 @@ p_dailySWTree_abla_results <- persb_corr_data_abla %>%
 ```{r}
 p_dailyLWTree_accu_results <- persb_corr_data_accu %>%
   drop_na(mean_tree_temp, LWnet_Avg) %>%
+  filter(tree_id == "1") %>%
   summarize(
     cor_test = list(cor.test(mean_tree_temp, LWnet_Avg, use = "complete.obs")),
     .groups = "drop"
@@ -5753,6 +5750,7 @@ p_dailyLWTree_accu_results <- persb_corr_data_accu %>%
 
 p_dailyLWTree_abla_results <- persb_corr_data_abla %>%
   drop_na(mean_tree_temp, LWnet_Avg) %>%
+  filter(tree_id == "1") %>%
   summarize(
     cor_test = list(cor.test(mean_tree_temp, LWnet_Avg, use = "complete.obs")),
     .groups = "drop"
@@ -5772,6 +5770,7 @@ p_dailyLWTree_abla_results <- persb_corr_data_abla %>%
 ```{r}
 p_dailyNRTree_accu_results <- persb_corr_data_accu %>%
   drop_na(mean_tree_temp, NR_Avg) %>%
+  filter(tree_id == "1") %>%
   summarize(
     cor_test = list(cor.test(mean_tree_temp, NR_Avg, use = "complete.obs")),
     .groups = "drop"
@@ -5789,6 +5788,7 @@ p_dailyNRTree_accu_results <- persb_corr_data_accu %>%
 
 p_dailyNRTree_abla_results <- persb_corr_data_abla %>%
   drop_na(mean_tree_temp, NR_Avg) %>%
+  filter(tree_id == "1") %>%
   summarize(
     cor_test = list(cor.test(mean_tree_temp, NR_Avg, use = "complete.obs")),
     .groups = "drop"
@@ -5810,6 +5810,7 @@ p_dailyNRTree_abla_results <- persb_corr_data_abla %>%
 ```{r}
 t_dailyAirTree_accu_results <- transb_corr_data_accu %>%
   drop_na(mean_tree_temp, AirTC_Avg) %>%
+  filter(tree_id == "1") %>%
   summarize(
     cor_test = list(cor.test(mean_tree_temp, AirTC_Avg, use = "complete.obs")),
     .groups = "drop"
@@ -5827,6 +5828,7 @@ t_dailyAirTree_accu_results <- transb_corr_data_accu %>%
 
 t_dailyAirTree_abla_results <- transb_corr_data_abla%>%
   drop_na(mean_tree_temp, AirTC_Avg) %>%
+  filter(tree_id == "1") %>%
   summarize(
     cor_test = list(cor.test(mean_tree_temp, AirTC_Avg, use = "complete.obs")),
     .groups = "drop"
@@ -5846,8 +5848,7 @@ t_dailyAirTree_abla_results <- transb_corr_data_abla%>%
 ```{r}
 t_dailySWTree_accu_results <- transb_corr_data_accu %>%
   drop_na(mean_tree_temp, SWnet_Avg) %>%
-  #don't have to group by tree, because this data is just comparing the weather station data, not tree data!
-  #group_by(tree_id) %>%
+  filter(tree_id == "1") %>%
   summarize(
     cor_test = list(cor.test(mean_tree_temp, SWnet_Avg, use = "complete.obs")),
     .groups = "drop"
@@ -5865,8 +5866,7 @@ t_dailySWTree_accu_results <- transb_corr_data_accu %>%
 
 t_dailySWTree_abla_results <- transb_corr_data_abla %>%
   drop_na(mean_tree_temp, SWnet_Avg) %>%
-  #don't have to group by tree, because this data is just comparing the weather station data, not tree data!
-  #group_by(tree_id) %>%
+  filter(tree_id == "1") %>%
   summarize(
     cor_test = list(cor.test(mean_tree_temp, SWnet_Avg, use = "complete.obs")),
     .groups = "drop"
@@ -5886,6 +5886,7 @@ t_dailySWTree_abla_results <- transb_corr_data_abla %>%
 ```{r}
 t_dailyLWTree_accu_results <- transb_corr_data_accu %>%
   drop_na(mean_tree_temp, LWnet_Avg) %>%
+  filter(tree_id == "1") %>%
   summarize(
     cor_test = list(cor.test(mean_tree_temp, LWnet_Avg, use = "complete.obs")),
     .groups = "drop"
@@ -5903,6 +5904,7 @@ t_dailyLWTree_accu_results <- transb_corr_data_accu %>%
 
 t_dailyLWTree_abla_results <- transb_corr_data_abla %>%
   drop_na(mean_tree_temp, LWnet_Avg) %>%
+  filter(tree_id == "1") %>%
   summarize(
     cor_test = list(cor.test(mean_tree_temp, LWnet_Avg, use = "complete.obs")),
     .groups = "drop"
@@ -5922,6 +5924,7 @@ t_dailyLWTree_abla_results <- transb_corr_data_abla %>%
 ```{r}
 t_dailyNRTree_accu_results <- transb_corr_data_accu %>%
   drop_na(mean_tree_temp, NR_Avg) %>%
+  filter(tree_id == "1") %>%
   summarize(
     cor_test = list(cor.test(mean_tree_temp, NR_Avg, use = "complete.obs")),
     .groups = "drop"
@@ -5939,6 +5942,7 @@ t_dailyNRTree_accu_results <- transb_corr_data_accu %>%
 
 t_dailyNRTree_abla_results <- transb_corr_data_abla %>%
   drop_na(mean_tree_temp, NR_Avg) %>%
+  filter(tree_id == "1") %>%
   summarize(
     cor_test = list(cor.test(mean_tree_temp, NR_Avg, use = "complete.obs")),
     .groups = "drop"
@@ -5982,7 +5986,7 @@ p_SD_r2_values_abla_V2 <- persb_corr_data_abla_V2 %>%
     R2_label = paste0("R² = ", formatC(R2, format = "f", digits = 2), "\n", p_label)  # Ensure two decimal places
   )
 
- # Create label for plotting
+# Create label for plotting
 
 # Scatterplot
 persb_SD_abla_wellsnowdepth <- ggplot(persb_corr_data_abla_V2, aes(x = maximum_depth_m, y = well_diam_m, color = factor(tree_id))) +
