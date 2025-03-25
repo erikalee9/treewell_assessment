@@ -1,0 +1,1154 @@
+---
+title: "treewell_data"
+author: "Erika Lee"
+date: "2024-05-16"
+output: html_document
+---
+
+```{r setup, warnings='hide',message=FALSE}
+library(tidyverse) # Package with dplyr, tibble, readr, and others to help clean coding
+library(knitr) #Makes nice tables
+library(kableExtra) #Makes even nicer tables
+library(lubridate) #Makes working with dates easier
+library(tidyr)
+library(readxl)#Makes multiple simultaneous models easier
+library(plotly)
+library(rstatix)
+library(ggpubr)
+```
+
+```{r}
+setwd("/Volumes/wcnr-network/Research/Kampf/Private/field_data")
+```
+
+## Download Prep
+
+Download Data
+
+```{r}
+treewell_composite=read_excel("nsf/treewell_data/treewell_data_r.xlsx")
+```
+
+## Tidying Dataframe
+
+```{r}
+#adjusting date/time, although there is technically no time in this data
+treewell_clean <- treewell_composite %>%
+  mutate(date = ymd(date)) %>%
+  #adding in a column with site name
+  mutate(site = if_else(str_detect(tree_ID, "tt"), "TSZ", "PSZ")) %>%
+  #reorder columns
+  select(c(tree_ID, site, everything()))
+```
+
+```{r}
+treewell_zeroed <- treewell_clean %>%
+  mutate(across(-(1:4), ~ ifelse(is.na(.), 0, .))) %>%
+  rename(zone = site)
+
+treewell_NAremoved <- treewell_clean %>%
+  drop_na(dbh, treewell_diameter) %>%
+  rename(zone = site, burn_status = tree_mort)
+```
+
+Creating Dataframes for 5 and 10 cm increment measurements
+
+```{r}
+#5cm dataframe
+treewell_5cm <- treewell_zeroed %>%
+  filter(increments_cm==5)
+
+#10cm dataframe
+treewell_10cm <- treewell_zeroed %>%
+  filter(increments_cm==10)
+
+#persistent dataframe
+treewell_pers <- treewell_zeroed %>%
+  filter(zone == "PSZ")
+
+#transitional dataframe
+treewell_trans <- treewell_zeroed %>%
+  filter(zone == "TSZ")
+```
+
+Creating a Snow Depth/Distance Dataframe
+
+```{r}
+## making a 5 & 10 increment dataset first to parse out every 10 cm values
+fivecm_tree_sd <- treewell_NAremoved %>%
+  filter(increments_cm == "5") %>%
+  select(tree_ID, zone, date, burn_status, dbh, treewell_diameter, sd_tree_N, sd_tree_E, sd_tree_S, sd_tree_W) %>%
+  pivot_longer(cols = starts_with("sd_tree_"),  # Specify the columns to pivot
+               names_to = "aspect",             # New column for names
+               values_to = "sd_tree") %>%
+  mutate(aspect = case_when(
+    aspect == "sd_tree_N" ~ "north",
+    aspect == "sd_tree_E" ~ "east",
+    aspect == "sd_tree_S" ~ "south",
+    aspect == "sd_tree_W" ~ "west",
+    TRUE ~ aspect  # Keeps any other values unchanged, if any
+  )) %>%
+  pivot_longer(cols = starts_with("sd_tree"), names_to = "dist_from_tree", values_to = "sd_cm") %>%
+   mutate(dist_from_tree = "0")
+
+tencm_tree_sd <- treewell_NAremoved %>%
+  filter(increments_cm == "10") %>%
+  select(tree_ID, zone, date, burn_status, dbh, treewell_diameter, sd_tree_N, sd_tree_E, sd_tree_S, sd_tree_W) %>%
+  pivot_longer(cols = starts_with("sd_tree_"),  # Specify the columns to pivot
+               names_to = "aspect",             # New column for names
+               values_to = "sd_tree") %>%
+  mutate(aspect = case_when(
+    aspect == "sd_tree_N" ~ "north",
+    aspect == "sd_tree_E" ~ "east",
+    aspect == "sd_tree_S" ~ "south",
+    aspect == "sd_tree_W" ~ "west",
+    TRUE ~ aspect  # Keeps any other values unchanged, if any
+  )) %>%
+  pivot_longer(cols = starts_with("sd_tree"), names_to = "dist_from_tree", values_to = "sd_cm") %>%
+   mutate(dist_from_tree = "0")
+```
+
+```{r}
+fivecm_10cm_sd <- treewell_NAremoved %>%
+  filter(increments_cm == "5") %>%
+  select(tree_ID, zone, date, burn_status, dbh, treewell_diameter, sd_2_N, sd_2_E, sd_2_S, sd_2_W) %>%
+  pivot_longer(cols = starts_with("sd_2_"),  # Specify the columns to pivot
+               names_to = "aspect",             # New column for names
+               values_to = "sd_10cm") %>%
+  mutate(aspect = case_when(
+    aspect == "sd_2_N" ~ "north",
+    aspect == "sd_2_E" ~ "east",
+    aspect == "sd_2_S" ~ "south",
+    aspect == "sd_2_W" ~ "west",
+    TRUE ~ aspect  # Keeps any other values unchanged, if any
+  )) %>%
+  pivot_longer(cols = starts_with("sd_10cm"), names_to = "dist_from_tree", values_to = "sd_cm") %>%
+   mutate(dist_from_tree = "10")
+
+tencm_10cm_sd <- treewell_NAremoved %>%
+  filter(increments_cm == "10") %>%
+  select(tree_ID, zone, date, burn_status, dbh, treewell_diameter, sd_1_N, sd_1_E, sd_1_S, sd_1_W) %>%
+  pivot_longer(cols = starts_with("sd_1_"),  # Specify the columns to pivot
+               names_to = "aspect",             # New column for names
+               values_to = "sd_10cm") %>%
+  mutate(aspect = case_when(
+    aspect == "sd_1_N" ~ "north",
+    aspect == "sd_1_E" ~ "east",
+    aspect == "sd_1_S" ~ "south",
+    aspect == "sd_1_W" ~ "west",
+    TRUE ~ aspect  # Keeps any other values unchanged, if any
+  )) %>%
+  pivot_longer(cols = starts_with("sd_10cm"), names_to = "dist_from_tree", values_to = "sd_cm") %>%
+   mutate(dist_from_tree = "10")
+```
+
+```{r}
+##sd_1 for 5 cm increments is the last 5 cm increment, which means it equals 15cm from tree, so I am not doing that one. I will need to do the edge still for 5cm increments
+tencm_20cm_sd <- treewell_NAremoved %>%
+  filter(increments_cm == "10") %>%
+  select(tree_ID, zone, date, burn_status, dbh, treewell_diameter, sd_2_N, sd_2_E, sd_2_S, sd_2_W) %>%
+  pivot_longer(cols = starts_with("sd_2_"),  # Specify the columns to pivot
+               names_to = "aspect",             # New column for names
+               values_to = "sd_20cm") %>%
+  mutate(aspect = case_when(
+    aspect == "sd_2_N" ~ "north",
+    aspect == "sd_2_E" ~ "east",
+    aspect == "sd_2_S" ~ "south",
+    aspect == "sd_2_W" ~ "west",
+    TRUE ~ aspect  # Keeps any other values unchanged, if any
+  )) %>%
+  pivot_longer(cols = starts_with("sd_20cm"), names_to = "dist_from_tree", values_to = "sd_cm") %>%
+   mutate(dist_from_tree = "20")
+```
+
+```{r}
+fivecm_edge_sd <- treewell_NAremoved %>%
+  filter(increments_cm == "5") %>%
+  select(tree_ID, zone, date, burn_status, dbh, treewell_diameter, sd_3_N, sd_3_E, sd_3_S, sd_3_W) %>%
+  pivot_longer(cols = starts_with("sd_3"),  # Specify the columns to pivot
+               names_to = "aspect",             # New column for names
+               values_to = "sd_edge") %>%
+  mutate(aspect = case_when(
+    aspect == "sd_3_N" ~ "north",
+    aspect == "sd_3_E" ~ "east",
+    aspect == "sd_3_S" ~ "south",
+    aspect == "sd_3_W" ~ "west",
+    TRUE ~ aspect  # Keeps any other values unchanged, if any
+  ))
+
+tencm_edge_sd <- treewell_NAremoved %>%
+  filter(increments_cm == "10") %>%
+  select(tree_ID, zone, date, burn_status, dbh, treewell_diameter, sd_3_N, sd_3_E, sd_3_S, sd_3_W) %>%
+  pivot_longer(cols = starts_with("sd_3"),  # Specify the columns to pivot
+               names_to = "aspect",             # New column for names
+               values_to = "sd_edge") %>%
+  mutate(aspect = case_when(
+    aspect == "sd_3_N" ~ "north",
+    aspect == "sd_3_E" ~ "east",
+    aspect == "sd_3_S" ~ "south",
+    aspect == "sd_3_W" ~ "west",
+    TRUE ~ aspect  # Keeps any other values unchanged, if any
+  ))
+```
+
+```{r}
+fivecm_diameter <- treewell_NAremoved %>%
+  filter(increments_cm == "5") %>%
+  select(tree_ID, zone, date, burn_status, dbh, treewell_diameter, d_edge_N, d_edge_E, d_edge_S, d_edge_W) %>%
+  pivot_longer(cols = starts_with("d_edge"),  # Specify the columns to pivot
+               names_to = "aspect",             # New column for names
+               values_to = "well_diam_fromcenter") %>%
+   mutate(aspect = case_when(
+    aspect == "d_edge_N" ~ "north",
+    aspect == "d_edge_E" ~ "east",
+    aspect == "d_edge_S" ~ "south",
+    aspect == "d_edge_W" ~ "west",
+    TRUE ~ aspect  # Keeps any other values unchanged, if any
+  ))
+
+tencm_diameter <- treewell_NAremoved %>%
+  filter(increments_cm == "10") %>%
+  select(tree_ID, zone, date, burn_status, dbh, treewell_diameter, d_edge_N, d_edge_E, d_edge_S, d_edge_W) %>%
+  pivot_longer(cols = starts_with("d_edge"),  # Specify the columns to pivot
+               names_to = "aspect",             # New column for names
+               values_to = "well_diam_fromcenter") %>%
+   mutate(aspect = case_when(
+    aspect == "d_edge_N" ~ "north",
+    aspect == "d_edge_E" ~ "east",
+    aspect == "d_edge_S" ~ "south",
+    aspect == "d_edge_W" ~ "west",
+    TRUE ~ aspect  # Keeps any other values unchanged, if any
+  ))
+```
+
+```{r}
+#combining diameter and edge to get a final pivoted longer column
+fivecm_comb_edge <- fivecm_edge_sd %>%
+  left_join(fivecm_diameter) %>%
+  rename(sd_cm = sd_edge, dist_from_tree = well_diam_fromcenter)
+
+tencm_comb_edge <- tencm_edge_sd %>%
+  left_join(tencm_diameter) %>%
+  rename(sd_cm = sd_edge, dist_from_tree = well_diam_fromcenter)
+```
+
+Creating a combined dataframe for five and ten cm increments
+
+```{r}
+fivecm_tree_sd <- fivecm_tree_sd %>%
+  mutate(dist_from_tree = as.numeric(dist_from_tree), 
+         sd_cm = as.numeric(sd_cm))
+
+fivecm_10cm_sd <- fivecm_10cm_sd %>%
+  mutate(dist_from_tree = as.numeric(dist_from_tree), 
+         sd_cm = as.numeric(sd_cm))
+
+fivecm_comb_edge <- fivecm_comb_edge %>%
+  mutate(dist_from_tree = as.numeric(dist_from_tree), 
+         sd_cm = as.numeric(sd_cm))
+
+fivecm_combined <- rbind(fivecm_tree_sd, fivecm_10cm_sd, fivecm_comb_edge)
+
+april_fivecm_trans_comb <- fivecm_combined %>%
+  filter(date == "2024-04-12") %>%
+  drop_na() %>%
+  #making an average dbh size column, then getting averages for those trees by date
+  mutate(size = case_when(
+    dbh <= 10 ~ "small",
+    dbh > 10 & dbh <= 15 ~ "medium",
+    dbh > 15 ~ "large"
+  )) %>%
+  group_by(zone, date, burn_status, size, aspect) %>%
+  summarize(mean_treewell_diam = mean(treewell_diameter), dist_from_tree = mean(dist_from_tree), sd_cm = mean(sd_cm))
+```
+
+\*\* i think the above process is not working because then I get an average diameter, not a distanced diameter? I think I need to do this differently
+
+```{r}
+fivecm_sd_diameter_plot <- ggplot(data = april_fivecm_trans_comb) +
+  geom_line(aes(x = dist_from_tree, y = sd_cm, color = size)) +
+  facet_wrap(~aspect + burn_status)
+
+fivecm_sd_diameter_plot 
+```
+
+```{r}
+#persistent 
+p_tree_snow_depths <- treewell_pers %>%
+  filter(increments_cm == "10") %>%
+  select(tree_ID, zone, date, tree_mort, dbh, treewell_diameter, sd_tree_N, sd_tree_E, sd_tree_S, sd_tree_W) %>%
+  pivot_longer(cols = starts_with("sd_tree_"),  # Specify the columns to pivot
+               names_to = "aspect",             # New column for names
+               values_to = "sd_tree") %>%
+  mutate(aspect = case_when(
+    aspect == "sd_tree_N" ~ "north",
+    aspect == "sd_tree_E" ~ "east",
+    aspect == "sd_tree_S" ~ "south",
+    aspect == "sd_tree_W" ~ "west",
+    TRUE ~ aspect  # Keeps any other values unchanged, if any
+  ))
+
+p_10_snow_depths <- treewell_pers %>%
+  filter(increments_cm == "10") %>%
+  select(tree_ID, zone, date, tree_mort, dbh, treewell_diameter, sd_1_N, sd_1_E, sd_1_S, sd_1_W) %>%
+  pivot_longer(cols = starts_with("sd_1_"),  # Specify the columns to pivot
+               names_to = "aspect",             # New column for names
+               values_to = "sd_tree") %>%
+  mutate(aspect = case_when(
+    aspect == "sd_1_N" ~ "north",
+    aspect == "sd_1_E" ~ "east",
+    aspect == "sd_1_S" ~ "south",
+    aspect == "sd_1_W" ~ "west",
+    TRUE ~ aspect  # Keeps any other values unchanged, if any
+  ))
+```
+
+## Data Exploration
+
+```{r}
+#initial visualization - all data histogram
+treewell_d_hist <- ggplot(data = treewell_zeroed, aes(x = treewell_diameter)) +
+  geom_histogram(binwidth = 5, fill = "#2166AC", color = "black") +
+  labs(
+  #  title = "Histogram of Treewell Diameter",
+    x = "Treewell Diameter (cm)",
+    y = "Frequency"
+  ) +
+  facet_wrap(~date) +
+  theme_bw()
+
+print(treewell_d_hist)
+
+#initial visualization - all data scatterplot w/ correlation
+dbh_treewell_diameter_plot <- ggplot(data = treewell_zeroed, aes(y = treewell_diameter, x = dbh)) +
+  geom_smooth(method = 'lm', se = TRUE, color = "grey") +
+  geom_point(aes(color = zone)) +
+  labs(
+   # title = "Well vs Tree Diameter",
+    y = "Well Diameter (cm)",
+    x = "Tree Diameter (cm)"
+  ) +
+  theme_bw() +
+  scale_color_manual(values = c(
+    "PSZ" = "#2166AC",
+    "TSZ" = "#D95F02"))
+
+ggplotly(dbh_treewell_diameter_plot)
+```
+
+## Correlation Test
+
+```{r}
+#calculate pearsons correlation coefficient
+correlation_result <- cor.test(treewell_zeroed$treewell_diameter, treewell_zeroed$dbh)
+
+print(correlation_result)
+```
+
+## DBH & TW Diameter Plots
+
+```{r}
+#creating a dataframe with only April for TSZ and May for PSZ-> because the snowpack is more even between zones and months at these times
+
+treewell_Tapril_Pmay <- treewell_zeroed %>%
+  filter(
+    case_when(
+      zone == "PSZ" ~ date == as.Date("2024-05-03"),
+      zone == "TSZ" ~ date == as.Date("2024-04-12"),
+      TRUE ~ FALSE  # Exclude all other cases
+    )
+  ) %>%
+  mutate(zone = case_when(
+    zone == "PSZ" ~ "a) PSZ", 
+    zone == "TSZ" ~ "b) TSZ",
+    TRUE ~ zone  # Keep original values for other cases
+  ))
+
+treewell_may03only <- treewell_zeroed %>%
+  filter(date == "2024-05-03")
+```
+
+\*\* New plot exploring GB vs DB treewell development!
+
+```{r}
+treewell_Tapril_Pmay_plot <- ggplot(data = treewell_Tapril_Pmay) +
+  geom_point(aes(x = dbh, y = treewell_diameter, color = zone)) +
+  theme_bw() +
+  geom_smooth(aes(x = dbh, y = treewell_diameter), method = 'lm', se = TRUE, color = "grey") +
+  labs(title = "GB vs DB", 
+       x = "Tree Diameter (cm)", 
+       y = "Well Diameter (cm)") +
+  theme_bw() +
+  #facet_wrap(~ tree_mort) +
+  #coord_cartesian(ylim = c(0, 100), xlim = c(0,30)) +
+  scale_color_manual(values = c(
+    "a) PSZ" = "#2166AC",
+    "b) TSZ" = "#D95F02")) +
+  theme(legend.position = "right")
+
+treewell_Tapril_Pmay_plot
+```
+
+```{r}
+treewell_alldates_plot <- ggplot(data = treewell_zeroed) +
+  geom_point(aes(x = dbh, y = treewell_diameter, color = zone)) +
+  theme_bw() +
+  geom_smooth(aes(x = dbh, y = treewell_diameter), method = 'lm', se = TRUE, color = "grey") +
+  labs(title = "GB vs DB", 
+       x = "Tree Diameter (cm)", 
+       y = "Well Diameter (cm)") +
+  theme_bw() +
+  #facet_wrap(~ tree_mort) +
+  #coord_cartesian(ylim = c(0, 100), xlim = c(0,30)) +
+  scale_color_manual(values = c(
+    "a) PSZ" = "#2166AC",
+    "b) TSZ" = "#D95F02")) +
+  theme(legend.position = "right")
+
+treewell_alldates_plot
+```
+
+\*\* The below plot is the best i have thus far.
+
+```{r}
+#wrangling data so that it is in meters and matches snowcam data formats
+treewell_Tapril_Pmay <- treewell_Tapril_Pmay %>%
+  mutate(tree_mort = case_when(
+    tree_mort == "db" ~ "DB",
+    tree_mort == "gb" ~ "GB",
+    TRUE ~ tree_mort  # Keep other values unchanged
+  )) %>%
+  mutate(dbh_m = dbh/100, treewell_diameter_m = treewell_diameter/100) %>%
+  #adding in a new well_diam that has the tree diameter subtracted
+  mutate(well_diam_m_minustree = treewell_diameter_m - dbh_m)
+```
+
+```{r}
+treewell_manual_stats <- treewell_Tapril_Pmay %>%
+  drop_na(treewell_diameter_m, dbh_m) %>%
+  group_by(zone) %>%
+  summarize(
+    cor_test = list(cor.test(dbh_m, treewell_diameter_m, use = "complete.obs")),
+    .groups = "drop"
+  ) %>%
+   mutate(
+    R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
+    p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
+    conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
+    conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
+    p_label = ifelse(p_value < 0.05, "p-value < 0.05", "p-value ≥ 0.05"),  # Conditional p-value label
+    R2_label = paste0("R² = ", formatC(R2, format = "f", digits = 2), "\n", p_label)  # Ensure two decimal places
+  )
+
+# Scatterplot
+treewell_manual_scatterplot <- ggplot(treewell_Tapril_Pmay, aes(x = dbh_m, y = treewell_diameter_m, color = factor(zone))) +
+  geom_point(aes(shape = tree_mort), size = 2, alpha = 0.8) + 
+  geom_smooth(method = "lm", color = "grey", se = TRUE) +
+  facet_wrap(~ zone, nrow = 1) +  # Separate by tree_id
+  labs(
+    x = "Tree Diameter (m)",
+    y = "Well Diameter (m)",
+    color = "Burn Status"
+  ) +
+  scale_color_manual(name = NULL, values = c(
+    "a) PSZ" = "#2166AC",
+    "b) TSZ" = "#D95F02"),
+    guide = "none"
+) +
+  theme_bw() +
+  scale_x_continuous(labels = scales::label_comma()) + 
+  guides(color = "none") +
+  scale_shape_manual(name = NULL, values = c("GB" = 16, "DB" = 15)) +
+  geom_text(data = treewell_manual_stats, aes(x = Inf, y = Inf, label = R2_label), 
+            hjust = 1.1, vjust = 1.3, inherit.aes = FALSE, size = 4) + 
+  theme(
+    strip.text = element_text(size = 11),  # Facet title size
+    axis.title = element_text(size = 11),  # Axis title size
+    axis.text = element_text(size = 11),  # Axis tick labels
+    legend.text = element_text(size = 10), legend.position = "bottom"
+  )
+
+treewell_manual_scatterplot
+```
+
+```{r}
+ggsave(
+  filename = "treewell_manual_scatterplot.png",  # File name
+  plot = treewell_manual_scatterplot,           # The arranged plot object
+  width = 7,                                          # Adjust width as needed
+  height = 5,                                         # Adjust height as needed
+  dpi = 600                                            # High resolution
+)
+```
+
+V2, where I compare the well diameter without the tree diameter included to the tree diameters
+
+```{r}
+treewell_manual_stats_V2 <- treewell_Tapril_Pmay %>%
+  drop_na(well_diam_m_minustree, dbh_m) %>%
+  group_by(zone) %>%
+  summarize(
+    cor_test = list(cor.test(dbh_m, well_diam_m_minustree, use = "complete.obs")),
+    .groups = "drop"
+  ) %>%
+   mutate(
+    R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
+    p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
+    conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
+    conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
+    p_label = ifelse(p_value < 0.05, "p-value < 0.05", "p-value ≥ 0.05"),  # Conditional p-value label
+    R2_label = paste0("R² = ", formatC(R2, format = "f", digits = 2), "\n", p_label)  # Ensure two decimal places
+  )
+
+# Scatterplot
+treewell_manual_scatterplot_V2 <- ggplot(treewell_Tapril_Pmay, aes(x = dbh_m, y = well_diam_m_minustree, color = factor(zone))) +
+  geom_point(aes(shape = tree_mort), size = 2, alpha = 0.8) + 
+  geom_smooth(method = "lm", color = "grey", se = TRUE) +
+  facet_wrap(~ zone, nrow = 1) +  # Separate by tree_id
+  labs(
+    x = "Tree Diameter (m)",
+    y = "Well Diameter (m)",
+    color = "Burn Status"
+  ) +
+  scale_color_manual(name = NULL, values = c(
+    "a) PSZ" = "#2166AC",
+    "b) TSZ" = "#D95F02"),
+    guide = "none"
+) +
+  theme_bw() +
+  scale_x_continuous(labels = scales::label_comma()) + 
+  guides(color = "none") +
+  scale_shape_manual(name = NULL, values = c("GB" = 16, "DB" = 15)) +
+  geom_text(data = treewell_manual_stats_V2, aes(x = Inf, y = Inf, label = R2_label), 
+            hjust = 1.1, vjust = 1.3, inherit.aes = FALSE, size = 4) + 
+  theme(
+    strip.text = element_text(size = 11),  # Facet title size
+    axis.title = element_text(size = 11),  # Axis title size
+    axis.text = element_text(size = 11),  # Axis tick labels
+    legend.text = element_text(size = 10), legend.position = "bottom"
+  )
+
+treewell_manual_scatterplot_V2
+```
+
+## Aspect Data Exploration
+
+```{r}
+#pivoting the clean dataset longer to have aspect included
+treewell_long <- treewell_zeroed %>%
+  select(-c(tree_mort)) %>%
+  pivot_longer(cols = c(d_edge_N, d_edge_E, d_edge_S, d_edge_W), names_to = "d_edge_aspect", values_to = "d_edge_data") %>%
+  pivot_longer(cols = c(sd_tree_N, sd_tree_E, sd_tree_S, sd_tree_W), names_to = "sd_tree_aspect", values_to = "sd_tree_data") %>%
+  pivot_longer(cols = c(sd_1_N, sd_1_E, sd_1_S, sd_1_W), names_to = "sd_1_aspect", values_to = "sd_1_data") %>%
+  pivot_longer(cols = c(sd_2_N, sd_2_E, sd_2_S, sd_2_W), names_to = "sd_2_aspect", values_to = "sd_2_data") %>%
+  pivot_longer(cols = c(sd_3_N, sd_3_E, sd_3_S, sd_3_W), names_to = "sd_3_aspect", values_to = "sd_3_data") %>%
+  #adjusting the variable names in the measurement rows
+  mutate(d_edge_aspect = case_when(
+    str_detect(d_edge_aspect, "N") ~ "N",
+    str_detect(d_edge_aspect, "E") ~ "E",
+    str_detect(d_edge_aspect, "S") ~ "S",
+    str_detect(d_edge_aspect, "W") ~ "W",
+    TRUE ~ d_edge_aspect
+  )) %>%
+  mutate(sd_tree_aspect = case_when(
+    str_detect(sd_tree_aspect, "N") ~ "N",
+    str_detect(sd_tree_aspect, "E") ~ "E",
+    str_detect(sd_tree_aspect, "S") ~ "S",
+    str_detect(sd_tree_aspect, "W") ~ "W",
+    TRUE ~ sd_tree_aspect
+  )) %>%
+  mutate(sd_1_aspect = case_when(
+    str_detect(sd_1_aspect, "N") ~ "N",
+    str_detect(sd_1_aspect, "E") ~ "E",
+    str_detect(sd_1_aspect, "S") ~ "S",
+    str_detect(sd_1_aspect, "W") ~ "W",
+    TRUE ~ sd_1_aspect,
+  )) %>%
+  mutate(sd_2_aspect = case_when(
+    str_detect(sd_2_aspect, "N") ~ "N",
+    str_detect(sd_2_aspect, "E") ~ "E",
+    str_detect(sd_2_aspect, "S") ~ "S",
+    str_detect(sd_2_aspect, "W") ~ "W",
+    TRUE ~ sd_2_aspect,
+  )) %>%
+  mutate(sd_3_aspect = case_when(
+    str_detect(sd_3_aspect, "N") ~ "N",
+    str_detect(sd_3_aspect, "E") ~ "E",
+    str_detect(sd_3_aspect, "S") ~ "S",
+    str_detect(sd_3_aspect, "W") ~ "W",
+    TRUE ~ sd_3_aspect,
+  ))
+```
+
+```{r}
+#creating aspect dataframes
+treewell_n <- treewell_zeroed %>%
+  select(c(tree_ID, zone, date, tree_mort, dbh, treewell_diameter, d_edge_N, sd_tree_N, sd_1_N, sd_2_N, sd_3_N, increments_cm))
+
+treewell_e <- treewell_zeroed %>%
+  select(c(tree_ID, zone, date, tree_mort, dbh, treewell_diameter, d_edge_E, sd_tree_E, sd_1_E, sd_2_E, sd_3_E, increments_cm))
+
+treewell_s <- treewell_zeroed %>%
+  select(c(tree_ID, zone, date, tree_mort, dbh, treewell_diameter, d_edge_S, sd_tree_S, sd_1_S, sd_2_S, sd_3_S, increments_cm))
+
+treewell_w <- treewell_zeroed %>%
+  select(c(tree_ID, zone, date, tree_mort, dbh, treewell_diameter, d_edge_W, sd_tree_W, sd_1_W, sd_2_W, sd_3_W, increments_cm))
+```
+
+\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
+
+Chunk of work from 9/9/24 - exported plots
+
+Exploring aspect comparison and site comparison
+
+```{r}
+#creating a long dataframe that is zeroed - making individual dataframes for aspects first, then joining
+treewell_n_long <- treewell_n %>%
+  pivot_longer(cols = starts_with("d_edge"), 
+    names_to = "measurement", 
+    values_to = "well_diameter",
+    values_drop_na = TRUE
+  ) %>%
+  mutate(aspect = "north") %>%
+  rename(treewell_diameter_full = treewell_diameter) %>%
+  select(tree_ID, zone, date, tree_mort, aspect, dbh, treewell_diameter_full, measurement, well_diameter, increments_cm)
+
+treewell_e_long <- treewell_e %>%
+  pivot_longer(cols = starts_with("d_edge"), 
+    names_to = "measurement", 
+    values_to = "well_diameter",
+    values_drop_na = TRUE
+  ) %>%
+  mutate(aspect = "east") %>%
+  rename(treewell_diameter_full = treewell_diameter) %>%
+  select(tree_ID, zone, date, tree_mort, aspect, dbh, treewell_diameter_full, measurement, well_diameter, increments_cm)
+
+treewell_s_long <- treewell_s %>%
+  pivot_longer(cols = starts_with("d_edge"), 
+    names_to = "measurement", 
+    values_to = "well_diameter",
+    values_drop_na = TRUE
+  ) %>%
+  mutate(aspect = "south") %>%
+  rename(treewell_diameter_full = treewell_diameter) %>%
+  select(tree_ID, zone, date, tree_mort, aspect, dbh, treewell_diameter_full, measurement, well_diameter, increments_cm)
+
+treewell_w_long <- treewell_w %>%
+  pivot_longer(cols = starts_with("d_edge"), 
+    names_to = "measurement", 
+    values_to = "well_diameter",
+    values_drop_na = TRUE
+  ) %>%
+  mutate(aspect = "west") %>%
+  rename(treewell_diameter_full = treewell_diameter) %>%
+  select(tree_ID, zone, date, tree_mort, aspect, dbh, treewell_diameter_full, measurement, well_diameter, increments_cm)
+```
+
+```{r}
+#full join of new dataframes
+treewell_long_may <- treewell_n_long %>%
+  full_join(treewell_e_long) %>%
+  full_join(treewell_s_long) %>%
+  full_join(treewell_w_long) %>%
+  filter(date == "2024-05-03")
+
+trans_treewell_long_aspect_may <- treewell_long_may %>%
+  filter(zone == "TSZ")
+
+pers_treewell_long_aspect_may <- treewell_long_may %>%
+  filter(zone == "PSZ")
+
+#transitional april dataframe
+treewell_long_april <- treewell_n_long %>%
+  full_join(treewell_e_long) %>%
+  full_join(treewell_s_long) %>%
+  full_join(treewell_w_long) %>%
+  filter(date == "2024-04-12")
+
+trans_treewell_long_aspect_april <- treewell_long_april %>%
+  filter(zone == "TSZ")
+```
+
+```{r}
+#plotting aspect in points
+##transitional
+trans_treewell_aspect_may_plot <- ggplot(data = trans_treewell_long_aspect_april) +
+  geom_point(aes(x = dbh, y = well_diameter, color = "#D95F02")) +
+  theme_bw() +
+  geom_smooth(aes(x = dbh, y = well_diameter), method = 'lm', se = TRUE, color = "grey") +
+  labs(title = "Transitional May", x = "Tree Diameter (cm)", y = "Well Diameter (cm)") +
+  facet_wrap(~aspect) +
+  coord_cartesian(ylim = c(0, 100), xlim = c(0,30)) +
+  #scale_color_manual(values = c(
+  #  "PSZ" = "#2166AC",
+  #  "TSZ" = "#D95F02")) +
+  theme(legend.position = "none")
+
+trans_treewell_aspect_april_plot
+
+##persistent
+pers_treewell_aspect_may_plot <- ggplot(data = pers_treewell_long_aspect_may) +
+  geom_point(aes(x = dbh, y = well_diameter, color = zone)) +
+  theme_bw() +
+  geom_smooth(aes(x = dbh, y = well_diameter), method = 'lm', se = TRUE, color = "grey") +
+  labs(title = "Persistent May", x = "Tree Diameter (cm)", y = "Well Diameter (cm)") +
+  theme_bw() +  # Use a minimal theme for a clean look
+  facet_wrap(~aspect) +
+  coord_cartesian(ylim = c(0, 100), xlim = c(0,30)) +
+  scale_color_manual(values = c(
+    "persistent" = "#2166AC",
+    "transitional" = "#D95F02")) +
+  theme(legend.position = "none")
+
+pers_treewell_aspect_may_plot
+
+##transitional april plot
+trans_treewell_aspect_april_plot <- ggplot(data = trans_treewell_long_aspect_april) +
+  geom_point(aes(x = dbh, y = well_diameter, color = zone)) +
+  theme_bw() +
+  geom_smooth(aes(x = dbh, y = well_diameter), method = 'lm', se = TRUE, color = "grey") +
+  labs(title = "Transitional April", x = "Tree Diameter (cm)", y = "Well Diameter (cm)") +
+  theme_bw() +  # Use a minimal theme for a clean look
+  facet_wrap(~aspect) +
+  #coord_cartesian(ylim = c(0, 45))
+  coord_cartesian(ylim = c(0, 100), xlim = c(0,30)) +
+    scale_color_manual(values = c(
+    "persistent" = "#2166AC",
+    "transitional" = "#D95F02")) +
+  theme(legend.position = "none")
+
+trans_treewell_aspect_april_plot
+
+```
+
+```{r}
+library(ggpubr)
+#arranging plots
+comb_treewell_aspect_plot <- ggarrange(trans_treewell_aspect_april_plot, pers_treewell_aspect_may_plot, trans_treewell_aspect_may_plot, ncol = 3, nrow = 1)
+
+comb_treewell_aspect_plot
+```
+
+Same plots as above, but with free x and y scales!
+
+```{r}
+trans_treewell_aspect_may_plot_freexy <- ggplot(data = trans_treewell_long_aspect_may) +
+  geom_point(aes(x = dbh, y = well_diameter, color = zone)) +
+  theme_bw() +
+  geom_smooth(aes(x = dbh, y = well_diameter), method = 'lm', se = TRUE, color = "grey") +
+  labs(title = "Transitional May", x = "Tree Diameter (cm)", y = "Well Diameter (cm)") +
+  theme_bw() +  # Use a minimal theme for a clean look
+  facet_wrap(~aspect) +
+  scale_color_manual(values = c(
+    "persistent" = "#2166AC",
+    "transitional" = "#D95F02")) +
+  theme(legend.position = "none")
+
+trans_treewell_aspect_may_plot_freexy
+
+##persistent
+pers_treewell_aspect_may_plot_freexy <- ggplot(data = pers_treewell_long_aspect_may) +
+  geom_point(aes(x = dbh, y = well_diameter, color = zone)) +
+  theme_bw() +
+  geom_smooth(aes(x = dbh, y = well_diameter), method = 'lm', se = TRUE, color = "grey") +
+  labs(title = "Persistent May", x = "Tree Diameter (cm)", y = "Well Diameter (cm)") +
+  theme_bw() +  # Use a minimal theme for a clean look
+  facet_wrap(~aspect) +
+  scale_color_manual(values = c(
+    "persistent" = "#2166AC",
+    "transitional" = "#D95F02")) +
+  theme(legend.position = "none")
+
+pers_treewell_aspect_may_plot_freexy
+
+##transitional april plot
+trans_treewell_aspect_april_plot_freexy <- ggplot(data = trans_treewell_long_aspect_april) +
+  geom_point(aes(x = dbh, y = well_diameter, color = zone)) +
+  theme_bw() +
+  geom_smooth(aes(x = dbh, y = well_diameter), method = 'lm', se = TRUE, color = "grey") +
+  labs(title = "Transitional April", x = "Tree Diameter (cm)", y = "Well Diameter (cm)") +
+  theme_bw() +  # Use a minimal theme for a clean look
+  facet_wrap(~aspect) +
+    scale_color_manual(values = c(
+    "persistent" = "#2166AC",
+    "transitional" = "#D95F02")) +
+  theme(legend.position = "none")
+
+trans_treewell_aspect_april_plot_freexy
+```
+
+```{r}
+#combining freexy plots
+comb_treewell_aspect_plot_freexy <- ggarrange(trans_treewell_aspect_april_plot_freexy, pers_treewell_aspect_may_plot_freexy, trans_treewell_aspect_may_plot_freexy, ncol = 3, nrow = 1)
+
+comb_treewell_aspect_plot_freexy
+```
+
+\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
+
+Plotting Aspect Scatter plot individually, then combining
+
+Zone-specific Plots
+
+```{r}
+#boxplots by date
+treewell_boxplot <- ggplot(data = treewell_zeroed, aes(x = dbh, y = treewell_diameter, fill = site)) + 
+  geom_boxplot() + 
+  theme_bw() +
+  labs(title = "Well Diameter by Tree Diameter", x = "Tree Diameter (cm)", y = "Well Diameter (cm)") +
+  facet_wrap(~date)
+
+treewell_boxplot
+```
+
+Point Plots
+
+\*\* not sure this is very helpful? Try putting regression lines on them.
+
+\*\* can also plot snow depths with this, if needed?
+
+5/13 Histogram Plots
+
+```{r}
+#creating dataframe for only may
+treewell_maydata <- treewell_zeroed %>%
+  filter(date == "2024-05-03")
+
+#treewell diameter histogram
+treewell_may_hist <- ggplot(data = treewell_maydata, aes(x = treewell_diameter)) +
+  geom_histogram(binwidth = 5, fill = "#2166AC", color = "black") +
+  labs(
+    #title = "Histogram of Treewell Diameter in May",
+    x = "Full Treewell Diameter (cm)",
+    y = "Frequency"
+  ) +
+  facet_wrap(~zone) +
+  theme_bw()
+
+print(treewell_may_hist)
+
+treediameter_hist <- ggplot(data = treewell_maydata, aes(x = dbh)) +
+  geom_histogram(binwidth = 5, fill = "#2166AC", color = "black") +
+  labs(
+    #title = "Histogram of Treewell Diameter in May",
+    x = "Tree Diameter (cm)",
+    y = "Frequency"
+  ) +
+  facet_wrap(~zone) +
+  theme_bw()
+
+print(treediameter_hist)
+```
+
+## Aspect Correlation Tests:
+
+### All areas combined
+
+```{r}
+#north correlation
+north_cor_result <- cor.test(treewell_n$d_edge_N, treewell_n$dbh)
+
+print(north_cor_result)
+```
+
+North correlation Results:
+
+t = 1.5172, df = 52, p-value = 0.1353
+
+alternative hypothesis: true correlation is not equal to 0
+
+95 percent confidence interval: -0.06547983 0.44890337
+
+sample estimates: cor 0.2058906
+
+```{r}
+#east correlation
+east_cor_result <- cor.test(treewell_e$d_edge_E, treewell_n$dbh)
+
+print(east_cor_result)
+```
+
+East Correlation Results:
+
+t = 1.1771, df = 52, p-value = 0.2445
+
+alternative hypothesis: true correlation is not equal to 0
+
+95 percent confidence interval: -0.1114601 0.4111335
+
+sample estimates: cor 0.1611087
+
+```{r}
+#south correlation
+south_cor_result <- cor.test(treewell_s$d_edge_S, treewell_n$dbh)
+
+print(south_cor_result)
+```
+
+South Correlation Results:
+
+t = 0.76607, df = 52, p-value = 0.4471
+
+alternative hypothesis: true correlation is not equal to 0
+
+95 percent confidence interval: -0.1668391 0.3631296
+
+sample estimates: cor 0.1056407
+
+```{r}
+#south correlation
+west_cor_result <- cor.test(treewell_w$d_edge_W, treewell_n$dbh)
+
+print(west_cor_result)
+```
+
+West Correlation Results:
+
+t = 2.0528, df = 52, p-value = 0.04514
+
+alternative hypothesis: true correlation is not equal to 0
+
+95 percent confidence interval: 0.006515724 0.504568023
+
+sample estimates: cor 0.2737986
+
+### Separated Areas and Dates
+
+```{r}
+#creating dataframes
+april_trans_n <- treewell_n %>%
+  filter(date == "2024-04-12", site == "transitional")
+
+may_trans_n <- treewell_n %>%
+  filter(date == "2024-05-03", site == "transitional")
+
+may_pers_n <- treewell_n %>%
+  filter(date == "2024-05-03", site == "persistent")
+
+april_trans_e <- treewell_e %>%
+  filter(date == "2024-04-12", site == "transitional")
+
+may_trans_e <- treewell_e %>%
+  filter(date == "2024-05-03", site == "transitional")
+
+may_pers_e <- treewell_e %>%
+  filter(date == "2024-05-03", site == "persistent")
+
+april_trans_s <- treewell_s %>%
+  filter(date == "2024-04-12", site == "transitional")
+
+may_trans_s <- treewell_s %>%
+  filter(date == "2024-05-03", site == "transitional")
+
+may_pers_s <- treewell_s %>%
+  filter(date == "2024-05-03", site == "persistent")
+
+april_trans_w <- treewell_w %>%
+  filter(date == "2024-04-12", site == "transitional")
+
+may_trans_w <- treewell_w %>%
+  filter(date == "2024-05-03", site == "transitional")
+
+may_pers_w <- treewell_w %>%
+  filter(date == "2024-05-03", site == "persistent")
+```
+
+#### North Results:
+
+```{r}
+#north correlation
+april_trans_n_cor_result <- cor.test(april_trans_n$d_edge_N, april_trans_n$dbh)
+
+print(april_trans_n_cor_result)
+```
+
+April Trans North Results:\
+t = 1.1127, df = 16, p-value = 0.2823
+
+alternative hypothesis: true correlation is not equal to 0
+
+95 percent confidence interval: -0.2273044 0.6531518
+
+sample estimates: cor 0.268007
+
+```{r}
+may_trans_n_cor_result <- cor.test(may_trans_n$d_edge_N, may_trans_n$dbh)
+
+print(may_trans_n_cor_result)
+```
+
+May Trans North Results:
+
+t = -0.86342, df = 16, p-value = 0.4007
+
+alternative hypothesis: true correlation is not equal to 0
+
+95 percent confidence interval: -0.6170792 0.2838336
+
+sample estimates: cor -0.2109963
+
+```{r}
+may_pers_n_cor_result <- cor.test(may_pers_n$d_edge_N, may_pers_n$dbh)
+
+print(may_pers_n_cor_result)
+```
+
+May Pers North Results:
+
+t = 2.701, df = 16, p-value = 0.01574
+
+alternative hypothesis: true correlation is not equal to 0
+
+95 percent confidence interval: 0.1255509 0.8138537
+
+sample estimates: cor 0.5596184
+
+#### East Results:
+
+```{r}
+april_trans_e_cor_result <- cor.test(april_trans_e$d_edge_E, april_trans_e$dbh)
+
+print(april_trans_e_cor_result)
+```
+
+April Trans East Results:
+
+t = 1.5783, df = 16, p-value = 0.1341
+
+alternative hypothesis: true correlation is not equal to 0
+
+95 percent confidence interval: -0.1204729 0.7119170
+
+sample estimates: cor 0.3670415
+
+```{r}
+may_trans_e_cor_result <- cor.test(may_trans_e$d_edge_E, may_trans_e$dbh)
+
+print(may_trans_e_cor_result)
+```
+
+May Trans East Results:
+
+t = -0.45698, df = 16, p-value = 0.6538
+
+alternative hypothesis: true correlation is not equal to 0
+
+95 percent confidence interval: -0.5511682 0.3731376
+
+sample estimates: cor -0.113506
+
+```{r}
+may_pers_e_cor_result <- cor.test(may_pers_e$d_edge_E, may_pers_e$dbh)
+
+print(may_pers_e_cor_result)
+```
+
+May Pers East Results:
+
+t = 1.2632, df = 16, p-value = 0.2246
+
+alternative hypothesis: true correlation is not equal to 0
+
+95 percent confidence interval: -0.1928404 0.6733438
+
+sample estimates: cor 0.3011419
+
+#### South Results:
+
+```{r}
+april_trans_s_cor_result <- cor.test(april_trans_s$d_edge_S, april_trans_s$dbh)
+
+print(april_trans_s_cor_result)
+```
+
+April Trans South Results:
+
+t = 4.7755, df = 16, p-value = 0.0002064
+
+alternative hypothesis: true correlation is not equal to 0
+
+95 percent confidence interval: 0.4668169 0.9083684
+
+sample estimates: cor 0.7666099
+
+```{r}
+may_trans_s_cor_result <- cor.test(may_trans_s$d_edge_S, may_trans_s$dbh)
+
+print(may_trans_s_cor_result)
+```
+
+May Trans South Results:
+
+t = -1.1173, df = 16, p-value = 0.2804
+
+alternative hypothesis: true correlation is not equal to 0
+
+95 percent confidence interval: -0.6537756 0.2262718
+
+sample estimates: cor -0.2690171
+
+```{r}
+may_pers_s_cor_result <- cor.test(may_pers_s$d_edge_S, may_pers_s$dbh)
+
+print(may_pers_s_cor_result)
+```
+
+May Pers South Results:
+
+t = 1.0223, df = 16, p-value = 0.3219
+
+alternative hypothesis: true correlation is not equal to 0
+
+95 percent confidence interval: -0.2479211 0.6404430
+
+sample estimates: cor 0.247609
+
+#### West Results:
+
+```{r}
+april_trans_w_cor_result <- cor.test(april_trans_w$d_edge_W, april_trans_w$dbh)
+
+print(april_trans_w_cor_result)
+```
+
+April Trans West Results:
+
+t = 4.6585, df = 16, p-value = 0.0002622
+
+alternative hypothesis: true correlation is not equal to 0
+
+95 percent confidence interval: 0.4518867 0.9050017
+
+sample estimates: cor 0.7586934
+
+```{r}
+may_trans_w_cor_result <- cor.test(may_trans_w$d_edge_W, may_trans_w$dbh)
+
+print(may_trans_w_cor_result)
+```
+
+May Trans West Results:
+
+t = 1.0328, df = 16, p-value = 0.3171
+
+alternative hypothesis: true correlation is not equal to 0
+
+95 percent confidence interval: -0.2455352 0.6419391
+
+sample estimates: cor 0.2499923
+
+```{r}
+may_pers_w_cor_result <- cor.test(may_pers_w$d_edge_W, may_pers_w$dbh)
+
+print(may_pers_w_cor_result)
+```
+
+May Pers West Results
+
+t = 1.4838, df = 16, p-value = 0.1573
+
+alternative hypothesis: true correlation is not equal to 0
+
+95 percent confidence interval: -0.1421718 0.7008553
+
+sample estimates: cor 0.3477826
