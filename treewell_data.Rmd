@@ -531,6 +531,16 @@ treewell_manual_scatterplot_V2 <- ggplot(treewell_Tapril_Pmay, aes(x = dbh_m, y 
 treewell_manual_scatterplot_V2
 ```
 
+```{r}
+ggsave(
+  filename = "treewell_manual_scatterplot_minustreediam.png",  # File name
+  plot = treewell_manual_scatterplot_V2,           # The arranged plot object
+  width = 7,                                          # Adjust width as needed
+  height = 5,                                         # Adjust height as needed
+  dpi = 600                                            # High resolution
+)
+```
+
 ## Aspect Data Exploration
 
 ```{r}
