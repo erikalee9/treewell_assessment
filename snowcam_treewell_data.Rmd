@@ -25,7 +25,7 @@ setwd("/Volumes/wcnr-network/Research/Kampf/Private/field_data")
 
 ```{r}
 #clear prior environment
-rm(list = ls())
+#rm(list = ls())
 ```
 
 Loading in Data
@@ -6494,7 +6494,7 @@ comb_daily_NRTree
 ggsave("comb_daily_NRTree.png", plot = comb_daily_NRTree, dpi = 600)
 ```
 
-##  New Snow Depth vs Diameter Scatterplots
+## New Snow Depth vs Diameter Scatterplots
 
 PSZ
 
@@ -7817,12 +7817,12 @@ TSZ_SWE_MRD_MAD_stats <- SWE_fullseason_vol_transb %>%
 
 \*\* large daily plots for appendices!
 
-PSZ
+### PSZ
 
 ```{r}
 comb_persb_treewell_diam_abla <- comb_persb_treewell_diam_fullseason %>%
   filter(date >= "2024-05-06" & date <= "2024-05-17") %>%
-  mutate(tree_diam_m = tree_diam/100, well_diam_m = well_diam/100)
+  mutate(tree_diam_m = tree_diam/100, well_diam_m = well_diam/100, welldiam_minustree_m = well_diam_m - tree_diam_m)
 
 p_treewelldiam_camera_results <- comb_persb_treewell_diam_abla %>%
   drop_na(well_diam_m, tree_diam_m) %>%
@@ -7874,12 +7874,12 @@ persb_tree_well_corr_plot_abla <- ggplot(comb_persb_treewell_diam_abla, aes(x = 
 persb_tree_well_corr_plot_abla
 ```
 
-TSZ
+### TSZ
 
 ```{r}
 comb_transb_treewell_diam_abla <- long_transb_treewell_diams_fullseason_V2 %>%
   filter(date >= "2024-04-01" & date <= "2024-04-12") %>%
-  mutate(tree_diam_m = tree_diam/100, well_diam_m = well_diam/100)
+  mutate(tree_diam_m = tree_diam/100, well_diam_m = well_diam/100, welldiam_minustree_m = well_diam_m - tree_diam_m)
 
 t_treewelldiam_camera_results <- comb_transb_treewell_diam_abla %>%
   drop_na(well_diam_m, tree_diam_m) %>%
@@ -7957,6 +7957,9 @@ ggsave("transb_snowcam_tree_well_corr_plot_abla.png",
 
 V2 - this is where the tree diameter is subtracted from the well diameter, then correlated to tree diam
 
+\
+PSZ
+
 ```{r}
 comb_persb_treewell_diam_abla_V2 <- comb_persb_treewell_diam_fullseason %>%
   filter(date >= "2024-05-06" & date <= "2024-05-17") %>%
@@ -7979,9 +7982,46 @@ p_treewelldiam_camera_results_V2 <- comb_persb_treewell_diam_abla_V2 %>%
     R2_label = paste0("R² = ", formatC(R2, format = "f", digits = 2)))
 ```
 
+Plotting
+
+```{r}
+persb_tree_well_corr_plot_abla_V2 <- ggplot(comb_persb_treewell_diam_abla_V2, aes(x = tree_diam_m, y = welldiam_minustree_m, color = factor(tree_id))) +
+  geom_point(aes(shape = burn_status), size = 2, alpha = 0.7) +
+  geom_smooth(method = "lm", color = "grey", se = TRUE) +
+  facet_wrap(~ date) +  # Separate by tree_id
+  labs(
+    title = "a) PSZ",
+    x = "Tree Diameter (m)",
+    y = "Well Diameter (minus tree diam) (m)",
+    color = "Tree ID"
+  ) +
+  theme_bw() +
+  scale_color_manual(values = treeid_colors) + 
+  scale_x_continuous(
+    breaks = c(0.2, 0.4),  # Set specific breaks for x-axis
+    labels = c("0.2", "0.4")  # Set the labels for those breaks
+  ) + 
+  #remove color legend 
+  guides(color = "none") +
+  scale_shape_manual(name = NULL, values = c("GB" = 16, "DB" = 15)) +
+  geom_text(data = p_treewelldiam_camera_results_V2, aes(x = Inf, y = Inf, label = R2_label), 
+            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 4) +
+  theme(
+    strip.text = element_text(size = 11),  # Facet title size
+    axis.title = element_text(size = 11),  # Axis title size
+    axis.text = element_text(size = 11),  # Axis tick labels
+    legend.title = element_text(size = 11),  # Legend title size
+    legend.text = element_text(size = 10), 
+    legend.position = "bottom")
+
+persb_tree_well_corr_plot_abla_V2
+```
+
+TSZ
+
 ```{r}
 comb_transb_treewell_diam_abla_V2 <- long_transb_treewell_diams_fullseason_V2 %>%
-  filter(date >= "2024-04-02" & date <= "2024-04-12") %>%
+  filter(date >= "2024-04-01" & date <= "2024-04-12") %>%
   mutate(tree_diam_m = tree_diam/100, well_diam_m = well_diam/100, welldiam_minustree_m = well_diam_m-tree_diam_m)
 
 t_treewelldiam_camera_results_V2 <- comb_transb_treewell_diam_abla_V2 %>%
@@ -7993,10 +8033,55 @@ t_treewelldiam_camera_results_V2 <- comb_transb_treewell_diam_abla_V2 %>%
                              error = function(e) return(NA))), 
     .groups = "drop"
   ) %>%
-  mutate(
+ mutate(
     R2 = map_dbl(cor_test, ~ ifelse(is.list(.x), .x$estimate^2, NA)),  
     p_value = map_dbl(cor_test, ~ ifelse(is.list(.x), .x$p.value, NA)),  
     conf_low = map_dbl(cor_test, ~ if (is.list(.x) && "conf.int" %in% names(.x)) .x$conf.int[1] else NA),  
     conf_high = map_dbl(cor_test, ~ if (is.list(.x) && "conf.int" %in% names(.x)) .x$conf.int[2] else NA), 
     R2_label = paste0("R² = ", formatC(R2, format = "f", digits = 2)))
+```
+
+```{r}
+transb_tree_well_corr_plot_abla_V2 <- ggplot(comb_transb_treewell_diam_abla_V2, aes(x = tree_diam_m, y = welldiam_minustree_m, color = factor(tree_id))) +
+  geom_point(aes(shape = burn_status), size = 2, alpha = 0.7) +
+  geom_smooth(method = "lm", color = "grey", se = TRUE) +
+  facet_wrap(~ date) +  # Separate by tree_id
+  labs(
+    title = "b) TSZ",
+    x = "Tree Diameter (m)",
+    y = "Well Diameter (minus tree diam) (m)",
+    color = "Tree ID"
+  ) +
+  theme_bw() +
+  scale_color_manual(values = treeid_colors) + 
+  scale_x_continuous(
+    breaks = c(0.2, 0.4),  # Set specific breaks for x-axis
+    labels = c("0.2", "0.4")  # Set the labels for those breaks
+  ) + 
+  #remove color legend 
+  guides(color = "none") +
+  scale_shape_manual(name = NULL, values = c("GB" = 16, "DB" = 15)) +
+  geom_text(data = t_treewelldiam_camera_results_V2, aes(x = Inf, y = Inf, label = R2_label), 
+            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 4) +
+  theme(
+    strip.text = element_text(size = 11),  # Facet title size
+    axis.title = element_text(size = 11),  # Axis title size
+    axis.text = element_text(size = 11),  # Axis tick labels
+    legend.title = element_text(size = 11),  # Legend title size
+    legend.text = element_text(size = 10), 
+    legend.position = "bottom")
+
+transb_tree_well_corr_plot_abla_V2
+```
+
+Combining V2 plots
+
+```{r}
+comb_snowcam_treevswell_corr_abla_V2 <- ggarrange(persb_tree_well_corr_plot_abla_V2, transb_tree_well_corr_plot_abla_V2, nrow = 2, ncol = 1, common.legend = TRUE, legend = "bottom")
+
+comb_snowcam_treevswell_corr_abla_V2
+```
+
+```{r}
+ggsave("comb_snowcam_treevswell_corr_abla_appendix_V2.png", height = 10, width = 7.5, plot = comb_snowcam_treevswell_corr_abla_V2, dpi = 600)
 ```
