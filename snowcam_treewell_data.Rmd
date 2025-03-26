@@ -5317,7 +5317,7 @@ comb_totalcumNR_accu
 ggsave("comb_totalcumNR_accu.png", width = 7.5, height = 6, plot = comb_totalcumNR_accu, dpi = 600)
 ```
 
-##   Tree Temp correlation
+## Tree Temp correlation
 
 Correlating tree temp with various energy budget values, during accumulation and ablation
 
@@ -5325,94 +5325,182 @@ Correlating tree temp with various energy budget values, during accumulation and
 
 #### PSZ
 
+Air temp
+
 ```{r}
 # AirTC Correlation
 p_AirTree_accu_results <- persb_corr_data_accu %>%
-  drop_na(totalcum_treetemp, totalcum_AirTC) %>%
+  drop_na(mean_tree_temp, totalcum_AirTC) %>%
   #don't have to group by tree, because this data is just comparing the weather station data, not tree data!
   #group_by(tree_id) %>%
   summarize(
-    cor_test = list(cor.test(totalcum_treetemp, totalcum_AirTC, use = "complete.obs")),
+    cor_test = list(cor.test(mean_tree_temp, totalcum_AirTC, use = "complete.obs")),
     .groups = "drop"
   ) %>%
-  mutate(
+   mutate(
     R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
     p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
     conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
     conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
-    R2_label = paste0(
-      "R² = ", round(R2, 3), "\n",
-      "P-value = ", signif(p_value, 3), "\n"
-    )  # Include CI in the label
+    p_label = ifelse(p_value < 0.05, "p-value < 0.05", "p-value ≥ 0.05"),  # Conditional p-value label
+    R2_label = paste0("R² = ", formatC(R2, format = "f", digits = 2), "\n", p_label)  # Ensure two decimal places
   )
 
 p_AirTree_abla_results <- persb_corr_data_abla %>%
-  drop_na(totalcum_treetemp, totalcum_AirTC) %>%
+  drop_na(mean_tree_temp, totalcum_AirTC) %>%
   #don't have to group by tree, because this data is just comparing the weather station data, not tree data!
   #group_by(tree_id) %>%
   summarize(
-    cor_test = list(cor.test(totalcum_treetemp, totalcum_AirTC, use = "complete.obs")),
+    cor_test = list(cor.test(mean_tree_temp, totalcum_AirTC, use = "complete.obs")),
     .groups = "drop"
   ) %>%
-  mutate(
+   mutate(
     R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
     p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
     conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
     conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
-    R2_label = paste0(
-      "R² = ", round(R2, 3), "\n",
-      "P-value = ", signif(p_value, 3), "\n"
-    )  # Include CI in the label
+    p_label = ifelse(p_value < 0.05, "p-value < 0.05", "p-value ≥ 0.05"),  # Conditional p-value label
+    R2_label = paste0("R² = ", formatC(R2, format = "f", digits = 2), "\n", p_label)  # Ensure two decimal places
   )
 ```
+
+Plotting
+
+```{r}
+p_cum_AirTree_corr_plot_accu <- ggplot(persb_corr_data_accu, aes(x = mean_tree_temp, y = totalcum_AirTC)) +
+  geom_point(color ="#2166AC", size = 2, alpha = 0.7) + 
+  geom_smooth(method = "lm", color = "grey", se = TRUE) +
+  #facet_wrap(~ tree_id) +  # Separate by tree_id
+  labs(
+    title = "a) PSZ Accumulation",
+    x = "Air Temperature (°C)",
+    y = "Tree Surface Temperature (°C)",
+    color = "Tree ID"
+  ) +
+  theme_bw() +
+  scale_color_manual(values = treeid_colors) + 
+  #remove color legend 
+  guides(color = "none") +
+ # scale_shape_manual(name = "Burn Status", values = c("GB" = 16, "DB" = 15)) +
+  geom_text(data = p_AirTree_accu_results, aes(x = Inf, y = Inf, label = R2_label), 
+            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 4)
+
+p_cum_AirTree_corr_plot_accu
+```
+
+```{r}
+p_cum_AirTree_corr_plot_abla <- ggplot(persb_corr_data_abla, aes(x = mean_tree_temp, y = totalcum_AirTC)) +
+  geom_point(color ="#2166AC", size = 2, alpha = 0.7) + 
+  geom_smooth(method = "lm", color = "grey", se = TRUE) +
+  #facet_wrap(~ tree_id) +  # Separate by tree_id
+  labs(
+    title = "b) PSZ Ablation",
+    x = "Air Temperature (°C)",
+    y = "Tree Surface Temperature (°C)",
+    color = "Tree ID"
+  ) +
+  theme_bw() +
+  scale_color_manual(values = treeid_colors) + 
+  #remove color legend 
+  guides(color = "none") +
+ # scale_shape_manual(name = "Burn Status", values = c("GB" = 16, "DB" = 15)) +
+  geom_text(data = p_AirTree_abla_results, aes(x = Inf, y = Inf, label = R2_label), 
+            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 4)
+
+p_cum_AirTree_corr_plot_abla
+```
+
+SW
 
 ```{r}
 p_SWTree_accu_results <- persb_corr_data_accu %>%
-  drop_na(totalcum_treetemp, totalcum_SWnet) %>%
+  drop_na(mean_tree_temp, totalcum_SWnet) %>%
   #don't have to group by tree, because this data is just comparing the weather station data, not tree data!
   #group_by(tree_id) %>%
   summarize(
-    cor_test = list(cor.test(totalcum_treetemp, totalcum_SWnet, use = "complete.obs")),
+    cor_test = list(cor.test(mean_tree_temp, totalcum_SWnet, use = "complete.obs")),
     .groups = "drop"
   ) %>%
-  mutate(
+   mutate(
     R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
     p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
     conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
     conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
-    R2_label = paste0(
-      "R² = ", round(R2, 3), "\n",
-      "P-value = ", signif(p_value, 3), "\n"
-    )  # Include CI in the label
+    p_label = ifelse(p_value < 0.05, "p-value < 0.05", "p-value ≥ 0.05"),  # Conditional p-value label
+    R2_label = paste0("R² = ", formatC(R2, format = "f", digits = 2), "\n", p_label)  # Ensure two decimal places
   )
 
 p_SWTree_abla_results <- persb_corr_data_abla %>%
-  drop_na(totalcum_treetemp, totalcum_SWnet) %>%
+  drop_na(mean_tree_temp, totalcum_SWnet) %>%
   #don't have to group by tree, because this data is just comparing the weather station data, not tree data!
   #group_by(tree_id) %>%
   summarize(
-    cor_test = list(cor.test(totalcum_treetemp, totalcum_SWnet, use = "complete.obs")),
+    cor_test = list(cor.test(mean_tree_temp, totalcum_SWnet, use = "complete.obs")),
     .groups = "drop"
   ) %>%
-  mutate(
+   mutate(
     R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
     p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
     conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
     conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
-    R2_label = paste0(
-      "R² = ", round(R2, 3), "\n",
-      "P-value = ", signif(p_value, 3), "\n"
-    )  # Include CI in the label
+    p_label = ifelse(p_value < 0.05, "p-value < 0.05", "p-value ≥ 0.05"),  # Conditional p-value label
+    R2_label = paste0("R² = ", formatC(R2, format = "f", digits = 2), "\n", p_label)  # Ensure two decimal places
   )
 ```
+
+Plots
+
+```{r}
+p_cum_SWTree_corr_plot_accu <- ggplot(persb_corr_data_accu, aes(x = mean_tree_temp, y = totalcum_SWnet)) +
+  geom_point(color ="#D95F02", size = 2, alpha = 0.7) + 
+  geom_smooth(method = "lm", color = "grey", se = TRUE) +
+  #facet_wrap(~ tree_id) +  # Separate by tree_id
+  labs(
+    title = "a) PSZ Accumulation",
+    x = "Net Shortwave Radiation (W/m^2)",
+    y = "Tree Surface Temperature (°C)",
+    color = "Tree ID"
+  ) +
+  theme_bw() +
+  #remove color legend 
+  guides(color = "none") +
+ # scale_shape_manual(name = "Burn Status", values = c("GB" = 16, "DB" = 15)) +
+  geom_text(data = p_SWTree_accu_results, aes(x = Inf, y = Inf, label = R2_label), 
+            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 4)
+
+p_cum_SWTree_corr_plot_accu
+```
+
+```{r}
+p_cum_SWTree_corr_plot_abla <- ggplot(persb_corr_data_abla, aes(x = mean_tree_temp, y = totalcum_SWnet)) +
+  geom_point(color ="#D95F02", size = 2, alpha = 0.7) + 
+  geom_smooth(method = "lm", color = "grey", se = TRUE) +
+  #facet_wrap(~ tree_id) +  # Separate by tree_id
+  labs(
+    title = "b) PSZ Ablation",
+    x = "Net Shortwave Radiation (W/m^2)",
+    y = "Tree Surface Temperature (°C)",
+    color = "Tree ID"
+  ) +
+  theme_bw() +
+  #remove color legend 
+  guides(color = "none") +
+ # scale_shape_manual(name = "Burn Status", values = c("GB" = 16, "DB" = 15)) +
+  geom_text(data = p_SWTree_abla_results, aes(x = Inf, y = Inf, label = R2_label), 
+            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 4)
+
+p_cum_SWTree_corr_plot_abla
+```
+
+LW
 
 ```{r}
 p_LWTree_accu_results <- persb_corr_data_accu %>%
-  drop_na(totalcum_treetemp, totalcum_LWnet) %>%
+  drop_na(mean_tree_temp, totalcum_LWnet) %>%
   #don't have to group by tree, because this data is just comparing the weather station data, not tree data!
   #group_by(tree_id) %>%
   summarize(
-    cor_test = list(cor.test(totalcum_treetemp, totalcum_LWnet, use = "complete.obs")),
+    cor_test = list(cor.test(mean_tree_temp, totalcum_LWnet, use = "complete.obs")),
     .groups = "drop"
   ) %>%
   mutate(
@@ -5420,18 +5508,16 @@ p_LWTree_accu_results <- persb_corr_data_accu %>%
     p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
     conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
     conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
-    R2_label = paste0(
-      "R² = ", round(R2, 3), "\n",
-      "P-value = ", signif(p_value, 3), "\n"
-    )  # Include CI in the label
+    p_label = ifelse(p_value < 0.05, "p-value < 0.05", "p-value ≥ 0.05"),  # Conditional p-value label
+    R2_label = paste0("R² = ", formatC(R2, format = "f", digits = 2), "\n", p_label)  # Ensure two decimal places
   )
 
 p_LWTree_abla_results <- persb_corr_data_abla %>%
-  drop_na(totalcum_treetemp, totalcum_LWnet) %>%
+  drop_na(mean_tree_temp, totalcum_LWnet) %>%
   #don't have to group by tree, because this data is just comparing the weather station data, not tree data!
   #group_by(tree_id) %>%
   summarize(
-    cor_test = list(cor.test(totalcum_treetemp, totalcum_LWnet, use = "complete.obs")),
+    cor_test = list(cor.test(mean_tree_temp, totalcum_LWnet, use = "complete.obs")),
     .groups = "drop"
   ) %>%
   mutate(
@@ -5439,54 +5525,138 @@ p_LWTree_abla_results <- persb_corr_data_abla %>%
     p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
     conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
     conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
-    R2_label = paste0(
-      "R² = ", round(R2, 3), "\n",
-      "P-value = ", signif(p_value, 3), "\n"
-    )  # Include CI in the label
+    p_label = ifelse(p_value < 0.05, "p-value < 0.05", "p-value ≥ 0.05"),  # Conditional p-value label
+    R2_label = paste0("R² = ", formatC(R2, format = "f", digits = 2), "\n", p_label)  # Ensure two decimal places
+  )
+```
+
+Plotting
+
+```{r}
+p_cum_LWTree_corr_plot_accu <- ggplot(persb_corr_data_accu, aes(x = mean_tree_temp, y = totalcum_LWnet)) +
+  geom_point(color ="#1B7837", size = 2, alpha = 0.7) + 
+  geom_smooth(method = "lm", color = "grey", se = TRUE) +
+  #facet_wrap(~ tree_id) +  # Separate by tree_id
+  labs(
+    title = "a) PSZ Accumulation",
+    x = "Net Longwave Radiation (W/m^2)",
+    y = "Tree Surface Temperature (°C)",
+    color = "Tree ID"
+  ) +
+  theme_bw() +
+  #remove color legend 
+  guides(color = "none") +
+ # scale_shape_manual(name = "Burn Status", values = c("GB" = 16, "DB" = 15)) +
+  geom_text(data = p_LWTree_accu_results, aes(x = Inf, y = Inf, label = R2_label), 
+            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 4)
+
+p_cum_LWTree_corr_plot_accu
+```
+
+```{r}
+p_cum_LWTree_corr_plot_abla <- ggplot(persb_corr_data_abla, aes(x = mean_tree_temp, y = totalcum_LWnet)) +
+  geom_point(color ="#1B7837", size = 2, alpha = 0.7) + 
+  geom_smooth(method = "lm", color = "grey", se = TRUE) +
+  #facet_wrap(~ tree_id) +  # Separate by tree_id
+  labs(
+    title = "b) PSZ Ablation",
+    x = "Net Longwave Radiation (W/m^2)",
+    y = "Tree Surface Temperature (°C)",
+    color = "Tree ID"
+  ) +
+  theme_bw() +
+  #remove color legend 
+  guides(color = "none") +
+ # scale_shape_manual(name = "Burn Status", values = c("GB" = 16, "DB" = 15)) +
+  geom_text(data = p_LWTree_abla_results, aes(x = Inf, y = Inf, label = R2_label), 
+            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 4)
+
+p_cum_LWTree_corr_plot_abla
+```
+
+NR
+
+```{r}
+p_NRTree_accu_results <- persb_corr_data_accu %>%
+  drop_na(mean_tree_temp, totalcum_NR) %>%
+  #don't have to group by tree, because this data is just comparing the weather station data, not tree data!
+  #group_by(tree_id) %>%
+  summarize(
+    cor_test = list(cor.test(mean_tree_temp, totalcum_NR, use = "complete.obs")),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
+    p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
+    conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
+    conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
+    p_label = ifelse(p_value < 0.05, "p-value < 0.05", "p-value ≥ 0.05"),  # Conditional p-value label
+    R2_label = paste0("R² = ", formatC(R2, format = "f", digits = 2), "\n", p_label)  # Ensure two decimal places
+  )
+
+p_NRTree_abla_results <- persb_corr_data_abla %>%
+  drop_na(mean_tree_temp, totalcum_NR) %>%
+  #don't have to group by tree, because this data is just comparing the weather station data, not tree data!
+  #group_by(tree_id) %>%
+  summarize(
+    cor_test = list(cor.test(mean_tree_temp, totalcum_NR, use = "complete.obs")),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
+    p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
+    conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
+    conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
+    p_label = ifelse(p_value < 0.05, "p-value < 0.05", "p-value ≥ 0.05"),  # Conditional p-value label
+    R2_label = paste0("R² = ", formatC(R2, format = "f", digits = 2), "\n", p_label)  # Ensure two decimal places
   )
 ```
 
 ```{r}
-p_NRTree_accu_results <- persb_corr_data_accu %>%
-  drop_na(totalcum_treetemp, totalcum_NR) %>%
-  #don't have to group by tree, because this data is just comparing the weather station data, not tree data!
-  #group_by(tree_id) %>%
-  summarize(
-    cor_test = list(cor.test(totalcum_treetemp, totalcum_NR, use = "complete.obs")),
-    .groups = "drop"
-  ) %>%
-  mutate(
-    R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
-    p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
-    conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
-    conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
-    R2_label = paste0(
-      "R² = ", round(R2, 3), "\n",
-      "P-value = ", signif(p_value, 3), "\n"
-    )  # Include CI in the label
-  )
+p_cum_NRTree_corr_plot_accu <- ggplot(persb_corr_data_accu, aes(x = mean_tree_temp, y = totalcum_NR)) +
+  geom_point(color ="#1B7837", size = 2, alpha = 0.7) + 
+  geom_smooth(method = "lm", color = "grey", se = TRUE) +
+  #facet_wrap(~ tree_id) +  # Separate by tree_id
+  labs(
+    title = "a) PSZ Accumulation",
+    x = "Total Net Radiation (W/m^2)",
+    y = "Tree Surface Temperature (°C)",
+    color = "Tree ID"
+  ) +
+  theme_bw() +
+  #remove color legend 
+  guides(color = "none") +
+ # scale_shape_manual(name = "Burn Status", values = c("GB" = 16, "DB" = 15)) +
+  geom_text(data = p_NRTree_accu_results, aes(x = Inf, y = Inf, label = R2_label), 
+            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 4)
 
-p_NRTree_abla_results <- persb_corr_data_abla %>%
-  drop_na(totalcum_treetemp, totalcum_NR) %>%
-  #don't have to group by tree, because this data is just comparing the weather station data, not tree data!
-  #group_by(tree_id) %>%
-  summarize(
-    cor_test = list(cor.test(totalcum_treetemp, totalcum_NR, use = "complete.obs")),
-    .groups = "drop"
-  ) %>%
-  mutate(
-    R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
-    p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
-    conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
-    conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
-    R2_label = paste0(
-      "R² = ", round(R2, 3), "\n",
-      "P-value = ", signif(p_value, 3), "\n"
-    )  # Include CI in the label
-  )
+p_cum_NRTree_corr_plot_accu
+```
+
+```{r}
+p_cum_NRTree_corr_plot_abla <- ggplot(persb_corr_data_abla, aes(x = mean_tree_temp, y = totalcum_NR)) +
+  geom_point(color ="#1B7837", size = 2, alpha = 0.7) + 
+  geom_smooth(method = "lm", color = "grey", se = TRUE) +
+  #facet_wrap(~ tree_id) +  # Separate by tree_id
+  labs(
+    title = "b) PSZ Ablation",
+    x = "Total Net Radiation (W/m^2)",
+    y = "Tree Surface Temperature (°C)",
+    color = "Tree ID"
+  ) +
+  theme_bw() +
+  #remove color legend 
+  guides(color = "none") +
+ # scale_shape_manual(name = "Burn Status", values = c("GB" = 16, "DB" = 15)) +
+  geom_text(data = p_NRTree_abla_results, aes(x = Inf, y = Inf, label = R2_label), 
+            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 4)
+
+p_cum_NRTree_corr_plot_abla
 ```
 
 #### TSZ
+
+\*\* still need to plot cumulative values in TSZ, then combine with PSZ!
 
 ```{r}
 # AirTC Correlation
@@ -5503,10 +5673,8 @@ t_AirTree_accu_results <- transb_corr_data_accu %>%
     p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
     conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
     conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
-    R2_label = paste0(
-      "R² = ", round(R2, 3), "\n",
-      "P-value = ", signif(p_value, 3), "\n"
-    )  # Include CI in the label
+    p_label = ifelse(p_value < 0.05, "p-value < 0.05", "p-value ≥ 0.05"),  # Conditional p-value label
+    R2_label = paste0("R² = ", formatC(R2, format = "f", digits = 2), "\n", p_label)  # Ensure two decimal places
   )
 
 t_AirTree_abla_results <- transb_corr_data_abla %>%
@@ -5517,15 +5685,13 @@ t_AirTree_abla_results <- transb_corr_data_abla %>%
     cor_test = list(cor.test(totalcum_treetemp, totalcum_AirTC, use = "complete.obs")),
     .groups = "drop"
   ) %>%
-  mutate(
+ mutate(
     R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
     p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
     conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
     conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
-    R2_label = paste0(
-      "R² = ", round(R2, 3), "\n",
-      "P-value = ", signif(p_value, 3), "\n"
-    )  # Include CI in the label
+    p_label = ifelse(p_value < 0.05, "p-value < 0.05", "p-value ≥ 0.05"),  # Conditional p-value label
+    R2_label = paste0("R² = ", formatC(R2, format = "f", digits = 2), "\n", p_label)  # Ensure two decimal places
   )
 ```
 
@@ -5543,10 +5709,8 @@ t_SWTree_accu_results <- transb_corr_data_accu %>%
     p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
     conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
     conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
-    R2_label = paste0(
-      "R² = ", round(R2, 3), "\n",
-      "P-value = ", signif(p_value, 3), "\n"
-    )  # Include CI in the label
+    p_label = ifelse(p_value < 0.05, "p-value < 0.05", "p-value ≥ 0.05"),  # Conditional p-value label
+    R2_label = paste0("R² = ", formatC(R2, format = "f", digits = 2), "\n", p_label)  # Ensure two decimal places
   )
 
 t_SWTree_abla_results <- transb_corr_data_abla %>%
@@ -5562,10 +5726,8 @@ t_SWTree_abla_results <- transb_corr_data_abla %>%
     p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
     conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
     conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
-    R2_label = paste0(
-      "R² = ", round(R2, 3), "\n",
-      "P-value = ", signif(p_value, 3), "\n"
-    )  # Include CI in the label
+    p_label = ifelse(p_value < 0.05, "p-value < 0.05", "p-value ≥ 0.05"),  # Conditional p-value label
+    R2_label = paste0("R² = ", formatC(R2, format = "f", digits = 2), "\n", p_label)  # Ensure two decimal places
   )
 ```
 
@@ -5583,10 +5745,8 @@ t_LWTree_accu_results <- transb_corr_data_accu %>%
     p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
     conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
     conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
-    R2_label = paste0(
-      "R² = ", round(R2, 3), "\n",
-      "P-value = ", signif(p_value, 3), "\n"
-    )  # Include CI in the label
+    p_label = ifelse(p_value < 0.05, "p-value < 0.05", "p-value ≥ 0.05"),  # Conditional p-value label
+    R2_label = paste0("R² = ", formatC(R2, format = "f", digits = 2), "\n", p_label)  # Ensure two decimal places
   )
 
 t_LWTree_abla_results <- transb_corr_data_abla %>%
@@ -5602,10 +5762,8 @@ t_LWTree_abla_results <- transb_corr_data_abla %>%
     p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
     conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
     conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
-    R2_label = paste0(
-      "R² = ", round(R2, 3), "\n",
-      "P-value = ", signif(p_value, 3), "\n"
-    )  # Include CI in the label
+    p_label = ifelse(p_value < 0.05, "p-value < 0.05", "p-value ≥ 0.05"),  # Conditional p-value label
+    R2_label = paste0("R² = ", formatC(R2, format = "f", digits = 2), "\n", p_label)  # Ensure two decimal places
   )
 ```
 
@@ -5623,10 +5781,8 @@ t_NRTree_accu_results <- transb_corr_data_accu %>%
     p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
     conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
     conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
-    R2_label = paste0(
-      "R² = ", round(R2, 3), "\n",
-      "P-value = ", signif(p_value, 3), "\n"
-    )  # Include CI in the label
+    p_label = ifelse(p_value < 0.05, "p-value < 0.05", "p-value ≥ 0.05"),  # Conditional p-value label
+    R2_label = paste0("R² = ", formatC(R2, format = "f", digits = 2), "\n", p_label)  # Ensure two decimal places
   )
 
 t_NRTree_abla_results <- transb_corr_data_abla %>%
@@ -5642,10 +5798,8 @@ t_NRTree_abla_results <- transb_corr_data_abla %>%
     p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
     conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
     conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
-    R2_label = paste0(
-      "R² = ", round(R2, 3), "\n",
-      "P-value = ", signif(p_value, 3), "\n"
-    )  # Include CI in the label
+    p_label = ifelse(p_value < 0.05, "p-value < 0.05", "p-value ≥ 0.05"),  # Conditional p-value label
+    R2_label = paste0("R² = ", formatC(R2, format = "f", digits = 2), "\n", p_label)  # Ensure two decimal places
   )
 ```
 
@@ -5661,15 +5815,13 @@ p_dailyAirTree_accu_results <- persb_corr_data_accu %>%
     cor_test = list(cor.test(mean_tree_temp, AirTC_Avg, use = "complete.obs")),
     .groups = "drop"
   ) %>%
-  mutate(
+   mutate(
     R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
     p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
     conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
     conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
-    R2_label = paste0(
-      "R² = ", round(R2, 3), "\n",
-      "P-value = ", signif(p_value, 3), "\n"
-    )  # Include CI in the label
+    p_label = ifelse(p_value < 0.05, "p-value < 0.05", "p-value ≥ 0.05"),  # Conditional p-value label
+    R2_label = paste0("R² = ", formatC(R2, format = "f", digits = 2), "\n", p_label)  # Ensure two decimal places
   )
 
 p_dailyAirTree_abla_results <- persb_corr_data_abla%>%
@@ -5679,16 +5831,59 @@ p_dailyAirTree_abla_results <- persb_corr_data_abla%>%
     cor_test = list(cor.test(mean_tree_temp, AirTC_Avg, use = "complete.obs")),
     .groups = "drop"
   ) %>%
-  mutate(
+   mutate(
     R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
     p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
     conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
     conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
-    R2_label = paste0(
-      "R² = ", round(R2, 3), "\n",
-      "P-value = ", signif(p_value, 3), "\n"
-    )  # Include CI in the label
+    p_label = ifelse(p_value < 0.05, "p-value < 0.05", "p-value ≥ 0.05"),  # Conditional p-value label
+    R2_label = paste0("R² = ", formatC(R2, format = "f", digits = 2), "\n", p_label)  # Ensure two decimal places
   )
+```
+
+Plotting
+
+```{r}
+p_daily_AirTree_corr_plot_accu <- ggplot(persb_corr_data_accu, aes(x = mean_tree_temp, y = AirTC_Avg)) +
+  geom_point(color ="#2166AC", size = 2, alpha = 0.7) + 
+  geom_smooth(method = "lm", color = "grey", se = TRUE) +
+  #facet_wrap(~ tree_id) +  # Separate by tree_id
+  labs(
+    title = "a) PSZ Accumulation",
+    x = "Air Temperature (°C)",
+    y = "Tree Surface Temperature (°C)",
+    color = "Tree ID"
+  ) +
+  theme_bw() +
+  scale_color_manual(values = treeid_colors) + 
+  #remove color legend 
+  guides(color = "none") +
+ # scale_shape_manual(name = "Burn Status", values = c("GB" = 16, "DB" = 15)) +
+  geom_text(data = p_dailyAirTree_accu_results, aes(x = Inf, y = Inf, label = R2_label), 
+            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 4)
+
+p_daily_AirTree_corr_plot_accu
+```
+
+```{r}
+p_daily_AirTree_corr_plot_abla <- ggplot(persb_corr_data_abla, aes(x = mean_tree_temp, y = AirTC_Avg)) +
+  geom_point(color = "#2166AC", size = 2, alpha = 0.7) + 
+  geom_smooth(method = "lm", color = "grey", se = TRUE) +
+  #facet_wrap(~ tree_id) +  # Separate by tree_id
+  labs(
+    title = "b) PSZ Ablation",
+    x = "Air Temperature (°C)",
+    y = "Tree Surface Temperature (°C)",
+    color = "Tree ID"
+  ) +
+  theme_bw() +
+  #remove color legend 
+  guides(color = "none") +
+ # scale_shape_manual(name = "Burn Status", values = c("GB" = 16, "DB" = 15)) +
+  geom_text(data = p_dailyAirTree_abla_results, aes(x = Inf, y = Inf, label = R2_label), 
+            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 4)
+
+p_daily_AirTree_corr_plot_abla
 ```
 
 ```{r}
@@ -5699,15 +5894,13 @@ p_dailySWTree_accu_results <- persb_corr_data_accu %>%
     cor_test = list(cor.test(mean_tree_temp, SWnet_Avg, use = "complete.obs")),
     .groups = "drop"
   ) %>%
-  mutate(
+   mutate(
     R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
     p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
     conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
     conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
-    R2_label = paste0(
-      "R² = ", round(R2, 3), "\n",
-      "P-value = ", signif(p_value, 3), "\n"
-    )  # Include CI in the label
+    p_label = ifelse(p_value < 0.05, "p-value < 0.05", "p-value ≥ 0.05"),  # Conditional p-value label
+    R2_label = paste0("R² = ", formatC(R2, format = "f", digits = 2), "\n", p_label)  # Ensure two decimal places
   )
 
 p_dailySWTree_abla_results <- persb_corr_data_abla %>%
@@ -5717,17 +5910,61 @@ p_dailySWTree_abla_results <- persb_corr_data_abla %>%
     cor_test = list(cor.test(mean_tree_temp, SWnet_Avg, use = "complete.obs")),
     .groups = "drop"
   ) %>%
-  mutate(
+   mutate(
     R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
     p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
     conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
     conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
-    R2_label = paste0(
-      "R² = ", round(R2, 3), "\n",
-      "P-value = ", signif(p_value, 3), "\n"
-    )  # Include CI in the label
+    p_label = ifelse(p_value < 0.05, "p-value < 0.05", "p-value ≥ 0.05"),  # Conditional p-value label
+    R2_label = paste0("R² = ", formatC(R2, format = "f", digits = 2), "\n", p_label)  # Ensure two decimal places
   )
 ```
+
+Plotting\
+
+```{r}
+p_daily_SWTree_corr_plot_accu <- ggplot(persb_corr_data_accu, aes(x = mean_tree_temp, y = SWnet_Avg)) +
+  geom_point(color = "#D95F02", size = 2, alpha = 0.7) + 
+  geom_smooth(method = "lm", color = "grey", se = TRUE) +
+  #facet_wrap(~ tree_id) +  # Separate by tree_id
+  labs(
+    title = "a) PSZ Accumulation",
+    x = "Net Shortwave Radiation (W/m^2)",
+    y = "Tree Surface Temperature (°C)",
+    color = "Tree ID"
+  ) +
+  theme_bw() +
+  #remove color legend 
+  guides(color = "none") +
+ # scale_shape_manual(name = "Burn Status", values = c("GB" = 16, "DB" = 15)) +
+  geom_text(data = p_dailySWTree_accu_results, aes(x = Inf, y = Inf, label = R2_label), 
+            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 4)
+
+p_daily_SWTree_corr_plot_accu
+```
+
+```{r}
+p_daily_SWTree_corr_plot_abla <- ggplot(persb_corr_data_abla, aes(x = mean_tree_temp, y = SWnet_Avg)) +
+  geom_point(color = "#D95F02", size = 2, alpha = 0.7) + 
+  geom_smooth(method = "lm", color = "grey", se = TRUE) +
+  #facet_wrap(~ tree_id) +  # Separate by tree_id
+  labs(
+    title = "b) PSZ Ablation",
+    x = "Net Shortwave Radiation (W/m^2)",
+    y = "Tree Surface Temperature (°C)",
+    color = "Tree ID"
+  ) +
+  theme_bw() +
+  #remove color legend 
+  guides(color = "none") +
+  #scale_shape_manual(name = "Burn Status", values = c("GB" = 16, "DB" = 15)) +
+  geom_text(data = p_dailySWTree_abla_results, aes(x = Inf, y = Inf, label = R2_label), 
+            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 4)
+
+p_daily_SWTree_corr_plot_abla
+```
+
+LW
 
 ```{r}
 p_dailyLWTree_accu_results <- persb_corr_data_accu %>%
@@ -5737,15 +5974,13 @@ p_dailyLWTree_accu_results <- persb_corr_data_accu %>%
     cor_test = list(cor.test(mean_tree_temp, LWnet_Avg, use = "complete.obs")),
     .groups = "drop"
   ) %>%
-  mutate(
+   mutate(
     R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
     p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
     conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
     conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
-    R2_label = paste0(
-      "R² = ", round(R2, 3), "\n",
-      "P-value = ", signif(p_value, 3), "\n"
-    )  # Include CI in the label
+    p_label = ifelse(p_value < 0.05, "p-value < 0.05", "p-value ≥ 0.05"),  # Conditional p-value label
+    R2_label = paste0("R² = ", formatC(R2, format = "f", digits = 2), "\n", p_label)  # Ensure two decimal places
   )
 
 p_dailyLWTree_abla_results <- persb_corr_data_abla %>%
@@ -5755,17 +5990,59 @@ p_dailyLWTree_abla_results <- persb_corr_data_abla %>%
     cor_test = list(cor.test(mean_tree_temp, LWnet_Avg, use = "complete.obs")),
     .groups = "drop"
   ) %>%
-  mutate(
+   mutate(
     R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
     p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
     conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
     conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
-    R2_label = paste0(
-      "R² = ", round(R2, 3), "\n",
-      "P-value = ", signif(p_value, 3), "\n"
-    )  # Include CI in the label
+    p_label = ifelse(p_value < 0.05, "p-value < 0.05", "p-value ≥ 0.05"),  # Conditional p-value label
+    R2_label = paste0("R² = ", formatC(R2, format = "f", digits = 2), "\n", p_label)  # Ensure two decimal places
   )
 ```
+
+```{r}
+p_daily_LWTree_corr_plot_accu <- ggplot(persb_corr_data_accu, aes(x = mean_tree_temp, y = LWnet_Avg)) +
+  geom_point(color = "#1B7837", size = 2, alpha = 0.7) + 
+  geom_smooth(method = "lm", color = "grey", se = TRUE) +
+  #facet_wrap(~ tree_id) +  # Separate by tree_id
+  labs(
+    title = "a) PSZ Accumulation",
+    x = "Net Longwave Radiation (W/m^2)",
+    y = "Tree Surface Temperature (°C)",
+    color = "Tree ID"
+  ) +
+  theme_bw() +
+  #remove color legend 
+  guides(color = "none") +
+ # scale_shape_manual(name = "Burn Status", values = c("GB" = 16, "DB" = 15)) +
+  geom_text(data = p_dailyLWTree_accu_results, aes(x = Inf, y = Inf, label = R2_label), 
+            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 4)
+
+p_daily_LWTree_corr_plot_accu
+```
+
+```{r}
+p_daily_LWTree_corr_plot_abla <- ggplot(persb_corr_data_abla, aes(x = mean_tree_temp, y = LWnet_Avg)) +
+  geom_point(color = "#1B7837", size = 2, alpha = 0.7) + 
+  geom_smooth(method = "lm", color = "grey", se = TRUE) +
+  #facet_wrap(~ tree_id) +  # Separate by tree_id
+  labs(
+    title = "b) PSZ Ablation",
+    x = "Net Longwave Radiation (W/m^2)",
+    y = "Tree Surface Temperature (°C)",
+    color = "Tree ID"
+  ) +
+  theme_bw() +
+  #remove color legend 
+  guides(color = "none") +
+ # scale_shape_manual(name = "Burn Status", values = c("GB" = 16, "DB" = 15)) +
+  geom_text(data = p_dailyLWTree_abla_results, aes(x = Inf, y = Inf, label = R2_label), 
+            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 4)
+
+p_daily_LWTree_corr_plot_abla
+```
+
+NR
 
 ```{r}
 p_dailyNRTree_accu_results <- persb_corr_data_accu %>%
@@ -5775,15 +6052,13 @@ p_dailyNRTree_accu_results <- persb_corr_data_accu %>%
     cor_test = list(cor.test(mean_tree_temp, NR_Avg, use = "complete.obs")),
     .groups = "drop"
   ) %>%
-  mutate(
+   mutate(
     R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
     p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
     conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
     conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
-    R2_label = paste0(
-      "R² = ", round(R2, 3), "\n",
-      "P-value = ", signif(p_value, 3), "\n"
-    )  # Include CI in the label
+    p_label = ifelse(p_value < 0.05, "p-value < 0.05", "p-value ≥ 0.05"),  # Conditional p-value label
+    R2_label = paste0("R² = ", formatC(R2, format = "f", digits = 2), "\n", p_label)  # Ensure two decimal places
   )
 
 p_dailyNRTree_abla_results <- persb_corr_data_abla %>%
@@ -5793,19 +6068,63 @@ p_dailyNRTree_abla_results <- persb_corr_data_abla %>%
     cor_test = list(cor.test(mean_tree_temp, NR_Avg, use = "complete.obs")),
     .groups = "drop"
   ) %>%
-  mutate(
+   mutate(
     R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
     p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
     conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
     conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
-    R2_label = paste0(
-      "R² = ", round(R2, 3), "\n",
-      "P-value = ", signif(p_value, 3), "\n"
-    )  # Include CI in the label
+    p_label = ifelse(p_value < 0.05, "p-value < 0.05", "p-value ≥ 0.05"),  # Conditional p-value label
+    R2_label = paste0("R² = ", formatC(R2, format = "f", digits = 2), "\n", p_label)  # Ensure two decimal places
   )
 ```
 
+Plotting
+
+```{r}
+p_daily_NRTree_corr_plot_accu <- ggplot(persb_corr_data_accu, aes(x = mean_tree_temp, y = NR_Avg)) +
+  geom_point(color = "grey23", size = 2, alpha = 0.5) + 
+  geom_smooth(method = "lm", color = "grey", se = TRUE) +
+  #facet_wrap(~ tree_id) +  # Separate by tree_id
+  labs(
+    title = "a) PSZ Accumulation",
+    x = "Total Net Radiation (W/m^2)",
+    y = "Tree Surface Temperature (°C)",
+    color = "Tree ID"
+  ) +
+  theme_bw() +
+  #remove color legend 
+  guides(color = "none") +
+ # scale_shape_manual(name = "Burn Status", values = c("GB" = 16, "DB" = 15)) +
+  geom_text(data = p_dailyNRTree_accu_results, aes(x = Inf, y = Inf, label = R2_label), 
+            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 4)
+
+p_daily_NRTree_corr_plot_accu
+```
+
+```{r}
+p_daily_NRTree_corr_plot_abla <- ggplot(persb_corr_data_abla, aes(x = mean_tree_temp, y = NR_Avg)) +
+  geom_point(color = "grey23", size = 2, alpha = 0.5) + 
+  geom_smooth(method = "lm", color = "grey", se = TRUE) +
+  #facet_wrap(~ tree_id) +  # Separate by tree_id
+  labs(
+    title = "b) PSZ Ablation",
+    x = "Total Net Radiation (W/m^2)",
+    y = "Tree Surface Temperature (°C)",
+    color = "Tree ID"
+  ) +
+  theme_bw() +
+  #remove color legend 
+  guides(color = "none") +
+ # scale_shape_manual(name = "Burn Status", values = c("GB" = 16, "DB" = 15)) +
+  geom_text(data = p_dailyNRTree_abla_results, aes(x = Inf, y = Inf, label = R2_label), 
+            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 4)
+
+p_daily_NRTree_corr_plot_abla
+```
+
 #### TSZ
+
+Air Temp
 
 ```{r}
 t_dailyAirTree_accu_results <- transb_corr_data_accu %>%
@@ -5815,15 +6134,13 @@ t_dailyAirTree_accu_results <- transb_corr_data_accu %>%
     cor_test = list(cor.test(mean_tree_temp, AirTC_Avg, use = "complete.obs")),
     .groups = "drop"
   ) %>%
-  mutate(
+   mutate(
     R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
     p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
     conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
     conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
-    R2_label = paste0(
-      "R² = ", round(R2, 3), "\n",
-      "P-value = ", signif(p_value, 3), "\n"
-    )  # Include CI in the label
+    p_label = ifelse(p_value < 0.05, "p-value < 0.05", "p-value ≥ 0.05"),  # Conditional p-value label
+    R2_label = paste0("R² = ", formatC(R2, format = "f", digits = 2), "\n", p_label)  # Ensure two decimal places
   )
 
 t_dailyAirTree_abla_results <- transb_corr_data_abla%>%
@@ -5833,17 +6150,61 @@ t_dailyAirTree_abla_results <- transb_corr_data_abla%>%
     cor_test = list(cor.test(mean_tree_temp, AirTC_Avg, use = "complete.obs")),
     .groups = "drop"
   ) %>%
-  mutate(
+   mutate(
     R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
     p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
     conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
     conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
-    R2_label = paste0(
-      "R² = ", round(R2, 3), "\n",
-      "P-value = ", signif(p_value, 3), "\n"
-    )  # Include CI in the label
+    p_label = ifelse(p_value < 0.05, "p-value < 0.05", "p-value ≥ 0.05"),  # Conditional p-value label
+    R2_label = paste0("R² = ", formatC(R2, format = "f", digits = 2), "\n", p_label)  # Ensure two decimal places
   )
 ```
+
+Plotting
+
+```{r}
+t_daily_AirTree_corr_plot_accu <- ggplot(transb_corr_data_accu, aes(x = mean_tree_temp, y = AirTC_Avg)) +
+  geom_point(color = "#2166AC", size = 2, alpha = 0.7) + 
+  geom_smooth(method = "lm", color = "grey", se = TRUE) +
+  #facet_wrap(~ tree_id) +  # Separate by tree_id
+  labs(
+    title = "c) TSZ Accumulation",
+    x = "Air Temperature (°C)",
+    y = "Tree Surface Temperature (°C)",
+    color = "Tree ID"
+  ) +
+  theme_bw() +
+  #remove color legend 
+  guides(color = "none") +
+ # scale_shape_manual(name = "Burn Status", values = c("GB" = 16, "DB" = 15)) +
+  geom_text(data = t_dailyAirTree_accu_results, aes(x = Inf, y = Inf, label = R2_label), 
+            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 4)
+
+t_daily_AirTree_corr_plot_accu
+```
+
+```{r}
+t_daily_AirTree_corr_plot_abla <- ggplot(transb_corr_data_abla, aes(x = mean_tree_temp, y = AirTC_Avg)) +
+  geom_point(color = "#2166AC", size = 2, alpha = 0.7) + 
+  geom_smooth(method = "lm", color = "grey", se = TRUE) +
+  #facet_wrap(~ tree_id) +  # Separate by tree_id
+  labs(
+    title = "d) TSZ Ablation",
+    x = "Air Temperature (°C)",
+    y = "Tree Surface Temperature (°C)",
+    color = "Tree ID"
+  ) +
+  theme_bw() +
+  #remove color legend 
+  guides(color = "none") +
+ # scale_shape_manual(name = "Burn Status", values = c("GB" = 16, "DB" = 15)) +
+  geom_text(data = t_dailyAirTree_abla_results, aes(x = Inf, y = Inf, label = R2_label), 
+            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 4)
+
+t_daily_AirTree_corr_plot_abla
+```
+
+SW
 
 ```{r}
 t_dailySWTree_accu_results <- transb_corr_data_accu %>%
@@ -5853,15 +6214,13 @@ t_dailySWTree_accu_results <- transb_corr_data_accu %>%
     cor_test = list(cor.test(mean_tree_temp, SWnet_Avg, use = "complete.obs")),
     .groups = "drop"
   ) %>%
-  mutate(
+   mutate(
     R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
     p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
     conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
     conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
-    R2_label = paste0(
-      "R² = ", round(R2, 3), "\n",
-      "P-value = ", signif(p_value, 3), "\n"
-    )  # Include CI in the label
+    p_label = ifelse(p_value < 0.05, "p-value < 0.05", "p-value ≥ 0.05"),  # Conditional p-value label
+    R2_label = paste0("R² = ", formatC(R2, format = "f", digits = 2), "\n", p_label)  # Ensure two decimal places
   )
 
 t_dailySWTree_abla_results <- transb_corr_data_abla %>%
@@ -5871,17 +6230,61 @@ t_dailySWTree_abla_results <- transb_corr_data_abla %>%
     cor_test = list(cor.test(mean_tree_temp, SWnet_Avg, use = "complete.obs")),
     .groups = "drop"
   ) %>%
-  mutate(
+   mutate(
     R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
     p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
     conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
     conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
-    R2_label = paste0(
-      "R² = ", round(R2, 3), "\n",
-      "P-value = ", signif(p_value, 3), "\n"
-    )  # Include CI in the label
+    p_label = ifelse(p_value < 0.05, "p-value < 0.05", "p-value ≥ 0.05"),  # Conditional p-value label
+    R2_label = paste0("R² = ", formatC(R2, format = "f", digits = 2), "\n", p_label)  # Ensure two decimal places
   )
 ```
+
+Plotting
+
+```{r}
+t_daily_SWTree_corr_plot_accu <- ggplot(transb_corr_data_accu, aes(x = mean_tree_temp, y = SWnet_Avg)) +
+  geom_point(color = "#D95F02", size = 2, alpha = 0.7) + 
+  geom_smooth(method = "lm", color = "grey", se = TRUE) +
+  #facet_wrap(~ tree_id) +  # Separate by tree_id
+  labs(
+    title = "c) TSZ Accumulation",
+    x = "Net Shortwave Radiation (W/m^2)",
+    y = "Tree Surface Temperature (°C)",
+    color = "Tree ID"
+  ) +
+  theme_bw() +
+  #remove color legend 
+  guides(color = "none") +
+ # scale_shape_manual(name = "Burn Status", values = c("GB" = 16, "DB" = 15)) +
+  geom_text(data = t_dailySWTree_accu_results, aes(x = Inf, y = Inf, label = R2_label), 
+            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 4)
+
+t_daily_SWTree_corr_plot_accu
+```
+
+```{r}
+t_daily_SWTree_corr_plot_abla <- ggplot(transb_corr_data_abla, aes(x = mean_tree_temp, y = SWnet_Avg)) +
+  geom_point(color = "#D95F02", size = 2, alpha = 0.7) + 
+  geom_smooth(method = "lm", color = "grey", se = TRUE) +
+  #facet_wrap(~ tree_id) +  # Separate by tree_id
+  labs(
+    title = "d) TSZ Ablation",
+    x = "Net Shortwave Radiation (W/m^2)",
+    y = "Tree Surface Temperature (°C)",
+    color = "Tree ID"
+  ) +
+  theme_bw() +
+  #remove color legend 
+  guides(color = "none") +
+ # scale_shape_manual(name = "Burn Status", values = c("GB" = 16, "DB" = 15)) +
+  geom_text(data = t_dailySWTree_abla_results, aes(x = Inf, y = Inf, label = R2_label), 
+            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 4)
+
+t_daily_SWTree_corr_plot_abla
+```
+
+LW
 
 ```{r}
 t_dailyLWTree_accu_results <- transb_corr_data_accu %>%
@@ -5891,15 +6294,13 @@ t_dailyLWTree_accu_results <- transb_corr_data_accu %>%
     cor_test = list(cor.test(mean_tree_temp, LWnet_Avg, use = "complete.obs")),
     .groups = "drop"
   ) %>%
-  mutate(
+   mutate(
     R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
     p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
     conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
     conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
-    R2_label = paste0(
-      "R² = ", round(R2, 3), "\n",
-      "P-value = ", signif(p_value, 3), "\n"
-    )  # Include CI in the label
+    p_label = ifelse(p_value < 0.05, "p-value < 0.05", "p-value ≥ 0.05"),  # Conditional p-value label
+    R2_label = paste0("R² = ", formatC(R2, format = "f", digits = 2), "\n", p_label)  # Ensure two decimal places
   )
 
 t_dailyLWTree_abla_results <- transb_corr_data_abla %>%
@@ -5909,17 +6310,61 @@ t_dailyLWTree_abla_results <- transb_corr_data_abla %>%
     cor_test = list(cor.test(mean_tree_temp, LWnet_Avg, use = "complete.obs")),
     .groups = "drop"
   ) %>%
-  mutate(
+   mutate(
     R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
     p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
     conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
     conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
-    R2_label = paste0(
-      "R² = ", round(R2, 3), "\n",
-      "P-value = ", signif(p_value, 3), "\n"
-    )  # Include CI in the label
+    p_label = ifelse(p_value < 0.05, "p-value < 0.05", "p-value ≥ 0.05"),  # Conditional p-value label
+    R2_label = paste0("R² = ", formatC(R2, format = "f", digits = 2), "\n", p_label)  # Ensure two decimal places
   )
 ```
+
+Plotting
+
+```{r}
+t_daily_LWTree_corr_plot_accu <- ggplot(transb_corr_data_accu, aes(x = mean_tree_temp, y = LWnet_Avg)) +
+  geom_point(color = "#1B7837", size = 2, alpha = 0.7) + 
+  geom_smooth(method = "lm", color = "grey", se = TRUE) +
+  #facet_wrap(~ tree_id) +  # Separate by tree_id
+  labs(
+    title = "c) TSZ Accumulation",
+    x = "Net Longwave Radiation (W/m^2)",
+    y = "Tree Surface Temperature (°C)",
+    color = "Tree ID"
+  ) +
+  theme_bw() +
+  #remove color legend 
+  guides(color = "none") +
+ # scale_shape_manual(name = "Burn Status", values = c("GB" = 16, "DB" = 15)) +
+  geom_text(data = t_dailyLWTree_accu_results, aes(x = Inf, y = Inf, label = R2_label), 
+            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 4)
+
+t_daily_LWTree_corr_plot_accu
+```
+
+```{r}
+t_daily_LWTree_corr_plot_abla <- ggplot(transb_corr_data_abla, aes(x = mean_tree_temp, y = LWnet_Avg)) +
+  geom_point(color = "#1B7837", size = 2, alpha = 0.7) + 
+  geom_smooth(method = "lm", color = "grey", se = TRUE) +
+  #facet_wrap(~ tree_id) +  # Separate by tree_id
+  labs(
+    title = "d) TSZ Ablation",
+    x = "Net Longwave Radiation (W/m^2)",
+    y = "Tree Surface Temperature (°C)",
+    color = "Tree ID"
+  ) +
+  theme_bw() +
+  #remove color legend 
+  guides(color = "none") +
+ # scale_shape_manual(name = "Burn Status", values = c("GB" = 16, "DB" = 15)) +
+  geom_text(data = t_dailyLWTree_abla_results, aes(x = Inf, y = Inf, label = R2_label), 
+            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 4)
+
+t_daily_LWTree_corr_plot_abla
+```
+
+NR
 
 ```{r}
 t_dailyNRTree_accu_results <- transb_corr_data_accu %>%
@@ -5929,15 +6374,13 @@ t_dailyNRTree_accu_results <- transb_corr_data_accu %>%
     cor_test = list(cor.test(mean_tree_temp, NR_Avg, use = "complete.obs")),
     .groups = "drop"
   ) %>%
-  mutate(
+   mutate(
     R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
     p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
     conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
     conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
-    R2_label = paste0(
-      "R² = ", round(R2, 3), "\n",
-      "P-value = ", signif(p_value, 3), "\n"
-    )  # Include CI in the label
+    p_label = ifelse(p_value < 0.05, "p-value < 0.05", "p-value ≥ 0.05"),  # Conditional p-value label
+    R2_label = paste0("R² = ", formatC(R2, format = "f", digits = 2), "\n", p_label)  # Ensure two decimal places
   )
 
 t_dailyNRTree_abla_results <- transb_corr_data_abla %>%
@@ -5947,16 +6390,108 @@ t_dailyNRTree_abla_results <- transb_corr_data_abla %>%
     cor_test = list(cor.test(mean_tree_temp, NR_Avg, use = "complete.obs")),
     .groups = "drop"
   ) %>%
-  mutate(
+   mutate(
     R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
     p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
     conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
     conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
-    R2_label = paste0(
-      "R² = ", round(R2, 3), "\n",
-      "P-value = ", signif(p_value, 3), "\n"
-    )  # Include CI in the label
+    p_label = ifelse(p_value < 0.05, "p-value < 0.05", "p-value ≥ 0.05"),  # Conditional p-value label
+    R2_label = paste0("R² = ", formatC(R2, format = "f", digits = 2), "\n", p_label)  # Ensure two decimal places
   )
+```
+
+Plotting
+
+```{r}
+t_daily_NRTree_corr_plot_accu <- ggplot(transb_corr_data_accu, aes(x = mean_tree_temp, y = NR_Avg)) +
+  geom_point(color = "grey23", size = 2, alpha = 0.5) + 
+  geom_smooth(method = "lm", color = "grey", se = TRUE) +
+  #facet_wrap(~ tree_id) +  # Separate by tree_id
+  labs(
+    title = "c) TSZ Accumulation",
+    x = "Total Net Radiation (W/m^2)",
+    y = "Tree Surface Temperature (°C)",
+    color = "Tree ID"
+  ) +
+  theme_bw() +
+  #remove color legend 
+  guides(color = "none") +
+ # scale_shape_manual(name = "Burn Status", values = c("GB" = 16, "DB" = 15)) +
+  geom_text(data = t_dailyNRTree_accu_results, aes(x = Inf, y = Inf, label = R2_label), 
+            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 4)
+
+t_daily_NRTree_corr_plot_accu
+```
+
+```{r}
+t_daily_NRTree_corr_plot_abla <- ggplot(transb_corr_data_abla, aes(x = mean_tree_temp, y = NR_Avg)) +
+  geom_point(color = "grey23", size = 2, alpha = 0.5) + 
+  geom_smooth(method = "lm", color = "grey", se = TRUE) +
+  #facet_wrap(~ tree_id) +  # Separate by tree_id
+  labs(
+    title = "d) TSZ Ablation",
+    x = "Total Net Radiation (W/m^2)",
+    y = "Tree Surface Temperature (°C)",
+    color = "Tree ID"
+  ) +
+  theme_bw() +
+  #remove color legend 
+  guides(color = "none") +
+ # scale_shape_manual(name = "Burn Status", values = c("GB" = 16, "DB" = 15)) +
+  geom_text(data = t_dailyNRTree_abla_results, aes(x = Inf, y = Inf, label = R2_label), 
+            hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 4)
+
+t_daily_NRTree_corr_plot_abla
+```
+
+#### Saving all Daily Plots
+
+```{r}
+#AirTemp
+
+comb_daily_AirTree <- ggarrange(p_daily_AirTree_corr_plot_accu, p_daily_AirTree_corr_plot_abla, t_daily_AirTree_corr_plot_accu, t_daily_AirTree_corr_plot_abla, nrow = 2, ncol = 2)
+
+comb_daily_AirTree
+```
+
+```{r}
+ggsave("comb_daily_AirTree.png", plot = comb_daily_AirTree, dpi = 600)
+```
+
+```{r}
+#Shortwave Radiation
+
+comb_daily_SWTree <- ggarrange(p_daily_SWTree_corr_plot_accu, p_daily_SWTree_corr_plot_abla, t_daily_SWTree_corr_plot_accu, t_daily_SWTree_corr_plot_abla, nrow = 2, ncol = 2)
+
+comb_daily_SWTree
+```
+
+```{r}
+ggsave("comb_daily_SWTree.png", plot = comb_daily_SWTree, dpi = 600)
+```
+
+```{r}
+#Longwave Radiation
+
+comb_daily_LWTree <- ggarrange(p_daily_LWTree_corr_plot_accu, p_daily_LWTree_corr_plot_abla, t_daily_LWTree_corr_plot_accu, t_daily_LWTree_corr_plot_abla, nrow = 2, ncol = 2)
+
+comb_daily_LWTree
+```
+
+```{r}
+ggsave("comb_daily_LWTree.png", plot = comb_daily_LWTree, dpi = 600)
+```
+
+```{r}
+#Total Net Radiation
+
+comb_daily_NRTree <- ggarrange(p_daily_NRTree_corr_plot_accu, p_daily_NRTree_corr_plot_abla, t_daily_NRTree_corr_plot_accu, t_daily_NRTree_corr_plot_abla, nrow = 2, ncol = 2)
+
+comb_daily_NRTree
+```
+
+```{r}
+ggsave("comb_daily_NRTree.png", plot = comb_daily_NRTree, dpi = 600)
 ```
 
 ##  New Snow Depth vs Diameter Scatterplots
