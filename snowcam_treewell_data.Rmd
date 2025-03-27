@@ -7834,11 +7834,16 @@ p_treewelldiam_camera_results <- comb_persb_treewell_diam_abla %>%
     .groups = "drop"
   ) %>%
   mutate(
-    R2 = map_dbl(cor_test, ~ ifelse(is.list(.x), .x$estimate^2, NA)),  
-    p_value = map_dbl(cor_test, ~ ifelse(is.list(.x), .x$p.value, NA)),  
-    conf_low = map_dbl(cor_test, ~ if (is.list(.x) && "conf.int" %in% names(.x)) .x$conf.int[1] else NA),  
-    conf_high = map_dbl(cor_test, ~ if (is.list(.x) && "conf.int" %in% names(.x)) .x$conf.int[2] else NA), 
-    R2_label = paste0("R² = ", formatC(R2, format = "f", digits = 2)))
+    cor_coeff = map_dbl(cor_test, ~ .x$estimate),  # Extract correlation coefficient (r)
+    R2 = cor_coeff^2,  # Compute R²
+    p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
+    conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
+    conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
+    p_label = ifelse(p_value < 0.05, "p-value < 0.05", "p-value ≥ 0.05"),  # Conditional p-value label
+    R2_label = paste0("r = ", formatC(cor_coeff, format = "f", digits = 2), 
+                      "\nR² = ", formatC(R2, format = "f", digits = 2), 
+                      "\n", p_label)  # Ensure two decimal places
+  )
 ```
 
 ```{r}
@@ -7890,11 +7895,15 @@ t_treewelldiam_camera_results <- comb_transb_treewell_diam_abla %>%
     .groups = "drop"
   ) %>%
   mutate(
-    R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
+    cor_coeff = map_dbl(cor_test, ~ .x$estimate),  # Extract correlation coefficient (r)
+    R2 = cor_coeff^2,  # Compute R²
     p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
     conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
-    conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),
-    R2_label = paste0("R² = ", formatC(R2, format = "f", digits = 2))  # Ensure two decimal places
+    conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
+    p_label = ifelse(p_value < 0.05, "p-value < 0.05", "p-value ≥ 0.05"),  # Conditional p-value label
+    R2_label = paste0("r = ", formatC(cor_coeff, format = "f", digits = 2), 
+                      "\nR² = ", formatC(R2, format = "f", digits = 2), 
+                      "\n", p_label)  # Ensure two decimal places
   )
 ```
 
@@ -7975,11 +7984,16 @@ p_treewelldiam_camera_results_V2 <- comb_persb_treewell_diam_abla_V2 %>%
     .groups = "drop"
   ) %>%
   mutate(
-    R2 = map_dbl(cor_test, ~ ifelse(is.list(.x), .x$estimate^2, NA)),  
-    p_value = map_dbl(cor_test, ~ ifelse(is.list(.x), .x$p.value, NA)),  
-    conf_low = map_dbl(cor_test, ~ if (is.list(.x) && "conf.int" %in% names(.x)) .x$conf.int[1] else NA),  
-    conf_high = map_dbl(cor_test, ~ if (is.list(.x) && "conf.int" %in% names(.x)) .x$conf.int[2] else NA), 
-    R2_label = paste0("R² = ", formatC(R2, format = "f", digits = 2)))
+    cor_coeff = map_dbl(cor_test, ~ .x$estimate),  # Extract correlation coefficient (r)
+    R2 = cor_coeff^2,  # Compute R²
+    p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
+    conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
+    conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
+    p_label = ifelse(p_value < 0.05, "p-value < 0.05", "p-value ≥ 0.05"),  # Conditional p-value label
+    R2_label = paste0("r = ", formatC(cor_coeff, format = "f", digits = 2), 
+                      "\nR² = ", formatC(R2, format = "f", digits = 2), 
+                      "\n", p_label)  # Ensure two decimal places
+  )
 ```
 
 Plotting
@@ -8021,7 +8035,7 @@ TSZ
 
 ```{r}
 comb_transb_treewell_diam_abla_V2 <- long_transb_treewell_diams_fullseason_V2 %>%
-  filter(date >= "2024-04-01" & date <= "2024-04-12") %>%
+  filter(date >= "2024-04-02" & date <= "2024-04-12") %>%
   mutate(tree_diam_m = tree_diam/100, well_diam_m = well_diam/100, welldiam_minustree_m = well_diam_m-tree_diam_m)
 
 t_treewelldiam_camera_results_V2 <- comb_transb_treewell_diam_abla_V2 %>%
@@ -8033,12 +8047,17 @@ t_treewelldiam_camera_results_V2 <- comb_transb_treewell_diam_abla_V2 %>%
                              error = function(e) return(NA))), 
     .groups = "drop"
   ) %>%
- mutate(
-    R2 = map_dbl(cor_test, ~ ifelse(is.list(.x), .x$estimate^2, NA)),  
-    p_value = map_dbl(cor_test, ~ ifelse(is.list(.x), .x$p.value, NA)),  
-    conf_low = map_dbl(cor_test, ~ if (is.list(.x) && "conf.int" %in% names(.x)) .x$conf.int[1] else NA),  
-    conf_high = map_dbl(cor_test, ~ if (is.list(.x) && "conf.int" %in% names(.x)) .x$conf.int[2] else NA), 
-    R2_label = paste0("R² = ", formatC(R2, format = "f", digits = 2)))
+   mutate(
+    cor_coeff = map_dbl(cor_test, ~ .x$estimate),  # Extract correlation coefficient (r)
+    R2 = cor_coeff^2,  # Compute R²
+    p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
+    conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
+    conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
+    p_label = ifelse(p_value < 0.05, "p-value < 0.05", "p-value ≥ 0.05"),  # Conditional p-value label
+    R2_label = paste0("r = ", formatC(cor_coeff, format = "f", digits = 2), 
+                      "\nR² = ", formatC(R2, format = "f", digits = 2), 
+                      "\n", p_label)  # Ensure two decimal places
+  )
 ```
 
 ```{r}
