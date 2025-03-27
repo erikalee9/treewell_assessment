@@ -432,12 +432,15 @@ treewell_manual_stats <- treewell_Tapril_Pmay %>%
     .groups = "drop"
   ) %>%
    mutate(
-    R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
+    cor_coeff = map_dbl(cor_test, ~ .x$estimate),  # Extract correlation coefficient (r)
+    R2 = cor_coeff^2,  # Compute R²
     p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
     conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
     conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
     p_label = ifelse(p_value < 0.05, "p-value < 0.05", "p-value ≥ 0.05"),  # Conditional p-value label
-    R2_label = paste0("R² = ", formatC(R2, format = "f", digits = 2), "\n", p_label)  # Ensure two decimal places
+    R2_label = paste0("r = ", formatC(cor_coeff, format = "f", digits = 2), 
+                      "\nR² = ", formatC(R2, format = "f", digits = 2), 
+                      "\n", p_label)  # Ensure two decimal places
   )
 
 # Scatterplot
@@ -529,6 +532,27 @@ treewell_manual_scatterplot_V2 <- ggplot(treewell_Tapril_Pmay, aes(x = dbh_m, y 
   )
 
 treewell_manual_scatterplot_V2
+```
+
+```{r}
+treewell_manual_stats_V3 <- treewell_Tapril_Pmay %>%
+  drop_na(well_diam_m_minustree, dbh_m) %>%
+  group_by(zone) %>%
+  summarize(
+    cor_test = list(cor.test(dbh_m, well_diam_m_minustree, use = "complete.obs")),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    cor_coeff = map_dbl(cor_test, ~ .x$estimate),  # Extract correlation coefficient (r)
+    R2 = cor_coeff^2,  # Compute R²
+    p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
+    conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
+    conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
+    p_label = ifelse(p_value < 0.05, "p-value < 0.05", "p-value ≥ 0.05"),  # Conditional p-value label
+    R2_label = paste0("r = ", formatC(cor_coeff, format = "f", digits = 2), 
+                      "\nR² = ", formatC(R2, format = "f", digits = 2), 
+                      "\n", p_label)  # Ensure two decimal places
+  )
 ```
 
 ```{r}
