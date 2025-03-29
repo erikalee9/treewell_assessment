@@ -7601,7 +7601,7 @@ persb_meanSWE <- persb_SWE_filtered %>%
   summarize(mean_snowdensity = mean(Predicted_Snow_Density)) %>%
   #adding  tree ID to use for later binding to volume rows
   crossing(tree_id = 1:4) %>%
-  filter(date <= "2024-05-23")
+  filter(date <= "2024-06-03")
 
 persub_meanSWE <- persub_SWE_filtered %>%
   group_by(date) %>%
@@ -7612,7 +7612,7 @@ transb_meanSWE <- transb_SWE_filtered %>%
   summarize(mean_snowdensity = mean(Predicted_Snow_Density)) %>%
   #adding  tree ID to use for later binding to volume rows
   crossing(tree_id = 1:4) %>%
-  filter(date <= "2024-04-25")
+  filter(date <= "2024-06-03")
 
 transub_meanSWE <- transub_SWE_filtered %>%
   group_by(date) %>%
@@ -7668,6 +7668,12 @@ persb_SWE_fullseason_lineplot <- ggplot() +
   ) +
   theme_bw() +
   scale_y_continuous(limits = c(NA, 900)) + 
+   scale_x_date(
+  limits = c(as.Date("2024-02-02"), as.Date("2024-06-01")),
+  breaks = as.Date(c("2024-02-01", "2024-03-01", "2024-04-01", "2024-05-01", "2024-06-01")), 
+  minor_breaks = "1 month",  # Adds light grid lines for all months
+  date_labels = "%b"
+) + 
   # Custom colors
   scale_color_manual(values = c("open area" = "grey30", 
                                 "tree 1" = "#1B7837", 
@@ -7725,6 +7731,12 @@ transb_SWE_fullseason_lineplot <- ggplot() +
   ) +
   theme_bw() +
   scale_y_continuous(limits = c(NA, 900)) + 
+   scale_x_date(
+  limits = c(as.Date("2024-02-02"), as.Date("2024-06-01")),
+  breaks = as.Date(c("2024-02-01", "2024-03-01", "2024-04-01", "2024-05-01", "2024-06-01")), 
+  minor_breaks = "1 month",  # Adds light grid lines for all months
+  date_labels = "%b"
+) + 
   # Custom colors
   scale_color_manual(values = c("open area" = "grey30", 
                                 "tree 1" = "#1B7837", 
