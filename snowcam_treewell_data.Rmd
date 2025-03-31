@@ -5337,13 +5337,16 @@ p_AirTree_accu_results <- persb_corr_data_accu %>%
     cor_test = list(cor.test(mean_tree_temp, totalcum_AirTC, use = "complete.obs")),
     .groups = "drop"
   ) %>%
-   mutate(
-    R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
+  mutate(
+    cor_coeff = map_dbl(cor_test, ~ .x$estimate),  # Extract correlation coefficient (r)
+    R2 = cor_coeff^2,  # Compute R²
     p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
     conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
     conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
     p_label = ifelse(p_value < 0.05, "p-value < 0.05", "p-value ≥ 0.05"),  # Conditional p-value label
-    R2_label = paste0("R² = ", formatC(R2, format = "f", digits = 2), "\n", p_label)  # Ensure two decimal places
+    R2_label = paste0("r = ", formatC(cor_coeff, format = "f", digits = 2), 
+                      "\nR² = ", formatC(R2, format = "f", digits = 2), 
+                      "\n", p_label)  # Ensure two decimal places
   )
 
 p_AirTree_abla_results <- persb_corr_data_abla %>%
@@ -5354,13 +5357,16 @@ p_AirTree_abla_results <- persb_corr_data_abla %>%
     cor_test = list(cor.test(mean_tree_temp, totalcum_AirTC, use = "complete.obs")),
     .groups = "drop"
   ) %>%
-   mutate(
-    R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
+  mutate(
+    cor_coeff = map_dbl(cor_test, ~ .x$estimate),  # Extract correlation coefficient (r)
+    R2 = cor_coeff^2,  # Compute R²
     p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
     conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
     conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
     p_label = ifelse(p_value < 0.05, "p-value < 0.05", "p-value ≥ 0.05"),  # Conditional p-value label
-    R2_label = paste0("R² = ", formatC(R2, format = "f", digits = 2), "\n", p_label)  # Ensure two decimal places
+    R2_label = paste0("r = ", formatC(cor_coeff, format = "f", digits = 2), 
+                      "\nR² = ", formatC(R2, format = "f", digits = 2), 
+                      "\n", p_label)  # Ensure two decimal places
   )
 ```
 
@@ -5421,13 +5427,16 @@ p_SWTree_accu_results <- persb_corr_data_accu %>%
     cor_test = list(cor.test(mean_tree_temp, totalcum_SWnet, use = "complete.obs")),
     .groups = "drop"
   ) %>%
-   mutate(
-    R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
+  mutate(
+    cor_coeff = map_dbl(cor_test, ~ .x$estimate),  # Extract correlation coefficient (r)
+    R2 = cor_coeff^2,  # Compute R²
     p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
     conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
     conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
     p_label = ifelse(p_value < 0.05, "p-value < 0.05", "p-value ≥ 0.05"),  # Conditional p-value label
-    R2_label = paste0("R² = ", formatC(R2, format = "f", digits = 2), "\n", p_label)  # Ensure two decimal places
+    R2_label = paste0("r = ", formatC(cor_coeff, format = "f", digits = 2), 
+                      "\nR² = ", formatC(R2, format = "f", digits = 2), 
+                      "\n", p_label)  # Ensure two decimal places
   )
 
 p_SWTree_abla_results <- persb_corr_data_abla %>%
@@ -5438,13 +5447,16 @@ p_SWTree_abla_results <- persb_corr_data_abla %>%
     cor_test = list(cor.test(mean_tree_temp, totalcum_SWnet, use = "complete.obs")),
     .groups = "drop"
   ) %>%
-   mutate(
-    R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
+  mutate(
+    cor_coeff = map_dbl(cor_test, ~ .x$estimate),  # Extract correlation coefficient (r)
+    R2 = cor_coeff^2,  # Compute R²
     p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
     conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
     conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
     p_label = ifelse(p_value < 0.05, "p-value < 0.05", "p-value ≥ 0.05"),  # Conditional p-value label
-    R2_label = paste0("R² = ", formatC(R2, format = "f", digits = 2), "\n", p_label)  # Ensure two decimal places
+    R2_label = paste0("r = ", formatC(cor_coeff, format = "f", digits = 2), 
+                      "\nR² = ", formatC(R2, format = "f", digits = 2), 
+                      "\n", p_label)  # Ensure two decimal places
   )
 ```
 
@@ -5504,12 +5516,15 @@ p_LWTree_accu_results <- persb_corr_data_accu %>%
     .groups = "drop"
   ) %>%
   mutate(
-    R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
+    cor_coeff = map_dbl(cor_test, ~ .x$estimate),  # Extract correlation coefficient (r)
+    R2 = cor_coeff^2,  # Compute R²
     p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
     conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
     conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
     p_label = ifelse(p_value < 0.05, "p-value < 0.05", "p-value ≥ 0.05"),  # Conditional p-value label
-    R2_label = paste0("R² = ", formatC(R2, format = "f", digits = 2), "\n", p_label)  # Ensure two decimal places
+    R2_label = paste0("r = ", formatC(cor_coeff, format = "f", digits = 2), 
+                      "\nR² = ", formatC(R2, format = "f", digits = 2), 
+                      "\n", p_label)  # Ensure two decimal places
   )
 
 p_LWTree_abla_results <- persb_corr_data_abla %>%
@@ -5521,12 +5536,15 @@ p_LWTree_abla_results <- persb_corr_data_abla %>%
     .groups = "drop"
   ) %>%
   mutate(
-    R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
+    cor_coeff = map_dbl(cor_test, ~ .x$estimate),  # Extract correlation coefficient (r)
+    R2 = cor_coeff^2,  # Compute R²
     p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
     conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
     conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
     p_label = ifelse(p_value < 0.05, "p-value < 0.05", "p-value ≥ 0.05"),  # Conditional p-value label
-    R2_label = paste0("R² = ", formatC(R2, format = "f", digits = 2), "\n", p_label)  # Ensure two decimal places
+    R2_label = paste0("r = ", formatC(cor_coeff, format = "f", digits = 2), 
+                      "\nR² = ", formatC(R2, format = "f", digits = 2), 
+                      "\n", p_label)  # Ensure two decimal places
   )
 ```
 
@@ -5586,12 +5604,15 @@ p_NRTree_accu_results <- persb_corr_data_accu %>%
     .groups = "drop"
   ) %>%
   mutate(
-    R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
+    cor_coeff = map_dbl(cor_test, ~ .x$estimate),  # Extract correlation coefficient (r)
+    R2 = cor_coeff^2,  # Compute R²
     p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
     conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
     conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
     p_label = ifelse(p_value < 0.05, "p-value < 0.05", "p-value ≥ 0.05"),  # Conditional p-value label
-    R2_label = paste0("R² = ", formatC(R2, format = "f", digits = 2), "\n", p_label)  # Ensure two decimal places
+    R2_label = paste0("r = ", formatC(cor_coeff, format = "f", digits = 2), 
+                      "\nR² = ", formatC(R2, format = "f", digits = 2), 
+                      "\n", p_label)  # Ensure two decimal places
   )
 
 p_NRTree_abla_results <- persb_corr_data_abla %>%
@@ -5603,12 +5624,15 @@ p_NRTree_abla_results <- persb_corr_data_abla %>%
     .groups = "drop"
   ) %>%
   mutate(
-    R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
+    cor_coeff = map_dbl(cor_test, ~ .x$estimate),  # Extract correlation coefficient (r)
+    R2 = cor_coeff^2,  # Compute R²
     p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
     conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
     conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
     p_label = ifelse(p_value < 0.05, "p-value < 0.05", "p-value ≥ 0.05"),  # Conditional p-value label
-    R2_label = paste0("R² = ", formatC(R2, format = "f", digits = 2), "\n", p_label)  # Ensure two decimal places
+    R2_label = paste0("r = ", formatC(cor_coeff, format = "f", digits = 2), 
+                      "\nR² = ", formatC(R2, format = "f", digits = 2), 
+                      "\n", p_label)  # Ensure two decimal places
   )
 ```
 
@@ -5669,12 +5693,15 @@ t_AirTree_accu_results <- transb_corr_data_accu %>%
     .groups = "drop"
   ) %>%
   mutate(
-    R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
+    cor_coeff = map_dbl(cor_test, ~ .x$estimate),  # Extract correlation coefficient (r)
+    R2 = cor_coeff^2,  # Compute R²
     p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
     conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
     conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
     p_label = ifelse(p_value < 0.05, "p-value < 0.05", "p-value ≥ 0.05"),  # Conditional p-value label
-    R2_label = paste0("R² = ", formatC(R2, format = "f", digits = 2), "\n", p_label)  # Ensure two decimal places
+    R2_label = paste0("r = ", formatC(cor_coeff, format = "f", digits = 2), 
+                      "\nR² = ", formatC(R2, format = "f", digits = 2), 
+                      "\n", p_label)  # Ensure two decimal places
   )
 
 t_AirTree_abla_results <- transb_corr_data_abla %>%
@@ -5686,12 +5713,15 @@ t_AirTree_abla_results <- transb_corr_data_abla %>%
     .groups = "drop"
   ) %>%
  mutate(
-    R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
+    cor_coeff = map_dbl(cor_test, ~ .x$estimate),  # Extract correlation coefficient (r)
+    R2 = cor_coeff^2,  # Compute R²
     p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
     conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
     conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
     p_label = ifelse(p_value < 0.05, "p-value < 0.05", "p-value ≥ 0.05"),  # Conditional p-value label
-    R2_label = paste0("R² = ", formatC(R2, format = "f", digits = 2), "\n", p_label)  # Ensure two decimal places
+    R2_label = paste0("r = ", formatC(cor_coeff, format = "f", digits = 2), 
+                      "\nR² = ", formatC(R2, format = "f", digits = 2), 
+                      "\n", p_label)  # Ensure two decimal places
   )
 ```
 
@@ -5705,12 +5735,15 @@ t_SWTree_accu_results <- transb_corr_data_accu %>%
     .groups = "drop"
   ) %>%
   mutate(
-    R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
+    cor_coeff = map_dbl(cor_test, ~ .x$estimate),  # Extract correlation coefficient (r)
+    R2 = cor_coeff^2,  # Compute R²
     p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
     conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
     conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
     p_label = ifelse(p_value < 0.05, "p-value < 0.05", "p-value ≥ 0.05"),  # Conditional p-value label
-    R2_label = paste0("R² = ", formatC(R2, format = "f", digits = 2), "\n", p_label)  # Ensure two decimal places
+    R2_label = paste0("r = ", formatC(cor_coeff, format = "f", digits = 2), 
+                      "\nR² = ", formatC(R2, format = "f", digits = 2), 
+                      "\n", p_label)  # Ensure two decimal places
   )
 
 t_SWTree_abla_results <- transb_corr_data_abla %>%
@@ -5722,12 +5755,15 @@ t_SWTree_abla_results <- transb_corr_data_abla %>%
     .groups = "drop"
   ) %>%
   mutate(
-    R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
+    cor_coeff = map_dbl(cor_test, ~ .x$estimate),  # Extract correlation coefficient (r)
+    R2 = cor_coeff^2,  # Compute R²
     p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
     conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
     conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
     p_label = ifelse(p_value < 0.05, "p-value < 0.05", "p-value ≥ 0.05"),  # Conditional p-value label
-    R2_label = paste0("R² = ", formatC(R2, format = "f", digits = 2), "\n", p_label)  # Ensure two decimal places
+    R2_label = paste0("r = ", formatC(cor_coeff, format = "f", digits = 2), 
+                      "\nR² = ", formatC(R2, format = "f", digits = 2), 
+                      "\n", p_label)  # Ensure two decimal places
   )
 ```
 
@@ -5741,12 +5777,15 @@ t_LWTree_accu_results <- transb_corr_data_accu %>%
     .groups = "drop"
   ) %>%
   mutate(
-    R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
+    cor_coeff = map_dbl(cor_test, ~ .x$estimate),  # Extract correlation coefficient (r)
+    R2 = cor_coeff^2,  # Compute R²
     p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
     conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
     conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
     p_label = ifelse(p_value < 0.05, "p-value < 0.05", "p-value ≥ 0.05"),  # Conditional p-value label
-    R2_label = paste0("R² = ", formatC(R2, format = "f", digits = 2), "\n", p_label)  # Ensure two decimal places
+    R2_label = paste0("r = ", formatC(cor_coeff, format = "f", digits = 2), 
+                      "\nR² = ", formatC(R2, format = "f", digits = 2), 
+                      "\n", p_label)  # Ensure two decimal places
   )
 
 t_LWTree_abla_results <- transb_corr_data_abla %>%
@@ -5758,12 +5797,15 @@ t_LWTree_abla_results <- transb_corr_data_abla %>%
     .groups = "drop"
   ) %>%
   mutate(
-    R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
+    cor_coeff = map_dbl(cor_test, ~ .x$estimate),  # Extract correlation coefficient (r)
+    R2 = cor_coeff^2,  # Compute R²
     p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
     conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
     conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
     p_label = ifelse(p_value < 0.05, "p-value < 0.05", "p-value ≥ 0.05"),  # Conditional p-value label
-    R2_label = paste0("R² = ", formatC(R2, format = "f", digits = 2), "\n", p_label)  # Ensure two decimal places
+    R2_label = paste0("r = ", formatC(cor_coeff, format = "f", digits = 2), 
+                      "\nR² = ", formatC(R2, format = "f", digits = 2), 
+                      "\n", p_label)  # Ensure two decimal places
   )
 ```
 
@@ -5777,12 +5819,15 @@ t_NRTree_accu_results <- transb_corr_data_accu %>%
     .groups = "drop"
   ) %>%
   mutate(
-    R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
+    cor_coeff = map_dbl(cor_test, ~ .x$estimate),  # Extract correlation coefficient (r)
+    R2 = cor_coeff^2,  # Compute R²
     p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
     conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
     conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
     p_label = ifelse(p_value < 0.05, "p-value < 0.05", "p-value ≥ 0.05"),  # Conditional p-value label
-    R2_label = paste0("R² = ", formatC(R2, format = "f", digits = 2), "\n", p_label)  # Ensure two decimal places
+    R2_label = paste0("r = ", formatC(cor_coeff, format = "f", digits = 2), 
+                      "\nR² = ", formatC(R2, format = "f", digits = 2), 
+                      "\n", p_label)  # Ensure two decimal places
   )
 
 t_NRTree_abla_results <- transb_corr_data_abla %>%
@@ -5794,12 +5839,15 @@ t_NRTree_abla_results <- transb_corr_data_abla %>%
     .groups = "drop"
   ) %>%
   mutate(
-    R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
+    cor_coeff = map_dbl(cor_test, ~ .x$estimate),  # Extract correlation coefficient (r)
+    R2 = cor_coeff^2,  # Compute R²
     p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
     conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
     conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
     p_label = ifelse(p_value < 0.05, "p-value < 0.05", "p-value ≥ 0.05"),  # Conditional p-value label
-    R2_label = paste0("R² = ", formatC(R2, format = "f", digits = 2), "\n", p_label)  # Ensure two decimal places
+    R2_label = paste0("r = ", formatC(cor_coeff, format = "f", digits = 2), 
+                      "\nR² = ", formatC(R2, format = "f", digits = 2), 
+                      "\n", p_label)  # Ensure two decimal places
   )
 ```
 
@@ -5815,14 +5863,18 @@ p_dailyAirTree_accu_results <- persb_corr_data_accu %>%
     cor_test = list(cor.test(mean_tree_temp, AirTC_Avg, use = "complete.obs")),
     .groups = "drop"
   ) %>%
-   mutate(
-    R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
+  mutate(
+    cor_coeff = map_dbl(cor_test, ~ .x$estimate),  # Extract correlation coefficient (r)
+    R2 = cor_coeff^2,  # Compute R²
     p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
     conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
     conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
     p_label = ifelse(p_value < 0.05, "p-value < 0.05", "p-value ≥ 0.05"),  # Conditional p-value label
-    R2_label = paste0("R² = ", formatC(R2, format = "f", digits = 2), "\n", p_label)  # Ensure two decimal places
+    R2_label = paste0("r = ", formatC(cor_coeff, format = "f", digits = 2), 
+                      "\nR² = ", formatC(R2, format = "f", digits = 2), 
+                      "\n", p_label)  # Ensure two decimal places
   )
+
 
 p_dailyAirTree_abla_results <- persb_corr_data_abla%>%
   drop_na(mean_tree_temp, AirTC_Avg) %>%
@@ -5832,12 +5884,15 @@ p_dailyAirTree_abla_results <- persb_corr_data_abla%>%
     .groups = "drop"
   ) %>%
    mutate(
-    R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
+    cor_coeff = map_dbl(cor_test, ~ .x$estimate),  # Extract correlation coefficient (r)
+    R2 = cor_coeff^2,  # Compute R²
     p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
     conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
     conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
     p_label = ifelse(p_value < 0.05, "p-value < 0.05", "p-value ≥ 0.05"),  # Conditional p-value label
-    R2_label = paste0("R² = ", formatC(R2, format = "f", digits = 2), "\n", p_label)  # Ensure two decimal places
+    R2_label = paste0("r = ", formatC(cor_coeff, format = "f", digits = 2), 
+                      "\nR² = ", formatC(R2, format = "f", digits = 2), 
+                      "\n", p_label)  # Ensure two decimal places
   )
 ```
 
@@ -5894,13 +5949,16 @@ p_dailySWTree_accu_results <- persb_corr_data_accu %>%
     cor_test = list(cor.test(mean_tree_temp, SWnet_Avg, use = "complete.obs")),
     .groups = "drop"
   ) %>%
-   mutate(
-    R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
+    mutate(
+    cor_coeff = map_dbl(cor_test, ~ .x$estimate),  # Extract correlation coefficient (r)
+    R2 = cor_coeff^2,  # Compute R²
     p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
     conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
     conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
     p_label = ifelse(p_value < 0.05, "p-value < 0.05", "p-value ≥ 0.05"),  # Conditional p-value label
-    R2_label = paste0("R² = ", formatC(R2, format = "f", digits = 2), "\n", p_label)  # Ensure two decimal places
+    R2_label = paste0("r = ", formatC(cor_coeff, format = "f", digits = 2), 
+                      "\nR² = ", formatC(R2, format = "f", digits = 2), 
+                      "\n", p_label)  # Ensure two decimal places
   )
 
 p_dailySWTree_abla_results <- persb_corr_data_abla %>%
@@ -5911,12 +5969,15 @@ p_dailySWTree_abla_results <- persb_corr_data_abla %>%
     .groups = "drop"
   ) %>%
    mutate(
-    R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
+    cor_coeff = map_dbl(cor_test, ~ .x$estimate),  # Extract correlation coefficient (r)
+    R2 = cor_coeff^2,  # Compute R²
     p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
     conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
     conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
     p_label = ifelse(p_value < 0.05, "p-value < 0.05", "p-value ≥ 0.05"),  # Conditional p-value label
-    R2_label = paste0("R² = ", formatC(R2, format = "f", digits = 2), "\n", p_label)  # Ensure two decimal places
+    R2_label = paste0("r = ", formatC(cor_coeff, format = "f", digits = 2), 
+                      "\nR² = ", formatC(R2, format = "f", digits = 2), 
+                      "\n", p_label)  # Ensure two decimal places
   )
 ```
 
@@ -5974,13 +6035,16 @@ p_dailyLWTree_accu_results <- persb_corr_data_accu %>%
     cor_test = list(cor.test(mean_tree_temp, LWnet_Avg, use = "complete.obs")),
     .groups = "drop"
   ) %>%
-   mutate(
-    R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
+  mutate(
+    cor_coeff = map_dbl(cor_test, ~ .x$estimate),  # Extract correlation coefficient (r)
+    R2 = cor_coeff^2,  # Compute R²
     p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
     conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
     conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
     p_label = ifelse(p_value < 0.05, "p-value < 0.05", "p-value ≥ 0.05"),  # Conditional p-value label
-    R2_label = paste0("R² = ", formatC(R2, format = "f", digits = 2), "\n", p_label)  # Ensure two decimal places
+    R2_label = paste0("r = ", formatC(cor_coeff, format = "f", digits = 2), 
+                      "\nR² = ", formatC(R2, format = "f", digits = 2), 
+                      "\n", p_label)  # Ensure two decimal places
   )
 
 p_dailyLWTree_abla_results <- persb_corr_data_abla %>%
@@ -5991,14 +6055,19 @@ p_dailyLWTree_abla_results <- persb_corr_data_abla %>%
     .groups = "drop"
   ) %>%
    mutate(
-    R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
+    cor_coeff = map_dbl(cor_test, ~ .x$estimate),  # Extract correlation coefficient (r)
+    R2 = cor_coeff^2,  # Compute R²
     p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
     conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
     conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
     p_label = ifelse(p_value < 0.05, "p-value < 0.05", "p-value ≥ 0.05"),  # Conditional p-value label
-    R2_label = paste0("R² = ", formatC(R2, format = "f", digits = 2), "\n", p_label)  # Ensure two decimal places
+    R2_label = paste0("r = ", formatC(cor_coeff, format = "f", digits = 2), 
+                      "\nR² = ", formatC(R2, format = "f", digits = 2), 
+                      "\n", p_label)  # Ensure two decimal places
   )
 ```
+
+Plotting
 
 ```{r}
 p_daily_LWTree_corr_plot_accu <- ggplot(persb_corr_data_accu, aes(x = mean_tree_temp, y = LWnet_Avg)) +
@@ -6052,13 +6121,16 @@ p_dailyNRTree_accu_results <- persb_corr_data_accu %>%
     cor_test = list(cor.test(mean_tree_temp, NR_Avg, use = "complete.obs")),
     .groups = "drop"
   ) %>%
-   mutate(
-    R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
+  mutate(
+    cor_coeff = map_dbl(cor_test, ~ .x$estimate),  # Extract correlation coefficient (r)
+    R2 = cor_coeff^2,  # Compute R²
     p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
     conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
     conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
     p_label = ifelse(p_value < 0.05, "p-value < 0.05", "p-value ≥ 0.05"),  # Conditional p-value label
-    R2_label = paste0("R² = ", formatC(R2, format = "f", digits = 2), "\n", p_label)  # Ensure two decimal places
+    R2_label = paste0("r = ", formatC(cor_coeff, format = "f", digits = 2), 
+                      "\nR² = ", formatC(R2, format = "f", digits = 2), 
+                      "\n", p_label)  # Ensure two decimal places
   )
 
 p_dailyNRTree_abla_results <- persb_corr_data_abla %>%
@@ -6068,13 +6140,16 @@ p_dailyNRTree_abla_results <- persb_corr_data_abla %>%
     cor_test = list(cor.test(mean_tree_temp, NR_Avg, use = "complete.obs")),
     .groups = "drop"
   ) %>%
-   mutate(
-    R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
+  mutate(
+    cor_coeff = map_dbl(cor_test, ~ .x$estimate),  # Extract correlation coefficient (r)
+    R2 = cor_coeff^2,  # Compute R²
     p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
     conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
     conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
     p_label = ifelse(p_value < 0.05, "p-value < 0.05", "p-value ≥ 0.05"),  # Conditional p-value label
-    R2_label = paste0("R² = ", formatC(R2, format = "f", digits = 2), "\n", p_label)  # Ensure two decimal places
+    R2_label = paste0("r = ", formatC(cor_coeff, format = "f", digits = 2), 
+                      "\nR² = ", formatC(R2, format = "f", digits = 2), 
+                      "\n", p_label)  # Ensure two decimal places
   )
 ```
 
@@ -6134,13 +6209,16 @@ t_dailyAirTree_accu_results <- transb_corr_data_accu %>%
     cor_test = list(cor.test(mean_tree_temp, AirTC_Avg, use = "complete.obs")),
     .groups = "drop"
   ) %>%
-   mutate(
-    R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
+  mutate(
+    cor_coeff = map_dbl(cor_test, ~ .x$estimate),  # Extract correlation coefficient (r)
+    R2 = cor_coeff^2,  # Compute R²
     p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
     conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
     conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
     p_label = ifelse(p_value < 0.05, "p-value < 0.05", "p-value ≥ 0.05"),  # Conditional p-value label
-    R2_label = paste0("R² = ", formatC(R2, format = "f", digits = 2), "\n", p_label)  # Ensure two decimal places
+    R2_label = paste0("r = ", formatC(cor_coeff, format = "f", digits = 2), 
+                      "\nR² = ", formatC(R2, format = "f", digits = 2), 
+                      "\n", p_label)  # Ensure two decimal places
   )
 
 t_dailyAirTree_abla_results <- transb_corr_data_abla%>%
@@ -6150,13 +6228,16 @@ t_dailyAirTree_abla_results <- transb_corr_data_abla%>%
     cor_test = list(cor.test(mean_tree_temp, AirTC_Avg, use = "complete.obs")),
     .groups = "drop"
   ) %>%
-   mutate(
-    R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
+  mutate(
+    cor_coeff = map_dbl(cor_test, ~ .x$estimate),  # Extract correlation coefficient (r)
+    R2 = cor_coeff^2,  # Compute R²
     p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
     conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
     conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
     p_label = ifelse(p_value < 0.05, "p-value < 0.05", "p-value ≥ 0.05"),  # Conditional p-value label
-    R2_label = paste0("R² = ", formatC(R2, format = "f", digits = 2), "\n", p_label)  # Ensure two decimal places
+    R2_label = paste0("r = ", formatC(cor_coeff, format = "f", digits = 2), 
+                      "\nR² = ", formatC(R2, format = "f", digits = 2), 
+                      "\n", p_label)  # Ensure two decimal places
   )
 ```
 
@@ -6214,13 +6295,16 @@ t_dailySWTree_accu_results <- transb_corr_data_accu %>%
     cor_test = list(cor.test(mean_tree_temp, SWnet_Avg, use = "complete.obs")),
     .groups = "drop"
   ) %>%
-   mutate(
-    R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
+  mutate(
+    cor_coeff = map_dbl(cor_test, ~ .x$estimate),  # Extract correlation coefficient (r)
+    R2 = cor_coeff^2,  # Compute R²
     p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
     conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
     conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
     p_label = ifelse(p_value < 0.05, "p-value < 0.05", "p-value ≥ 0.05"),  # Conditional p-value label
-    R2_label = paste0("R² = ", formatC(R2, format = "f", digits = 2), "\n", p_label)  # Ensure two decimal places
+    R2_label = paste0("r = ", formatC(cor_coeff, format = "f", digits = 2), 
+                      "\nR² = ", formatC(R2, format = "f", digits = 2), 
+                      "\n", p_label)  # Ensure two decimal places
   )
 
 t_dailySWTree_abla_results <- transb_corr_data_abla %>%
@@ -6230,13 +6314,16 @@ t_dailySWTree_abla_results <- transb_corr_data_abla %>%
     cor_test = list(cor.test(mean_tree_temp, SWnet_Avg, use = "complete.obs")),
     .groups = "drop"
   ) %>%
-   mutate(
-    R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
+  mutate(
+    cor_coeff = map_dbl(cor_test, ~ .x$estimate),  # Extract correlation coefficient (r)
+    R2 = cor_coeff^2,  # Compute R²
     p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
     conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
     conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
     p_label = ifelse(p_value < 0.05, "p-value < 0.05", "p-value ≥ 0.05"),  # Conditional p-value label
-    R2_label = paste0("R² = ", formatC(R2, format = "f", digits = 2), "\n", p_label)  # Ensure two decimal places
+    R2_label = paste0("r = ", formatC(cor_coeff, format = "f", digits = 2), 
+                      "\nR² = ", formatC(R2, format = "f", digits = 2), 
+                      "\n", p_label)  # Ensure two decimal places
   )
 ```
 
@@ -6294,13 +6381,16 @@ t_dailyLWTree_accu_results <- transb_corr_data_accu %>%
     cor_test = list(cor.test(mean_tree_temp, LWnet_Avg, use = "complete.obs")),
     .groups = "drop"
   ) %>%
-   mutate(
-    R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
+  mutate(
+    cor_coeff = map_dbl(cor_test, ~ .x$estimate),  # Extract correlation coefficient (r)
+    R2 = cor_coeff^2,  # Compute R²
     p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
     conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
     conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
     p_label = ifelse(p_value < 0.05, "p-value < 0.05", "p-value ≥ 0.05"),  # Conditional p-value label
-    R2_label = paste0("R² = ", formatC(R2, format = "f", digits = 2), "\n", p_label)  # Ensure two decimal places
+    R2_label = paste0("r = ", formatC(cor_coeff, format = "f", digits = 2), 
+                      "\nR² = ", formatC(R2, format = "f", digits = 2), 
+                      "\n", p_label)  # Ensure two decimal places
   )
 
 t_dailyLWTree_abla_results <- transb_corr_data_abla %>%
@@ -6310,13 +6400,16 @@ t_dailyLWTree_abla_results <- transb_corr_data_abla %>%
     cor_test = list(cor.test(mean_tree_temp, LWnet_Avg, use = "complete.obs")),
     .groups = "drop"
   ) %>%
-   mutate(
-    R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
+  mutate(
+    cor_coeff = map_dbl(cor_test, ~ .x$estimate),  # Extract correlation coefficient (r)
+    R2 = cor_coeff^2,  # Compute R²
     p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
     conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
     conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
     p_label = ifelse(p_value < 0.05, "p-value < 0.05", "p-value ≥ 0.05"),  # Conditional p-value label
-    R2_label = paste0("R² = ", formatC(R2, format = "f", digits = 2), "\n", p_label)  # Ensure two decimal places
+    R2_label = paste0("r = ", formatC(cor_coeff, format = "f", digits = 2), 
+                      "\nR² = ", formatC(R2, format = "f", digits = 2), 
+                      "\n", p_label)  # Ensure two decimal places
   )
 ```
 
@@ -6374,13 +6467,16 @@ t_dailyNRTree_accu_results <- transb_corr_data_accu %>%
     cor_test = list(cor.test(mean_tree_temp, NR_Avg, use = "complete.obs")),
     .groups = "drop"
   ) %>%
-   mutate(
-    R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
+  mutate(
+    cor_coeff = map_dbl(cor_test, ~ .x$estimate),  # Extract correlation coefficient (r)
+    R2 = cor_coeff^2,  # Compute R²
     p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
     conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
     conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
     p_label = ifelse(p_value < 0.05, "p-value < 0.05", "p-value ≥ 0.05"),  # Conditional p-value label
-    R2_label = paste0("R² = ", formatC(R2, format = "f", digits = 2), "\n", p_label)  # Ensure two decimal places
+    R2_label = paste0("r = ", formatC(cor_coeff, format = "f", digits = 2), 
+                      "\nR² = ", formatC(R2, format = "f", digits = 2), 
+                      "\n", p_label)  # Ensure two decimal places
   )
 
 t_dailyNRTree_abla_results <- transb_corr_data_abla %>%
@@ -6390,13 +6486,16 @@ t_dailyNRTree_abla_results <- transb_corr_data_abla %>%
     cor_test = list(cor.test(mean_tree_temp, NR_Avg, use = "complete.obs")),
     .groups = "drop"
   ) %>%
-   mutate(
-    R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
+  mutate(
+    cor_coeff = map_dbl(cor_test, ~ .x$estimate),  # Extract correlation coefficient (r)
+    R2 = cor_coeff^2,  # Compute R²
     p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
     conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
     conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
     p_label = ifelse(p_value < 0.05, "p-value < 0.05", "p-value ≥ 0.05"),  # Conditional p-value label
-    R2_label = paste0("R² = ", formatC(R2, format = "f", digits = 2), "\n", p_label)  # Ensure two decimal places
+    R2_label = paste0("r = ", formatC(cor_coeff, format = "f", digits = 2), 
+                      "\nR² = ", formatC(R2, format = "f", digits = 2), 
+                      "\n", p_label)  # Ensure two decimal places
   )
 ```
 
