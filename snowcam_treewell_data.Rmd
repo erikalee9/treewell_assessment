@@ -3651,6 +3651,7 @@ persb_totalcumTreeTemp_corr_plot_abla <- ggplot(persb_corr_data_abla, aes(x = to
   scale_y_continuous(breaks = c(0.5, 1.0, 1.5, 2.0),
                      labels = c("0.5", "1.0", "1.5", "2.0"))+
   expand_limits(x = c(200, 350), y = c(0.5, 2.0)) + 
+  theme(panel.spacing = unit(1, "lines")) + 
   #remove color legend 
   guides(color = "none") +
   scale_shape_manual(name = NULL, values = c("GB" = 16, "DB" = 15)) +
@@ -4598,7 +4599,8 @@ transb_totalcumTreeTemp_corr_plot_abla <- ggplot(transb_corr_data_abla, aes(x = 
   guides(color = "none") +
   scale_shape_manual(name = NULL, values = c("GB" = 16, "DB" = 15)) +
   geom_text(data = t_totalcumTreeTemp_r2_values_abla, aes(x = Inf, y = Inf, label = R2_label), 
-            hjust = 1.1, vjust = 1.3, inherit.aes = FALSE, size = 4) + 
+            hjust = 1.1, vjust = 1.3, inherit.aes = FALSE, size = 4) +
+  theme(panel.spacing = unit(1, "lines")) + 
   theme(
     strip.text = element_text(size = 11),  # Facet title size
     axis.title = element_text(size = 11),  # Axis title size
@@ -7732,6 +7734,18 @@ SWE_fullseason_vol_transb <- fullseason_vol_transb %>%
   mutate(SWE_sensor_kgm3 = vol_sensor_m3*mean_snowdensity, SWE_tree_kgm3 = vol_tree_m3*mean_snowdensity)
 ```
 
+```{r}
+#calculating open area SWE, for entire period!
+SWEonly_fullseason_vol_persb <- vol_persb_daily_wx_fullseason %>%
+  inner_join(persb_meanSWE, by = c("date")) %>%
+  mutate(SWE_sensor_kgm3 = vol_sensor_m3*mean_snowdensity)
+
+SWEonly_fullseason_vol_transb <- vol_transb_daily_wx_fullseason  %>%
+  inner_join(transb_meanSWE, by = c("date")) %>%
+  mutate(SWE_sensor_kgm3 = vol_sensor_m3*mean_snowdensity)
+
+```
+
 ### Plotting
 
 ```{r}
@@ -7752,7 +7766,7 @@ persb_SWE_tree4 <- SWE_fullseason_vol_persb %>%
 persb_SWE_fullseason_lineplot <- ggplot() + 
   # Line denoting ablation season
   geom_vline(xintercept = as.Date('2024-05-06'), color = "grey23", linetype = "dashed", linewidth = 0.6, alpha = 0.7) +
-  geom_line(data = SWE_fullseason_vol_persb, aes(x = date, y = SWE_sensor_kgm3, color = "open area", linetype = "open area"), linewidth = 0.8, alpha = 0.8) + 
+  geom_line(data = SWEonly_fullseason_vol_persb, aes(x = date, y = SWE_sensor_kgm3, color = "open area", linetype = "open area"), linewidth = 0.8, alpha = 0.8) + 
   geom_line(data = persb_SWE_tree1, aes(x = date, y = SWE_tree_kgm3, color = "tree 1", linetype = "tree 1"), linewidth = 0.8, alpha = 0.8) + 
   geom_line(data = persb_SWE_tree2, aes(x = date, y = SWE_tree_kgm3, color = "tree 2", linetype = "tree 2"), linewidth = 0.8, alpha = 0.8) + 
   geom_line(data = persb_SWE_tree3, aes(x = date, y = SWE_tree_kgm3, color = "tree 3", linetype = "tree 3"), linewidth = 0.8, alpha = 0.8) +
@@ -7814,7 +7828,7 @@ transb_SWE_tree4 <- SWE_fullseason_vol_transb %>%
 transb_SWE_fullseason_lineplot <- ggplot() + 
   # Line denoting ablation season
   geom_vline(xintercept = as.Date('2024-04-01'), color = "grey23", linetype = "dashed", linewidth = 0.6, alpha = 0.7) +
-  geom_line(data = SWE_fullseason_vol_transb, aes(x = date, y = SWE_sensor_kgm3, color = "open area", linetype = "open area"), linewidth = 0.8, alpha = 0.8) + 
+  geom_line(data = SWEonly_fullseason_vol_transb, aes(x = date, y = SWE_sensor_kgm3, color = "open area", linetype = "open area"), linewidth = 0.8, alpha = 0.8) + 
   geom_line(data = transb_SWE_tree1, aes(x = date, y = SWE_tree_kgm3, color = "tree 1", linetype = "tree 1"), linewidth = 0.8, alpha = 0.8) + 
   geom_line(data = transb_SWE_tree2, aes(x = date, y = SWE_tree_kgm3, color = "tree 2", linetype = "tree 2"), linewidth = 0.8, alpha = 0.8) + 
   geom_line(data = transb_SWE_tree3, aes(x = date, y = SWE_tree_kgm3, color = "tree 3", linetype = "tree 3"), linewidth = 0.8, alpha = 0.8) +
