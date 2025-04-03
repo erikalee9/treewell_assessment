@@ -3405,9 +3405,9 @@ p_TreeTemp_r2_values_accu <- persb_corr_data_accu %>%
 persb_TreeTemp_corr_plot_accu <- ggplot(persb_corr_data_accu, aes(x = mean_tree_temp, y = well_diam_m, color = factor(tree_id))) +
   geom_point(aes(shape = burn_status), size = 2, alpha = 0.7) + 
   geom_smooth(method = "lm", color = "grey", se = TRUE) +
-  facet_wrap(~ tree_id) +  # Separate by tree_id
+  facet_wrap(~ tree_id, nrow = 1, ncol = 4) +  # Separate by tree_id
   labs(
-    title = "PSZ: Accumulation, Tree Temperature",
+    title = "a) PSZ",
     x = "Tree Temperature (°C)",
     y = "Well Diameter (m)",
     color = "Tree ID"
@@ -4895,7 +4895,7 @@ transb_NR_corr_plot_abla <- ggplot(transb_corr_data_abla, aes(x = NR_Avg, y = we
   #remove color legend 
   guides(color = "none") +
   scale_shape_manual(name = "Burn Status", values = c("GB" = 16, "DB" = 15)) +
-  geom_text(data = t_NetLW_r2_values_abla, aes(x = Inf, y = Inf, label = R2_label), 
+  geom_text(data = t_NR_r2_values_abla, aes(x = Inf, y = Inf, label = R2_label), 
             hjust = 1.1, vjust = 1.5, inherit.aes = FALSE, size = 4)
 
 transb_NR_corr_plot_abla
@@ -6595,7 +6595,7 @@ comb_daily_NRTree
 ggsave("comb_daily_NRTree.png", plot = comb_daily_NRTree, dpi = 600)
 ```
 
-## New Snow Depth vs Diameter Scatterplots
+##   New Snow Depth vs Diameter Scatterplots
 
 PSZ
 
@@ -7560,7 +7560,292 @@ TSZ_MRD_MAD_stats <- fullseason_vol_transb %>%
     mean_tree_vol = mean(vol_tree_m3, na.rm = TRUE))
 ```
 
-## Tree Diam vs Well Diam V2
+#### Melt Rates Stats
+
+PSZ
+
+```{r}
+PSZ_tree1_meltrate <- persb_col_tree1_abla %>%
+  arrange(date) %>%  # Ensure data is sorted by date
+  mutate(daily_vol_change_tree = vol_tree_m3 - lag(vol_tree_m3), 
+         daily_vol_change_sensor = vol_sensor_m3 - lag(vol_sensor_m3)) %>%
+  filter(!is.na(daily_vol_change_tree) & !is.na(daily_vol_change_sensor)) %>%
+  summarize(avg_melt_rate_tree = mean(daily_vol_change_tree, na.rm = TRUE), 
+            avg_melt_rate_sensor = mean(daily_vol_change_sensor, na.rm = TRUE), percent_diff = ((avg_melt_rate_tree - avg_melt_rate_sensor) / avg_melt_rate_sensor) * 100
+  ) %>%
+  mutate(tree_id = "1")
+
+PSZ_tree2_meltrate <- persb_col_tree2_abla %>%
+  arrange(date) %>%  # Ensure data is sorted by date
+  mutate(daily_vol_change_tree = vol_tree_m3 - lag(vol_tree_m3), 
+         daily_vol_change_sensor = vol_sensor_m3 - lag(vol_sensor_m3)) %>%
+  filter(!is.na(daily_vol_change_tree) & !is.na(daily_vol_change_sensor)) %>%
+  summarize(avg_melt_rate_tree = mean(daily_vol_change_tree, na.rm = TRUE), 
+            avg_melt_rate_sensor = mean(daily_vol_change_sensor, na.rm = TRUE), percent_diff = ((avg_melt_rate_tree - avg_melt_rate_sensor) / avg_melt_rate_sensor) * 100
+  ) %>%
+  mutate(tree_id = "2")
+
+PSZ_tree3_meltrate <- persb_col_tree3_abla %>%
+  arrange(date) %>%  # Ensure data is sorted by date
+  mutate(daily_vol_change_tree = vol_tree_m3 - lag(vol_tree_m3), 
+         daily_vol_change_sensor = vol_sensor_m3 - lag(vol_sensor_m3)) %>%
+  filter(!is.na(daily_vol_change_tree) & !is.na(daily_vol_change_sensor)) %>%
+  summarize(avg_melt_rate_tree = mean(daily_vol_change_tree, na.rm = TRUE), 
+            avg_melt_rate_sensor = mean(daily_vol_change_sensor, na.rm = TRUE), percent_diff = ((avg_melt_rate_tree - avg_melt_rate_sensor) / avg_melt_rate_sensor) * 100
+  ) %>%
+  mutate(tree_id = "3")
+
+PSZ_tree4_meltrate <- persb_col_tree4_abla %>%
+  arrange(date) %>%  # Ensure data is sorted by date
+  mutate(daily_vol_change_tree = vol_tree_m3 - lag(vol_tree_m3), 
+         daily_vol_change_sensor = vol_sensor_m3 - lag(vol_sensor_m3)) %>%
+  filter(!is.na(daily_vol_change_tree) & !is.na(daily_vol_change_sensor)) %>%
+  summarize(avg_melt_rate_tree = mean(daily_vol_change_tree, na.rm = TRUE), 
+            avg_melt_rate_sensor = mean(daily_vol_change_sensor, na.rm = TRUE), percent_diff = ((avg_melt_rate_tree - avg_melt_rate_sensor) / avg_melt_rate_sensor) * 100
+  ) %>%
+  mutate(tree_id = "4")
+```
+
+```{r}
+#creating a dataframe with these average melt rate changes by tree per zone 
+
+PSZ_snowvol_meltrate <- rbind(PSZ_tree1_meltrate, PSZ_tree2_meltrate, PSZ_tree3_meltrate, PSZ_tree4_meltrate) %>%
+  mutate(zone = "PSZ") %>%
+  select(tree_id, zone, everything())
+```
+
+TSZ
+
+```{r}
+TSZ_tree1_meltrate <- transb_col_tree1_abla %>%
+  arrange(date) %>%  # Ensure data is sorted by date
+  mutate(daily_vol_change_tree = vol_tree_m3 - lag(vol_tree_m3), 
+         daily_vol_change_sensor = vol_sensor_m3 - lag(vol_sensor_m3)) %>%
+  filter(!is.na(daily_vol_change_tree) & !is.na(daily_vol_change_sensor)) %>%
+  summarize(avg_melt_rate_tree = mean(daily_vol_change_tree, na.rm = TRUE), 
+            avg_melt_rate_sensor = mean(daily_vol_change_sensor, na.rm = TRUE), percent_diff = ((avg_melt_rate_tree - avg_melt_rate_sensor) / avg_melt_rate_sensor) * 100
+  ) %>%
+  mutate(tree_id = "1")
+
+TSZ_tree2_meltrate <- transb_col_tree2_abla %>%
+  arrange(date) %>%  # Ensure data is sorted by date
+  mutate(daily_vol_change_tree = vol_tree_m3 - lag(vol_tree_m3), 
+         daily_vol_change_sensor = vol_sensor_m3 - lag(vol_sensor_m3)) %>%
+  filter(!is.na(daily_vol_change_tree) & !is.na(daily_vol_change_sensor)) %>%
+  summarize(avg_melt_rate_tree = mean(daily_vol_change_tree, na.rm = TRUE), 
+            avg_melt_rate_sensor = mean(daily_vol_change_sensor, na.rm = TRUE), percent_diff = ((avg_melt_rate_tree - avg_melt_rate_sensor) / avg_melt_rate_sensor) * 100
+  ) %>%
+  mutate(tree_id = "2")
+
+TSZ_tree3_meltrate <- transb_col_tree3_abla %>%
+  arrange(date) %>%  # Ensure data is sorted by date
+  mutate(daily_vol_change_tree = vol_tree_m3 - lag(vol_tree_m3), 
+         daily_vol_change_sensor = vol_sensor_m3 - lag(vol_sensor_m3)) %>%
+  filter(!is.na(daily_vol_change_tree) & !is.na(daily_vol_change_sensor)) %>%
+  summarize(avg_melt_rate_tree = mean(daily_vol_change_tree, na.rm = TRUE), 
+            avg_melt_rate_sensor = mean(daily_vol_change_sensor, na.rm = TRUE), percent_diff = ((avg_melt_rate_tree - avg_melt_rate_sensor) / avg_melt_rate_sensor) * 100
+  ) %>%
+  mutate(tree_id = "3")
+
+TSZ_tree4_meltrate <- transb_col_tree4_abla %>%
+  arrange(date) %>%  # Ensure data is sorted by date
+  mutate(daily_vol_change_tree = vol_tree_m3 - lag(vol_tree_m3), 
+         daily_vol_change_sensor = vol_sensor_m3 - lag(vol_sensor_m3)) %>%
+  filter(!is.na(daily_vol_change_tree) & !is.na(daily_vol_change_sensor)) %>%
+  summarize(avg_melt_rate_tree = mean(daily_vol_change_tree, na.rm = TRUE), 
+            avg_melt_rate_sensor = mean(daily_vol_change_sensor, na.rm = TRUE), percent_diff = ((avg_melt_rate_tree - avg_melt_rate_sensor) / avg_melt_rate_sensor) * 100
+  ) %>%
+  mutate(tree_id = "4")
+```
+
+```{r}
+TSZ_snowvol_meltrate <- rbind(TSZ_tree1_meltrate, TSZ_tree2_meltrate, TSZ_tree3_meltrate, TSZ_tree4_meltrate) %>%
+  mutate(zone = "TSZ") %>%
+  select(tree_id, zone, everything())
+```
+
+```{r}
+mean_snowvol_meltrate <- rbind(PSZ_snowvol_meltrate, TSZ_snowvol_meltrate) %>%
+  group_by(zone) %>%
+  summarize(mean_melt_rate_tree = mean(avg_melt_rate_tree), 
+            mean_melt_rate_sensor = mean(avg_melt_rate_sensor), 
+            mean_percent_diff = mean(percent_diff))
+```
+
+#### Accum Vol Difference 
+
+```{r}
+PSZ_tree1_accu_vol <- persb_col_tree1_accu %>%
+  summarize(
+    mean_vol_tree = mean(vol_tree_m3, na.rm = TRUE), 
+    mean_vol_sensor = mean(vol_sensor_m3, na.rm = TRUE),
+    percent_diff = ((mean_vol_tree - mean_vol_sensor) / mean_vol_sensor) * 100
+  ) %>%
+  mutate(zone = "PSZ", tree_id = "1")
+
+PSZ_tree2_accu_vol <- persb_col_tree2_accu %>%
+  summarize(
+    mean_vol_tree = mean(vol_tree_m3, na.rm = TRUE), 
+    mean_vol_sensor = mean(vol_sensor_m3, na.rm = TRUE),
+    percent_diff = ((mean_vol_tree - mean_vol_sensor) / mean_vol_sensor) * 100
+  ) %>%
+  mutate(zone = "PSZ", tree_id = "2")
+
+PSZ_tree3_accu_vol <- persb_col_tree3_accu %>%
+  summarize(
+    mean_vol_tree = mean(vol_tree_m3, na.rm = TRUE), 
+    mean_vol_sensor = mean(vol_sensor_m3, na.rm = TRUE),
+    percent_diff = ((mean_vol_tree - mean_vol_sensor) / mean_vol_sensor) * 100
+  ) %>%
+  mutate(zone = "PSZ", tree_id = "3")
+
+PSZ_tree4_accu_vol <- persb_col_tree4_accu %>%
+  summarize(
+    mean_vol_tree = mean(vol_tree_m3, na.rm = TRUE), 
+    mean_vol_sensor = mean(vol_sensor_m3, na.rm = TRUE),
+    percent_diff = ((mean_vol_tree - mean_vol_sensor) / mean_vol_sensor) * 100
+  ) %>%
+  mutate(zone = "PSZ", tree_id = "4")
+```
+
+```{r}
+PSZ_snowvol_accu <- rbind(PSZ_tree1_accu_vol, PSZ_tree2_accu_vol, PSZ_tree3_accu_vol, PSZ_tree4_accu_vol) %>%
+  select(tree_id, zone, everything())
+```
+
+```{r}
+TSZ_tree1_accu_vol <- transb_col_tree1_accu %>%
+  summarize(
+    mean_vol_tree = mean(vol_tree_m3, na.rm = TRUE), 
+    mean_vol_sensor = mean(vol_sensor_m3, na.rm = TRUE),
+    percent_diff = ((mean_vol_tree - mean_vol_sensor) / mean_vol_sensor) * 100
+  ) %>%
+  mutate(zone = "TSZ", tree_id = "1")
+
+TSZ_tree2_accu_vol <- transb_col_tree2_accu %>%
+  summarize(
+    mean_vol_tree = mean(vol_tree_m3, na.rm = TRUE), 
+    mean_vol_sensor = mean(vol_sensor_m3, na.rm = TRUE),
+    percent_diff = ((mean_vol_tree - mean_vol_sensor) / mean_vol_sensor) * 100
+  ) %>%
+  mutate(zone = "TSZ", tree_id = "2")
+
+TSZ_tree3_accu_vol <- transb_col_tree3_accu %>%
+  summarize(
+    mean_vol_tree = mean(vol_tree_m3, na.rm = TRUE), 
+    mean_vol_sensor = mean(vol_sensor_m3, na.rm = TRUE),
+    percent_diff = ((mean_vol_tree - mean_vol_sensor) / mean_vol_sensor) * 100
+  ) %>%
+  mutate(zone = "TSZ", tree_id = "3")
+
+TSZ_tree4_accu_vol <- transb_col_tree4_accu %>%
+  summarize(
+    mean_vol_tree = mean(vol_tree_m3, na.rm = TRUE), 
+    mean_vol_sensor = mean(vol_sensor_m3, na.rm = TRUE),
+    percent_diff = ((mean_vol_tree - mean_vol_sensor) / mean_vol_sensor) * 100
+  ) %>%
+  mutate(zone = "TSZ", tree_id = "4")
+```
+
+```{r}
+TSZ_snowvol_accu <- rbind(TSZ_tree1_accu_vol, TSZ_tree2_accu_vol, TSZ_tree3_accu_vol, TSZ_tree4_accu_vol) %>%
+  select(tree_id, zone, everything())
+```
+
+```{r}
+mean_snowvol_accu <- rbind(PSZ_snowvol_accu, TSZ_snowvol_accu) %>%
+  group_by(zone) %>%
+  summarize(mean_vol_tree = mean(mean_vol_tree), 
+            mean_vol_sensor = mean(mean_vol_sensor), 
+            mean_percent_diff = mean(percent_diff))
+```
+
+Snow Volume Ablation
+
+```{r}
+PSZ_tree1_abla_vol <- persb_col_tree1_abla %>%
+  summarize(
+    mean_vol_tree = mean(vol_tree_m3, na.rm = TRUE), 
+    mean_vol_sensor = mean(vol_sensor_m3, na.rm = TRUE),
+    percent_diff = ((mean_vol_tree - mean_vol_sensor) / mean_vol_sensor) * 100
+  ) %>%
+  mutate(zone = "PSZ", tree_id = "1")
+
+PSZ_tree2_abla_vol <- persb_col_tree2_abla %>%
+  summarize(
+    mean_vol_tree = mean(vol_tree_m3, na.rm = TRUE), 
+    mean_vol_sensor = mean(vol_sensor_m3, na.rm = TRUE),
+    percent_diff = ((mean_vol_tree - mean_vol_sensor) / mean_vol_sensor) * 100
+  ) %>%
+  mutate(zone = "PSZ", tree_id = "2")
+
+PSZ_tree3_abla_vol <- persb_col_tree3_abla %>%
+  summarize(
+    mean_vol_tree = mean(vol_tree_m3, na.rm = TRUE), 
+    mean_vol_sensor = mean(vol_sensor_m3, na.rm = TRUE),
+    percent_diff = ((mean_vol_tree - mean_vol_sensor) / mean_vol_sensor) * 100
+  ) %>%
+  mutate(zone = "PSZ", tree_id = "3")
+
+PSZ_tree4_abla_vol <- persb_col_tree4_abla %>%
+  summarize(
+    mean_vol_tree = mean(vol_tree_m3, na.rm = TRUE), 
+    mean_vol_sensor = mean(vol_sensor_m3, na.rm = TRUE),
+    percent_diff = ((mean_vol_tree - mean_vol_sensor) / mean_vol_sensor) * 100
+  ) %>%
+  mutate(zone = "PSZ", tree_id = "4")
+
+PSZ_snowvol_abla <- rbind(PSZ_tree1_abla_vol, PSZ_tree2_abla_vol, PSZ_tree3_abla_vol, PSZ_tree4_abla_vol) %>%
+  select(tree_id, zone, everything())
+```
+
+```{r}
+TSZ_tree1_abla_vol <- transb_col_tree1_abla %>%
+  summarize(
+    mean_vol_tree = mean(vol_tree_m3, na.rm = TRUE), 
+    mean_vol_sensor = mean(vol_sensor_m3, na.rm = TRUE),
+    percent_diff = ((mean_vol_tree - mean_vol_sensor) / mean_vol_sensor) * 100
+  ) %>%
+  mutate(zone = "TSZ", tree_id = "1")
+
+TSZ_tree2_abla_vol <- transb_col_tree2_abla %>%
+  summarize(
+    mean_vol_tree = mean(vol_tree_m3, na.rm = TRUE), 
+    mean_vol_sensor = mean(vol_sensor_m3, na.rm = TRUE),
+    percent_diff = ((mean_vol_tree - mean_vol_sensor) / mean_vol_sensor) * 100
+  ) %>%
+  mutate(zone = "TSZ", tree_id = "2")
+
+TSZ_tree3_abla_vol <- transb_col_tree3_abla %>%
+  summarize(
+    mean_vol_tree = mean(vol_tree_m3, na.rm = TRUE), 
+    mean_vol_sensor = mean(vol_sensor_m3, na.rm = TRUE),
+    percent_diff = ((mean_vol_tree - mean_vol_sensor) / mean_vol_sensor) * 100
+  ) %>%
+  mutate(zone = "TSZ", tree_id = "3")
+
+TSZ_tree4_abla_vol <- transb_col_tree4_abla %>%
+  summarize(
+    mean_vol_tree = mean(vol_tree_m3, na.rm = TRUE), 
+    mean_vol_sensor = mean(vol_sensor_m3, na.rm = TRUE),
+    percent_diff = ((mean_vol_tree - mean_vol_sensor) / mean_vol_sensor) * 100
+  ) %>%
+  mutate(zone = "TSZ", tree_id = "4")
+
+TSZ_snowvol_abla <- rbind(TSZ_tree1_abla_vol, TSZ_tree2_abla_vol, TSZ_tree3_abla_vol, TSZ_tree4_abla_vol) %>%
+  select(tree_id, zone, everything())
+```
+
+```{r}
+mean_snowvol_abla <- rbind(PSZ_snowvol_abla, TSZ_snowvol_abla) %>%
+  group_by(zone) %>%
+  summarize(mean_vol_tree = mean(mean_vol_tree), 
+            mean_vol_sensor = mean(mean_vol_sensor), 
+            mean_percent_diff = mean(percent_diff))
+```
+
+\
+Tree Diam vs Well Diam V2
 
 Correlating full seasons tree vs well diameters
 
@@ -7885,6 +8170,12 @@ ggsave("comb_fullseason_SWE.png", height = 5, width = 8, plot = comb_fullseason_
 ```
 
 ### Stats
+
+Daily Change in Volume between tree and open region
+
+```{r}
+  
+```
 
 Differeced stats
 
