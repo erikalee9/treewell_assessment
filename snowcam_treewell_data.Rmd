@@ -6595,7 +6595,7 @@ comb_daily_NRTree
 ggsave("comb_daily_NRTree.png", plot = comb_daily_NRTree, dpi = 600)
 ```
 
-##   New Snow Depth vs Diameter Scatterplots
+## New Snow Depth vs Diameter Scatterplots
 
 PSZ
 
@@ -7672,7 +7672,7 @@ mean_snowvol_meltrate <- rbind(PSZ_snowvol_meltrate, TSZ_snowvol_meltrate) %>%
             mean_percent_diff = mean(percent_diff))
 ```
 
-#### Accum Vol Difference 
+#### Accum Vol Difference
 
 ```{r}
 PSZ_tree1_accu_vol <- persb_col_tree1_accu %>%
@@ -8173,8 +8173,7 @@ ggsave("comb_fullseason_SWE.png", height = 5, width = 8, plot = comb_fullseason_
 
 Daily Change in Volume between tree and open region
 
-```{r}
-  
+```{}
 ```
 
 Differeced stats
@@ -8226,6 +8225,107 @@ TSZ_SWE_MRD_MAD_stats <- SWE_fullseason_vol_transb %>%
     min_rel_diff = min(abs(SWE_sensor_kgm3 - SWE_tree_kgm3) / ((SWE_sensor_kgm3 + SWE_tree_kgm3) / 2) * 100, na.rm = TRUE),
     max_avg_diff = max(abs(SWE_sensor_kgm3 - SWE_tree_kgm3), na.rm = TRUE),
     max_rel_diff = max(abs(SWE_sensor_kgm3 - SWE_tree_kgm3) / ((SWE_sensor_kgm3 + SWE_tree_kgm3) / 2) * 100, na.rm = TRUE)
+  )
+```
+
+#### Accu/Abla SWE Differences
+
+\*\*Using these for thesis!
+
+PSZ
+
+```{r}
+PSZ_tree1_MAD_SWE <- persb_SWE_tree1 %>%
+  rename(snow_phase = "season") %>%
+  group_by(snow_phase) %>%
+  summarize(
+    mean_SWE_tree = mean(SWE_tree_kgm3, na.rm = TRUE), 
+    mean_SWE_sensor = mean(SWE_sensor_kgm3, na.rm = TRUE),
+    percent_diff = ((mean_SWE_tree - mean_SWE_sensor) / mean_SWE_sensor) * 100
+  )
+
+PSZ_tree2_MAD_SWE <- persb_SWE_tree2 %>%
+  rename(snow_phase = "season") %>%
+  group_by(snow_phase) %>%
+  summarize(
+    mean_SWE_tree = mean(SWE_tree_kgm3, na.rm = TRUE), 
+    mean_SWE_sensor = mean(SWE_sensor_kgm3, na.rm = TRUE),
+    percent_diff = ((mean_SWE_tree - mean_SWE_sensor) / mean_SWE_sensor) * 100
+  )
+
+PSZ_tree3_MAD_SWE <- persb_SWE_tree3 %>%
+  rename(snow_phase = "season") %>%
+  group_by(snow_phase) %>%
+  summarize(
+    mean_SWE_tree = mean(SWE_tree_kgm3, na.rm = TRUE), 
+    mean_SWE_sensor = mean(SWE_sensor_kgm3, na.rm = TRUE),
+    percent_diff = ((mean_SWE_tree - mean_SWE_sensor) / mean_SWE_sensor) * 100
+  )
+
+PSZ_tree4_MAD_SWE <- persb_SWE_tree4 %>%
+  rename(snow_phase = "season") %>%
+  group_by(snow_phase) %>%
+  summarize(
+    mean_SWE_tree = mean(SWE_tree_kgm3, na.rm = TRUE), 
+    mean_SWE_sensor = mean(SWE_sensor_kgm3, na.rm = TRUE),
+    percent_diff = ((mean_SWE_tree - mean_SWE_sensor) / mean_SWE_sensor) * 100
+  )
+```
+
+TSZ
+
+```{r}
+
+TSZ_tree1_MAD_SWE <- transb_SWE_tree1 %>%
+  rename(snow_phase = "season") %>%
+  group_by(snow_phase) %>%
+  summarize(
+    mean_SWE_tree = mean(SWE_tree_kgm3, na.rm = TRUE), 
+    mean_SWE_sensor = mean(SWE_sensor_kgm3, na.rm = TRUE),
+    percent_diff = ((mean_SWE_tree - mean_SWE_sensor) / mean_SWE_sensor) * 100
+  )
+
+TSZ_tree2_MAD_SWE <- transb_SWE_tree2 %>%
+  rename(snow_phase = "season") %>%
+  group_by(snow_phase) %>%
+  summarize(
+    mean_SWE_tree = mean(SWE_tree_kgm3, na.rm = TRUE), 
+    mean_SWE_sensor = mean(SWE_sensor_kgm3, na.rm = TRUE),
+    percent_diff = ((mean_SWE_tree - mean_SWE_sensor) / mean_SWE_sensor) * 100
+  )
+
+TSZ_tree3_MAD_SWE <- transb_SWE_tree3 %>%
+  rename(snow_phase = "season") %>%
+  group_by(snow_phase) %>%
+  summarize(
+    mean_SWE_tree = mean(SWE_tree_kgm3, na.rm = TRUE), 
+    mean_SWE_sensor = mean(SWE_sensor_kgm3, na.rm = TRUE),
+    percent_diff = ((mean_SWE_tree - mean_SWE_sensor) / mean_SWE_sensor) * 100
+  )
+
+TSZ_tree4_MAD_SWE <- transb_SWE_tree4 %>%
+  rename(snow_phase = "season") %>%
+  group_by(snow_phase) %>%
+  summarize(
+    mean_SWE_tree = mean(SWE_tree_kgm3, na.rm = TRUE), 
+    mean_SWE_sensor = mean(SWE_sensor_kgm3, na.rm = TRUE),
+    percent_diff = ((mean_SWE_tree - mean_SWE_sensor) / mean_SWE_sensor) * 100
+  )
+```
+
+#### Melt Rate Comparison (SWE)
+
+PSZ
+
+```{r}
+
+PSZ_tree1_SWEmeltrate <- persb_SWE_tree1 %>%
+  arrange(date) %>%  # Ensure data is sorted by date
+  mutate(daily_SWE_change_tree = SWE_tree_kgm3 - lag(SWE_tree_kgm3), 
+         daily_SWE_change_sensor = SWE_sensor_kgm3 - lag(SWE_sensor_kgm3)) %>%
+  filter(!is.na(daily_SWE_change_tree) & !is.na(daily_SWE_change_sensor)) %>%
+  summarize(avg_SWEmelt_rate_tree = mean(daily_SWE_change_tree, na.rm = TRUE), 
+            avg_SWEmelt_rate_sensor = mean(daily_SWE_change_sensor, na.rm = TRUE), percent_diff = ((avg_SWEmelt_rate_tree - avg_SWEmelt_rate_sensor) / avg_SWEmelt_rate_sensor) * 100
   )
 ```
 
