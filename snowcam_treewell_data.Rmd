@@ -5278,6 +5278,18 @@ V2 - by accumulation and ablation season
 Tree Temp
 
 ```{r}
+persb_totalcumTreeTemp_corr_plot_accu <- persb_totalcumTreeTemp_corr_plot_accu +
+  theme(plot.margin = margin(10, 15, 10, 10))  # top, right, bottom, left
+
+persb_totalcumTreeTemp_corr_plot_accu
+
+transb_totalcumTreeTemp_corr_plot_accu <- transb_totalcumTreeTemp_corr_plot_accu +
+  theme(plot.margin = margin(10, 15, 10, 10))
+
+transb_totalcumTreeTemp_corr_plot_accu
+```
+
+```{r}
 comb_totalcumTreeTemp_accu <- ggarrange(persb_totalcumTreeTemp_corr_plot_accu, transb_totalcumTreeTemp_corr_plot_accu, nrow = 2, ncol = 1, align = "hv", common.legend = TRUE, legend = "bottom")
 
 comb_totalcumTreeTemp_accu
@@ -5285,6 +5297,18 @@ comb_totalcumTreeTemp_accu
 
 ```{r}
 ggsave("comb_totalcumTreeTemp_accu.png", width = 7.5, height = 6, plot = comb_totalcumTreeTemp_accu, dpi = 600)
+```
+
+```{r}
+persb_totalcumTreeTemp_corr_plot_abla <- persb_totalcumTreeTemp_corr_plot_abla +
+  theme(plot.margin = margin(10, 15, 10, 10))  # top, right, bottom, left
+
+persb_totalcumTreeTemp_corr_plot_abla
+
+transb_totalcumTreeTemp_corr_plot_abla <- transb_totalcumTreeTemp_corr_plot_abla +
+  theme(plot.margin = margin(10, 15, 10, 10))
+
+transb_totalcumTreeTemp_corr_plot_abla
 ```
 
 ```{r}
@@ -8173,7 +8197,7 @@ ggsave("comb_fullseason_SWE.png", height = 5, width = 8, plot = comb_fullseason_
 
 Daily Change in Volume between tree and open region
 
-```{}
+```         
 ```
 
 Differeced stats
@@ -8315,15 +8339,17 @@ TSZ_tree4_MAD_SWE <- transb_SWE_tree4 %>%
 
 #### Melt Rate Comparison (SWE)
 
+\*\* not using this because it does not make sensor to calculate melt rate from SWE.
+
 PSZ
 
 ```{r}
-
 PSZ_tree1_SWEmeltrate <- persb_SWE_tree1 %>%
   arrange(date) %>%  # Ensure data is sorted by date
   mutate(daily_SWE_change_tree = SWE_tree_kgm3 - lag(SWE_tree_kgm3), 
          daily_SWE_change_sensor = SWE_sensor_kgm3 - lag(SWE_sensor_kgm3)) %>%
   filter(!is.na(daily_SWE_change_tree) & !is.na(daily_SWE_change_sensor)) %>%
+  group_by(season) %>%
   summarize(avg_SWEmelt_rate_tree = mean(daily_SWE_change_tree, na.rm = TRUE), 
             avg_SWEmelt_rate_sensor = mean(daily_SWE_change_sensor, na.rm = TRUE), percent_diff = ((avg_SWEmelt_rate_tree - avg_SWEmelt_rate_sensor) / avg_SWEmelt_rate_sensor) * 100
   )
@@ -8551,12 +8577,12 @@ TSZ
 
 ```{r}
 comb_transb_treewell_diam_abla_V2 <- long_transb_treewell_diams_fullseason_V2 %>%
-  filter(date >= "2024-04-02" & date <= "2024-04-12") %>%
+  filter(date >= "2024-04-06" & date <= "2024-04-25") %>%
   mutate(tree_diam_m = tree_diam/100, well_diam_m = well_diam/100, welldiam_minustree_m = well_diam_m-tree_diam_m)
 
 t_treewelldiam_camera_results_V2 <- comb_transb_treewell_diam_abla_V2 %>%
   drop_na(welldiam_minustree_m, tree_diam_m) %>%
-  group_by(date) %>%
+  group_by(date, tree_id) %>%
   filter(n() >= 2) %>%  # Ensure at least 2 observations per group
   summarize(
     cor_test = list(tryCatch(cor.test(welldiam_minustree_m, tree_diam_m, use = "complete.obs"), 
@@ -8619,4 +8645,384 @@ comb_snowcam_treevswell_corr_abla_V2
 
 ```{r}
 ggsave("comb_snowcam_treevswell_corr_abla_appendix_V2.png", height = 10, width = 7.5, plot = comb_snowcam_treevswell_corr_abla_V2, dpi = 600)
+```
+
+### Subtracting Tree Diam from Well Diam for snow cam data, by tree ID
+
+PSZ
+
+```{r}
+tree1_persb_treevswelldiam_V2 <- comb_persb_treewell_diam_fullseason %>%
+  filter(date >= "2024-05-06", tree_id == "1") %>%
+  mutate(tree_diam_m = tree_diam/100, well_diam_m = well_diam/100, welldiam_minustree_m = well_diam_m-tree_diam_m) %>%
+  drop_na()
+
+tree1_persb_treevswelldiam_corr_results_V2 <- tree1_persb_treevswelldiam_V2 %>%
+  summarize(
+    cor_test = list(tryCatch(cor.test(welldiam_minustree_m, tree_diam_m, use = "complete.obs"), 
+                             error = function(e) return(NA))), 
+    .groups = "drop"
+  ) %>%
+  mutate(
+    cor_coeff = map_dbl(cor_test, ~ .x$estimate),  # Extract correlation coefficient (r)
+    R2 = cor_coeff^2,  # Compute R²
+    p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
+    conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
+    conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
+    p_label = ifelse(p_value < 0.05, "p-value < 0.05", "p-value ≥ 0.05"),  # Conditional p-value label
+    R2_label = paste0("r = ", formatC(cor_coeff, format = "f", digits = 2), 
+                      "\nR² = ", formatC(R2, format = "f", digits = 2), 
+                      "\n", p_label)  # Ensure two decimal places
+  )
+```
+
+```{r}
+tree2_persb_treevswelldiam_V2 <- comb_persb_treewell_diam_fullseason %>%
+  filter(date >= "2024-05-06", tree_id == "2") %>%
+  mutate(tree_diam_m = tree_diam/100, well_diam_m = well_diam/100, welldiam_minustree_m = well_diam_m-tree_diam_m) %>%
+  drop_na()
+
+tree2_persb_treevswelldiam_corr_results_V2 <- tree2_persb_treevswelldiam_V2 %>%
+  summarize(
+    cor_test = list(tryCatch(cor.test(welldiam_minustree_m, tree_diam_m, use = "complete.obs"), 
+                             error = function(e) return(NA))), 
+    .groups = "drop"
+  ) %>%
+  mutate(
+    cor_coeff = map_dbl(cor_test, ~ .x$estimate),  # Extract correlation coefficient (r)
+    R2 = cor_coeff^2,  # Compute R²
+    p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
+    conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
+    conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
+    p_label = ifelse(p_value < 0.05, "p-value < 0.05", "p-value ≥ 0.05"),  # Conditional p-value label
+    R2_label = paste0("r = ", formatC(cor_coeff, format = "f", digits = 2), 
+                      "\nR² = ", formatC(R2, format = "f", digits = 2), 
+                      "\n", p_label)  # Ensure two decimal places
+  )
+```
+
+```{r}
+tree3_persb_treevswelldiam_V2 <- comb_persb_treewell_diam_fullseason %>%
+  filter(date >= "2024-05-06", tree_id == "3") %>%
+  mutate(tree_diam_m = tree_diam/100, well_diam_m = well_diam/100, welldiam_minustree_m = well_diam_m-tree_diam_m) %>%
+  drop_na()
+
+tree3_persb_treevswelldiam_corr_results_V2 <- tree3_persb_treevswelldiam_V2 %>%
+  summarize(
+    cor_test = list(tryCatch(cor.test(welldiam_minustree_m, tree_diam_m, use = "complete.obs"), 
+                             error = function(e) return(NA))), 
+    .groups = "drop"
+  ) %>%
+  mutate(
+    cor_coeff = map_dbl(cor_test, ~ .x$estimate),  # Extract correlation coefficient (r)
+    R2 = cor_coeff^2,  # Compute R²
+    p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
+    conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
+    conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
+    p_label = ifelse(p_value < 0.05, "p-value < 0.05", "p-value ≥ 0.05"),  # Conditional p-value label
+    R2_label = paste0("r = ", formatC(cor_coeff, format = "f", digits = 2), 
+                      "\nR² = ", formatC(R2, format = "f", digits = 2), 
+                      "\n", p_label)  # Ensure two decimal places
+  )
+```
+
+```{r}
+tree4_persb_treevswelldiam_V2 <- comb_persb_treewell_diam_fullseason %>%
+  filter(date >= "2024-05-06", tree_id == "4") %>%
+  mutate(tree_diam_m = tree_diam/100, well_diam_m = well_diam/100, welldiam_minustree_m = well_diam_m-tree_diam_m) %>%
+  drop_na()
+
+tree4_persb_treevswelldiam_corr_results_V2 <- tree4_persb_treevswelldiam_V2 %>%
+  summarize(
+    cor_test = list(tryCatch(cor.test(welldiam_minustree_m, tree_diam_m, use = "complete.obs"), 
+                             error = function(e) return(NA))), 
+    .groups = "drop"
+  ) %>%
+  mutate(
+    cor_coeff = map_dbl(cor_test, ~ .x$estimate),  # Extract correlation coefficient (r)
+    R2 = cor_coeff^2,  # Compute R²
+    p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
+    conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
+    conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
+    p_label = ifelse(p_value < 0.05, "p-value < 0.05", "p-value ≥ 0.05"),  # Conditional p-value label
+    R2_label = paste0("r = ", formatC(cor_coeff, format = "f", digits = 2), 
+                      "\nR² = ", formatC(R2, format = "f", digits = 2), 
+                      "\n", p_label)  # Ensure two decimal places
+  )
+```
+
+TSZ
+
+```{r}
+tree1_treevswelldiam_V2 <- long_transb_treewell_diams_fullseason_V2 %>%
+  filter(date >= "2024-04-06" & date <= "2024-04-25") %>%
+  mutate(tree_diam_m = tree_diam/100, well_diam_m = well_diam/100, welldiam_minustree_m = well_diam_m-tree_diam_m) %>%
+  filter(tree_id == "1") %>%
+  drop_na()
+
+tree1_treevswelldiam_corr_results_V2 <- tree1_treevswelldiam_V2 %>%
+  drop_na(welldiam_minustree_m, tree_diam_m) %>%
+  summarize(
+    cor_test = list(tryCatch(cor.test(welldiam_minustree_m, tree_diam_m, use = "complete.obs"), 
+                             error = function(e) return(NA))), 
+    .groups = "drop"
+  ) %>%
+   mutate(
+    cor_coeff = map_dbl(cor_test, ~ .x$estimate),  # Extract correlation coefficient (r)
+    R2 = cor_coeff^2,  # Compute R²
+    p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
+    conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
+    conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
+    p_label = ifelse(p_value < 0.05, "p-value < 0.05", "p-value ≥ 0.05"),  # Conditional p-value label
+    R2_label = paste0("r = ", formatC(cor_coeff, format = "f", digits = 2), 
+                      "\nR² = ", formatC(R2, format = "f", digits = 2), 
+                      "\n", p_label)  # Ensure two decimal places
+  )
+```
+
+```{r}
+tree2_treevswelldiam_V2 <- long_transb_treewell_diams_fullseason_V2 %>%
+  filter(date >= "2024-04-06" & date <= "2024-04-25") %>%
+  mutate(tree_diam_m = tree_diam/100, well_diam_m = well_diam/100, welldiam_minustree_m = well_diam_m-tree_diam_m) %>%
+  filter(tree_id == "2") %>%
+  drop_na()
+
+tree2_treevswelldiam_corr_results_V2 <- tree2_treevswelldiam_V2 %>%
+  drop_na(welldiam_minustree_m, tree_diam_m) %>%
+  summarize(
+    cor_test = list(tryCatch(cor.test(welldiam_minustree_m, tree_diam_m, use = "complete.obs"), 
+                             error = function(e) return(NA))), 
+    .groups = "drop"
+  ) %>%
+   mutate(
+    cor_coeff = map_dbl(cor_test, ~ .x$estimate),  # Extract correlation coefficient (r)
+    R2 = cor_coeff^2,  # Compute R²
+    p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
+    conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
+    conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
+    p_label = ifelse(p_value < 0.05, "p-value < 0.05", "p-value ≥ 0.05"),  # Conditional p-value label
+    R2_label = paste0("r = ", formatC(cor_coeff, format = "f", digits = 2), 
+                      "\nR² = ", formatC(R2, format = "f", digits = 2), 
+                      "\n", p_label)  # Ensure two decimal places
+  )
+```
+
+```{r}
+tree3_treevswelldiam_V2 <- long_transb_treewell_diams_fullseason_V2 %>%
+  filter(date >= "2024-04-06" & date <= "2024-04-25") %>%
+  mutate(tree_diam_m = tree_diam/100, well_diam_m = well_diam/100, welldiam_minustree_m = well_diam_m-tree_diam_m) %>%
+  filter(tree_id == "3") %>%
+  drop_na()
+
+tree3_treevswelldiam_corr_results_V2 <- tree3_treevswelldiam_V2 %>%
+  drop_na(welldiam_minustree_m, tree_diam_m) %>%
+  summarize(
+    cor_test = list(tryCatch(cor.test(welldiam_minustree_m, tree_diam_m, use = "complete.obs"), 
+                             error = function(e) return(NA))), 
+    .groups = "drop"
+  ) %>%
+   mutate(
+    cor_coeff = map_dbl(cor_test, ~ .x$estimate),  # Extract correlation coefficient (r)
+    R2 = cor_coeff^2,  # Compute R²
+    p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
+    conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
+    conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
+    p_label = ifelse(p_value < 0.05, "p-value < 0.05", "p-value ≥ 0.05"),  # Conditional p-value label
+    R2_label = paste0("r = ", formatC(cor_coeff, format = "f", digits = 2), 
+                      "\nR² = ", formatC(R2, format = "f", digits = 2), 
+                      "\n", p_label)  # Ensure two decimal places
+  )
+```
+
+```{r}
+tree4_treevswelldiam_V2 <- long_transb_treewell_diams_fullseason_V2 %>%
+  filter(date >= "2024-04-06" & date <= "2024-04-25") %>%
+  mutate(tree_diam_m = tree_diam/100, well_diam_m = well_diam/100, welldiam_minustree_m = well_diam_m-tree_diam_m) %>%
+  filter(tree_id == "4") %>%
+  drop_na()
+
+tree4_treevswelldiam_corr_results_V2 <- tree4_treevswelldiam_V2 %>%
+  drop_na(welldiam_minustree_m, tree_diam_m) %>%
+  summarize(
+    cor_test = list(tryCatch(cor.test(welldiam_minustree_m, tree_diam_m, use = "complete.obs"), 
+                             error = function(e) return(NA))), 
+    .groups = "drop"
+  ) %>%
+   mutate(
+    cor_coeff = map_dbl(cor_test, ~ .x$estimate),  # Extract correlation coefficient (r)
+    R2 = cor_coeff^2,  # Compute R²
+    p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
+    conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
+    conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
+    p_label = ifelse(p_value < 0.05, "p-value < 0.05", "p-value ≥ 0.05"),  # Conditional p-value label
+    R2_label = paste0("r = ", formatC(cor_coeff, format = "f", digits = 2), 
+                      "\nR² = ", formatC(R2, format = "f", digits = 2), 
+                      "\n", p_label)  # Ensure two decimal places
+  )
+```
+
+NOT Subtracting, for comparison!
+
+PSZ
+
+```{r}
+tree1_persb_treevswelldiam_corr_results_V1 <- tree1_persb_treevswelldiam_V2 %>%
+  summarize(
+    cor_test = list(tryCatch(cor.test(well_diam_m, tree_diam_m, use = "complete.obs"), 
+                             error = function(e) return(NA))), 
+    .groups = "drop"
+  ) %>%
+  mutate(
+    cor_coeff = map_dbl(cor_test, ~ .x$estimate),  # Extract correlation coefficient (r)
+    R2 = cor_coeff^2,  # Compute R²
+    p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
+    conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
+    conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
+    p_label = ifelse(p_value < 0.05, "p-value < 0.05", "p-value ≥ 0.05"),  # Conditional p-value label
+    R2_label = paste0("r = ", formatC(cor_coeff, format = "f", digits = 2), 
+                      "\nR² = ", formatC(R2, format = "f", digits = 2), 
+                      "\n", p_label)  # Ensure two decimal places
+  )
+```
+
+```{r}
+tree2_persb_treevswelldiam_corr_results_V1 <- tree2_persb_treevswelldiam_V2 %>%
+  summarize(
+    cor_test = list(tryCatch(cor.test(well_diam_m, tree_diam_m, use = "complete.obs"), 
+                             error = function(e) return(NA))), 
+    .groups = "drop"
+  ) %>%
+  mutate(
+    cor_coeff = map_dbl(cor_test, ~ .x$estimate),  # Extract correlation coefficient (r)
+    R2 = cor_coeff^2,  # Compute R²
+    p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
+    conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
+    conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
+    p_label = ifelse(p_value < 0.05, "p-value < 0.05", "p-value ≥ 0.05"),  # Conditional p-value label
+    R2_label = paste0("r = ", formatC(cor_coeff, format = "f", digits = 2), 
+                      "\nR² = ", formatC(R2, format = "f", digits = 2), 
+                      "\n", p_label)  # Ensure two decimal places
+  )
+```
+
+```{r}
+tree3_persb_treevswelldiam_corr_results_V1 <- tree3_persb_treevswelldiam_V2 %>%
+  summarize(
+    cor_test = list(tryCatch(cor.test(well_diam_m, tree_diam_m, use = "complete.obs"), 
+                             error = function(e) return(NA))), 
+    .groups = "drop"
+  ) %>%
+  mutate(
+    cor_coeff = map_dbl(cor_test, ~ .x$estimate),  # Extract correlation coefficient (r)
+    R2 = cor_coeff^2,  # Compute R²
+    p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
+    conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
+    conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
+    p_label = ifelse(p_value < 0.05, "p-value < 0.05", "p-value ≥ 0.05"),  # Conditional p-value label
+    R2_label = paste0("r = ", formatC(cor_coeff, format = "f", digits = 2), 
+                      "\nR² = ", formatC(R2, format = "f", digits = 2), 
+                      "\n", p_label)  # Ensure two decimal places
+  )
+```
+
+```{r}
+tree4_persb_treevswelldiam_corr_results_V1 <- tree4_persb_treevswelldiam_V2 %>%
+  summarize(
+    cor_test = list(tryCatch(cor.test(well_diam_m, tree_diam_m, use = "complete.obs"), 
+                             error = function(e) return(NA))), 
+    .groups = "drop"
+  ) %>%
+  mutate(
+    cor_coeff = map_dbl(cor_test, ~ .x$estimate),  # Extract correlation coefficient (r)
+    R2 = cor_coeff^2,  # Compute R²
+    p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
+    conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
+    conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
+    p_label = ifelse(p_value < 0.05, "p-value < 0.05", "p-value ≥ 0.05"),  # Conditional p-value label
+    R2_label = paste0("r = ", formatC(cor_coeff, format = "f", digits = 2), 
+                      "\nR² = ", formatC(R2, format = "f", digits = 2), 
+                      "\n", p_label)  # Ensure two decimal places
+  )
+```
+
+TSZ
+
+```{r}
+tree1_transb_treevswelldiam_corr_results_V1<- tree1_treevswelldiam_V2 %>%
+  summarize(
+    cor_test = list(tryCatch(cor.test(well_diam_m, tree_diam_m, use = "complete.obs"), 
+                             error = function(e) return(NA))), 
+    .groups = "drop"
+  ) %>%
+   mutate(
+    cor_coeff = map_dbl(cor_test, ~ .x$estimate),  # Extract correlation coefficient (r)
+    R2 = cor_coeff^2,  # Compute R²
+    p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
+    conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
+    conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
+    p_label = ifelse(p_value < 0.05, "p-value < 0.05", "p-value ≥ 0.05"),  # Conditional p-value label
+    R2_label = paste0("r = ", formatC(cor_coeff, format = "f", digits = 2), 
+                      "\nR² = ", formatC(R2, format = "f", digits = 2), 
+                      "\n", p_label)  # Ensure two decimal places
+  )
+```
+
+```{r}
+tree2_transb_treevswelldiam_corr_results_V1<- tree2_treevswelldiam_V2 %>%
+  summarize(
+    cor_test = list(tryCatch(cor.test(well_diam_m, tree_diam_m, use = "complete.obs"), 
+                             error = function(e) return(NA))), 
+    .groups = "drop"
+  ) %>%
+   mutate(
+    cor_coeff = map_dbl(cor_test, ~ .x$estimate),  # Extract correlation coefficient (r)
+    R2 = cor_coeff^2,  # Compute R²
+    p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
+    conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
+    conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
+    p_label = ifelse(p_value < 0.05, "p-value < 0.05", "p-value ≥ 0.05"),  # Conditional p-value label
+    R2_label = paste0("r = ", formatC(cor_coeff, format = "f", digits = 2), 
+                      "\nR² = ", formatC(R2, format = "f", digits = 2), 
+                      "\n", p_label)  # Ensure two decimal places
+  )
+```
+
+```{r}
+tree3_transb_treevswelldiam_corr_results_V1<- tree3_treevswelldiam_V2 %>%
+  summarize(
+    cor_test = list(tryCatch(cor.test(well_diam_m, tree_diam_m, use = "complete.obs"), 
+                             error = function(e) return(NA))), 
+    .groups = "drop"
+  ) %>%
+   mutate(
+    cor_coeff = map_dbl(cor_test, ~ .x$estimate),  # Extract correlation coefficient (r)
+    R2 = cor_coeff^2,  # Compute R²
+    p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
+    conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
+    conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
+    p_label = ifelse(p_value < 0.05, "p-value < 0.05", "p-value ≥ 0.05"),  # Conditional p-value label
+    R2_label = paste0("r = ", formatC(cor_coeff, format = "f", digits = 2), 
+                      "\nR² = ", formatC(R2, format = "f", digits = 2), 
+                      "\n", p_label)  # Ensure two decimal places
+  )
+```
+
+```{r}
+tree4_transb_treevswelldiam_corr_results_V1<- tree4_treevswelldiam_V2 %>%
+  summarize(
+    cor_test = list(tryCatch(cor.test(well_diam_m, tree_diam_m, use = "complete.obs"), 
+                             error = function(e) return(NA))), 
+    .groups = "drop"
+  ) %>%
+   mutate(
+    cor_coeff = map_dbl(cor_test, ~ .x$estimate),  # Extract correlation coefficient (r)
+    R2 = cor_coeff^2,  # Compute R²
+    p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
+    conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
+    conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
+    p_label = ifelse(p_value < 0.05, "p-value < 0.05", "p-value ≥ 0.05"),  # Conditional p-value label
+    R2_label = paste0("r = ", formatC(cor_coeff, format = "f", digits = 2), 
+                      "\nR² = ", formatC(R2, format = "f", digits = 2), 
+                      "\n", p_label)  # Ensure two decimal places
+  )
 ```
