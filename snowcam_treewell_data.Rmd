@@ -8240,18 +8240,17 @@ Adding snow density to volume dataframe and calculating SW
 ```{r}
 SWE_fullseason_vol_persb <- fullseason_vol_persb %>%
   inner_join(persb_meanSWE, by = c("date", "tree_id")) %>%
-  mutate(SWE_sensor_kgm3 = vol_sensor_m3*mean_snowdensity, SWE_tree_kgm3 = vol_tree_m3*mean_snowdensity) %>%
+  mutate(SWE_sensor_kgm3 = vol_sensor_m3*mean_snowdensity, 
+         SWE_tree_kgm3 = vol_tree_m3*mean_snowdensity) %>%
   mutate(SWE_sensor_cm = SWE_sensor_kgm3 / 1000 * 100, 
-         SWE_tree_cm = SWE_tree_kgm3 / 1000 * 100)  %>%
-  mutate(SWE_tree_cm_smooth = rollmean(SWE_tree_cm, k = 10, fill = NA, align = "right"))
+         SWE_tree_cm = SWE_tree_kgm3 / 1000 * 100)
 
 SWE_fullseason_vol_transb <- fullseason_vol_transb %>%
   inner_join(transb_meanSWE, by = c("date", "tree_id")) %>%
   mutate(SWE_sensor_kgm3 = vol_sensor_m3*mean_snowdensity, 
          SWE_tree_kgm3 = vol_tree_m3*mean_snowdensity) %>%
   mutate(SWE_sensor_cm = SWE_sensor_kgm3 / 1000 * 100, 
-         SWE_tree_cm = SWE_tree_kgm3 / 1000 * 100) %>%
-  mutate(SWE_tree_cm_smooth = rollmean(SWE_tree_cm, k = 10, fill = NA, align = "right"))
+         SWE_tree_cm = SWE_tree_kgm3 / 1000 * 100)
 
 ```
 
@@ -8265,10 +8264,9 @@ SWEonly_fullseason_vol_persb <- vol_persb_daily_wx_fullseason %>%
   mutate(SWE_sensor_cm_smooth = 
            rollmean(SWE_sensor_cm, k = 10, fill = NA, align = "right")) %>%
   mutate(
-    SWE_sensor_cm = if_else(row_number() == n(), 0, SWE_sensor_cm),
-    SWE_sensor_cm_smooth = if_else(row_number() == n(), 0, SWE_sensor_cm_smooth)
+    SWE_sensor_cm = if_else(date == as.Date("2024-05-31"), 0, SWE_sensor_cm),
+    SWE_sensor_cm_smooth = if_else(date == as.Date("2024-05-31"), 0, SWE_sensor_cm_smooth)
   )
-  
 
 SWEonly_fullseason_vol_transb <- vol_transb_daily_wx_fullseason  %>%
   inner_join(transb_meanSWE, by = c("date")) %>%
@@ -8279,8 +8277,8 @@ SWEonly_fullseason_vol_transb <- vol_transb_daily_wx_fullseason  %>%
   mutate(SWE_sensor_cm_smooth = 
            rollmean(SWE_sensor_cm, k = 10, fill = NA, align = "right")) %>%
   mutate(
-    SWE_sensor_cm = if_else(row_number() == n(), 0, SWE_sensor_cm),
-    SWE_sensor_cm_smooth = if_else(row_number() == n(), 0, SWE_sensor_cm_smooth)
+    SWE_sensor_cm = if_else(date == as.Date("2024-05-12"), 0, SWE_sensor_cm),
+    SWE_sensor_cm_smooth = if_else(date == as.Date("2024-05-12"), 0, SWE_sensor_cm_smooth)
   )
 ```
 
@@ -8289,27 +8287,31 @@ SWEonly_fullseason_vol_transb <- vol_transb_daily_wx_fullseason  %>%
 ```{r}
 persb_SWE_tree1 <- SWE_fullseason_vol_persb %>%
   filter(tree_id == "1", vol_tree_m3 >= 0) %>%
-  select(date, tree_id, vol_tree_cm3:last_col())
+  select(date, season, tree_id, vol_tree_cm3:last_col()) %>%
+  mutate(SWE_tree_cm_smooth = rollmean(SWE_tree_cm, k = 10, fill = NA, align = "right"))
   
 persb_SWE_tree2 <- SWE_fullseason_vol_persb %>%
   filter(tree_id == "2", vol_tree_m3 >= 0) %>%
-  select(date, tree_id, vol_tree_cm3:last_col()) %>%
+  select(date, season, tree_id, vol_tree_cm3:last_col()) %>%
+  mutate(SWE_tree_cm_smooth = rollmean(SWE_tree_cm, k = 10, fill = NA, align = "right")) %>%
   mutate(
-    SWE_tree_cm = if_else(row_number() == n(), 0, SWE_tree_cm),
-    SWE_tree_cm_smooth = if_else(row_number() == n(), 0, SWE_tree_cm_smooth)
+    SWE_tree_cm = if_else(date == as.Date("2024-05-23"), 0, SWE_tree_cm),
+    SWE_tree_cm_smooth = if_else(date == as.Date("2024-05-23"), 0, SWE_tree_cm_smooth)
   )
 
 persb_SWE_tree3 <- SWE_fullseason_vol_persb %>%
   filter(tree_id == "3", vol_tree_m3 >= 0) %>%
-  select(date, tree_id, vol_tree_cm3:last_col()) %>%
+  select(date, season, tree_id, vol_tree_cm3:last_col()) %>%
+  mutate(SWE_tree_cm_smooth = rollmean(SWE_tree_cm, k = 10, fill = NA, align = "right")) %>%
   mutate(
-    SWE_tree_cm = if_else(row_number() == n(), 0, SWE_tree_cm),
-    SWE_tree_cm_smooth = if_else(row_number() == n(), 0, SWE_tree_cm_smooth)
+    SWE_tree_cm = if_else(date == as.Date("2024-05-23"), 0, SWE_tree_cm),
+    SWE_tree_cm_smooth = if_else(date == as.Date("2024-05-23"), 0, SWE_tree_cm_smooth)
   )
 
 persb_SWE_tree4 <- SWE_fullseason_vol_persb %>%
   filter(tree_id == "4", vol_tree_m3 >= 0) %>%
-  select(date, tree_id, vol_tree_cm3:last_col())
+  select(date, season, tree_id, vol_tree_cm3:last_col()) %>%
+  mutate(SWE_tree_cm_smooth = rollmean(SWE_tree_cm, k = 10, fill = NA, align = "right"))
 ```
 
 ```{r}
@@ -8362,7 +8364,8 @@ persb_SWE_fullseason_lineplot
 ```{r}
 transb_SWE_tree1 <- SWE_fullseason_vol_transb %>%
   filter(tree_id == "1", vol_tree_m3 >= 0) %>%
-  select(date, tree_id, vol_tree_cm3:last_col()) %>%
+  select(date, season, tree_id, vol_tree_cm3:last_col()) %>%
+  mutate(SWE_tree_cm_smooth = rollmean(SWE_tree_cm, k = 10, fill = NA, align = "right")) %>%
   #forcing final row to zero... because SWE is calculated from volume of area and we stopped the volume calcs once they got almost to zero, I have to do this to get the lines to zero
   mutate(
     SWE_tree_cm = if_else(row_number() == n(), 0, SWE_tree_cm),
@@ -8371,7 +8374,8 @@ transb_SWE_tree1 <- SWE_fullseason_vol_transb %>%
   
 transb_SWE_tree2 <- SWE_fullseason_vol_transb %>%
   filter(tree_id == "2", vol_tree_m3 >= 0) %>%
-  select(date, tree_id, vol_tree_cm3:last_col()) %>%
+  select(date, season, tree_id, vol_tree_cm3:last_col()) %>%
+  mutate(SWE_tree_cm_smooth = rollmean(SWE_tree_cm, k = 10, fill = NA, align = "right")) %>%
   mutate(
     SWE_tree_cm = if_else(row_number() == n(), 0, SWE_tree_cm),
     SWE_tree_cm_smooth = if_else(row_number() == n(), 0, SWE_tree_cm_smooth)
@@ -8380,7 +8384,8 @@ transb_SWE_tree2 <- SWE_fullseason_vol_transb %>%
 
 transb_SWE_tree3 <- SWE_fullseason_vol_transb %>%
   filter(tree_id == "3", vol_tree_m3 >= 0) %>%
-  select(date, tree_id, vol_tree_cm3:last_col()) %>%
+  select(date, season, tree_id, vol_tree_cm3:last_col()) %>%
+  mutate(SWE_tree_cm_smooth = rollmean(SWE_tree_cm, k = 10, fill = NA, align = "right")) %>%
   mutate(
     SWE_tree_cm = if_else(row_number() == n(), 0, SWE_tree_cm),
     SWE_tree_cm_smooth = if_else(row_number() == n(), 0, SWE_tree_cm_smooth)
@@ -8389,7 +8394,8 @@ transb_SWE_tree3 <- SWE_fullseason_vol_transb %>%
 
 transb_SWE_tree4 <- SWE_fullseason_vol_transb %>%
   filter(tree_id == "4", vol_tree_m3 >= 0) %>%
-  select(date, tree_id, vol_tree_cm3:last_col()) %>%
+  select(date, season, tree_id, vol_tree_cm3:last_col()) %>%
+   mutate(SWE_tree_cm_smooth = rollmean(SWE_tree_cm, k = 10, fill = NA, align = "right")) %>%
   mutate(
     SWE_tree_cm = if_else(row_number() == n(), 0, SWE_tree_cm),
     SWE_tree_cm_smooth = if_else(row_number() == n(), 0, SWE_tree_cm_smooth)
@@ -8524,8 +8530,8 @@ PSZ_tree1_MAD_SWE <- persb_SWE_tree1 %>%
   rename(snow_phase = "season") %>%
   group_by(snow_phase) %>%
   summarize(
-    mean_SWE_tree = mean(SWE_tree_kgm3, na.rm = TRUE), 
-    mean_SWE_sensor = mean(SWE_sensor_kgm3, na.rm = TRUE),
+    mean_SWE_tree = mean(SWE_tree_cm, na.rm = TRUE), 
+    mean_SWE_sensor = mean(SWE_sensor_cm, na.rm = TRUE),
     percent_diff = ((mean_SWE_tree - mean_SWE_sensor) / mean_SWE_sensor) * 100
   )
 
@@ -8533,8 +8539,8 @@ PSZ_tree2_MAD_SWE <- persb_SWE_tree2 %>%
   rename(snow_phase = "season") %>%
   group_by(snow_phase) %>%
   summarize(
-    mean_SWE_tree = mean(SWE_tree_kgm3, na.rm = TRUE), 
-    mean_SWE_sensor = mean(SWE_sensor_kgm3, na.rm = TRUE),
+    mean_SWE_tree = mean(SWE_tree_cm, na.rm = TRUE), 
+    mean_SWE_sensor = mean(SWE_sensor_cm, na.rm = TRUE),
     percent_diff = ((mean_SWE_tree - mean_SWE_sensor) / mean_SWE_sensor) * 100
   )
 
@@ -8614,204 +8620,6 @@ PSZ_tree1_SWEmeltrate <- persb_SWE_tree1 %>%
   summarize(avg_SWEmelt_rate_tree = mean(daily_SWE_change_tree, na.rm = TRUE), 
             avg_SWEmelt_rate_sensor = mean(daily_SWE_change_sensor, na.rm = TRUE), percent_diff = ((avg_SWEmelt_rate_tree - avg_SWEmelt_rate_sensor) / avg_SWEmelt_rate_sensor) * 100
   )
-```
-
-## SWE V2
-
-New SWE from only Joe Wright and Hourglass
-
-```{r}
-persb_mean_daily_SWE_V2 <- read_csv("nsf/snow_density/persb_mean_daily_SWE_V2.csv") %>%
-  crossing(tree_id = 1:4) %>%
-  rename(date = Date)
-
-persub_mean_daily_SWE_V2 <- read_csv("nsf/snow_density/persub_mean_daily_SWE_V2.csv") %>%
-  crossing(tree_id = 1:4) %>%
-  rename(date = Date)
-
-transb_mean_daily_SWE_V2 <- read_csv("nsf/snow_density/transb_mean_daily_SWE_V2.csv") %>%
-  crossing(tree_id = 1:4) %>%
-  rename(date = Date)
-
-transub_mean_daily_SWE_V2 <- read_csv("nsf/snow_density/transub_mean_daily_SWE_V2.csv") %>%
-  crossing(tree_id = 1:4) %>%
-  rename(date = Date)
-```
-
-Adding snow density data to snow volume
-
--   need to use area and volume of cylinder to convert snow volume to SWE
-
-```{r}
-SWE_fullseason_vol_persb_V2 <- fullseason_vol_persb %>%
-  inner_join(persb_mean_daily_SWE_V2, by = c("date", "tree_id")) %>%
-  mutate(
-  SWE_tree_cm = ((vol_tree_cm3 / 1e6) * predicted_snowdensity_kg_m3) / (1.7671 * 1000) * 100, 
-  SWE_sensor_cm = ((vol_sensor_cm3 / 1e6) * predicted_snowdensity_kg_m3) / (1.7671 * 1000) * 100
-)
-
-#dataframe to use for open area SWE line
-SWE_persb_wx_fullseason <- vol_persb_daily_wx_fullseason %>%
-  inner_join(persb_mean_daily_SWE_V2, by = "date") %>%
-  mutate(
-  SWE_sensor_cm = ((vol_sensor_cm3 / 1e6) * predicted_snowdensity_kg_m3) / (1.7671 * 1000) * 100
-) %>%
-  mutate(SWE_sensor_cm_smooth = rollmean(SWE_sensor_cm, k = 10, fill = NA, align = "center"))
-
-```
-
-```{r}
-SWE_fullseason_vol_transb_V2 <- fullseason_vol_transb %>%
-  inner_join(transb_mean_daily_SWE_V2, by = c("date", "tree_id")) %>%
-  mutate(
-  SWE_tree_cm = ((vol_tree_cm3 / 1e6) * predicted_snowdensity_kg_m3) / (1.7671 * 1000) * 100, 
-  SWE_sensor_cm = ((vol_sensor_cm3 / 1e6) * predicted_snowdensity_kg_m3) / (1.7671 * 1000) * 100
-)
-
-#dataframe to use for open area SWE line
-SWE_transb_wx_fullseason <- vol_transb_daily_wx_fullseason %>%
-  inner_join(transb_mean_daily_SWE_V2, by = "date") %>%
-  mutate(
-  SWE_sensor_cm = ((vol_sensor_cm3 / 1e6) * predicted_snowdensity_kg_m3) / (1.7671 * 1000) * 100
-) %>%
-  mutate(SWE_sensor_cm_smooth = rollmean(SWE_sensor_cm, k = 10, fill = NA, align = "center"))
-
-```
-
-```{r}
-library(zoo)
-
-persb_SWE_tree1_V2 <- SWE_fullseason_vol_persb_V2 %>%
-  filter(tree_id == "1", SWE_tree_cm >= 0) %>%
-  mutate(SWE_tree_cm_smooth = rollmean(SWE_tree_cm, k = 10, fill = NA, align = "center"))
-  
-persb_SWE_tree2_V2 <- SWE_fullseason_vol_persb_V2 %>%
-  filter(tree_id == "2", SWE_tree_cm >= 0) %>%
-  mutate(SWE_tree_cm_smooth = rollmean(SWE_tree_cm, k = 10, fill = NA, align = "center"))
-
-persb_SWE_tree3_V2 <- SWE_fullseason_vol_persb_V2 %>%
-  filter(tree_id == "3", SWE_tree_cm >= 0) %>%
-  mutate(SWE_tree_cm_smooth = rollmean(SWE_tree_cm, k = 10, fill = NA, align = "center"))
-
-persb_SWE_tree4_V2 <- SWE_fullseason_vol_persb_V2 %>%
-  filter(tree_id == "4", SWE_tree_cm >= 0) %>%
-  mutate(SWE_tree_cm_smooth = rollmean(SWE_tree_cm, k = 10, fill = NA, align = "center"))
-```
-
-```{r}
-
-transb_SWE_tree1_V2 <- SWE_fullseason_vol_transb_V2 %>%
-  filter(tree_id == "1", SWE_tree_cm >= 0) %>%
-  mutate(SWE_tree_cm_smooth = rollmean(SWE_tree_cm, k = 10, fill = NA, align = "center"))
-  
-transb_SWE_tree2_V2 <- SWE_fullseason_vol_transb_V2 %>%
-  filter(tree_id == "2", SWE_tree_cm >= 0) %>%
-  mutate(SWE_tree_cm_smooth = rollmean(SWE_tree_cm, k = 10, fill = NA, align = "center"))
-
-transb_SWE_tree3_V2 <- SWE_fullseason_vol_transb_V2 %>%
-  filter(tree_id == "3", SWE_tree_cm >= 0) %>%
-  mutate(SWE_tree_cm_smooth = rollmean(SWE_tree_cm, k = 10, fill = NA, align = "center"))
-
-transb_SWE_tree4_V2 <- SWE_fullseason_vol_transb_V2 %>%
-  filter(tree_id == "4", SWE_tree_cm >= 0) %>%
-  mutate(SWE_tree_cm_smooth = rollmean(SWE_tree_cm, k = 10, fill = NA, align = "center"))
-```
-
-### Plotting
-
-```{r}
-persb_SWE_fullseason_lineplot_V2 <- ggplot() + 
-  # Line denoting ablation season
-  geom_vline(xintercept = as.Date('2024-05-06'), color = "grey23", linetype = "dashed", linewidth = 0.6, alpha = 0.7) +
-  geom_line(data = SWE_persb_wx_fullseason, aes(x = date, y = SWE_sensor_cm_smooth, color = "open area", linetype = "open area"), linewidth = 0.8, alpha = 0.8) + 
-  geom_line(data = persb_SWE_tree1_V2, aes(x = date, y = SWE_tree_cm_smooth, color = "tree 1", linetype = "tree 1"), linewidth = 0.8, alpha = 0.8) + 
-  geom_line(data = persb_SWE_tree2_V2, aes(x = date, y = SWE_tree_cm_smooth, color = "tree 2", linetype = "tree 2"), linewidth = 0.8, alpha = 0.8) + 
-  geom_line(data = persb_SWE_tree3_V2, aes(x = date, y = SWE_tree_cm_smooth, color = "tree 3", linetype = "tree 3"), linewidth = 0.8, alpha = 0.8) +
-  geom_line(data = persb_SWE_tree4_V2, aes(x = date, y = SWE_tree_cm_smooth, color = "tree 4", linetype = "tree 4"), linewidth = 0.8, alpha = 0.8) +  
-  facet_wrap(~ tree_id, nrow = 1, ncol = 4) +  
-  labs(
-    title = "a) PSZ",
-    x = NULL,
-    y = "Snow Water Equivalent (cm)",
-    color = NULL,
-    linetype = NULL  # This ensures linetype and color share the same legend
-  ) +
-  theme_bw() +
-  #scale_y_continuous(limits = c(NA, 900)) + 
-  #scale_x_date(
-  #limits = c(as.Date("2024-02-02"), as.Date("2024-06-01")),
-  #breaks = as.Date(c("2024-02-01", "2024-03-01", "2024-04-01", "2024-05-01", "2024-06-01")), 
-  #minor_breaks = "1 month",  # Adds light grid lines for all months
- # date_labels = "%b"
-#) + 
-  # Custom colors
-  scale_color_manual(values = c("open area" = "grey30", 
-                                "tree 1" = "#1B7837", 
-                                "tree 2" = "#D95F02", 
-                                "tree 3" = "#2166AC", 
-                                "tree 4" = "grey10")) +
-
-  # Only tree 4 gets a dashed line, all others solid
-  scale_linetype_manual(values = c("open area" = "solid",
-                                   "tree 1" = "solid",
-                                   "tree 2" = "solid",
-                                   "tree 3" = "solid",
-                                   "tree 4" = "dashed")) + 
-  #manually setting the length of legend lines
-  theme(
-    legend.key.width = unit(1, "cm"),  # Increase the width of the legend keys
-    legend.key.height = unit(0.85, "cm")  # Adjust the height of the legend key if needed
-  )
-
-persb_SWE_fullseason_lineplot_V2
-```
-
-```{r}
-transb_SWE_fullseason_lineplot_V2 <- ggplot() + 
-  # Line denoting ablation season
-  geom_vline(xintercept = as.Date('2024-05-06'), color = "grey23", linetype = "dashed", linewidth = 0.6, alpha = 0.7) +
-  geom_line(data = SWE_transb_wx_fullseason, aes(x = date, y = SWE_sensor_cm_smooth, color = "open area", linetype = "open area"), linewidth = 0.8, alpha = 0.8) + 
-  geom_line(data = transb_SWE_tree1_V2, aes(x = date, y = SWE_tree_cm_smooth, color = "tree 1", linetype = "tree 1"), linewidth = 0.8, alpha = 0.8) + 
-  geom_line(data = transb_SWE_tree2_V2, aes(x = date, y = SWE_tree_cm_smooth, color = "tree 2", linetype = "tree 2"), linewidth = 0.8, alpha = 0.8) + 
-  geom_line(data = transb_SWE_tree3_V2, aes(x = date, y = SWE_tree_cm_smooth, color = "tree 3", linetype = "tree 3"), linewidth = 0.8, alpha = 0.8) +
-  geom_line(data = transb_SWE_tree4_V2, aes(x = date, y = SWE_tree_cm_smooth, color = "tree 4", linetype = "tree 4"), linewidth = 0.8, alpha = 0.8) +  
-  facet_wrap(~ tree_id, nrow = 1, ncol = 4) +  
-  labs(
-    title = "b) TSZ",
-    x = NULL,
-    y = "Snow Water Equivalent (cm)",
-    color = NULL,
-    linetype = NULL  # This ensures linetype and color share the same legend
-  ) +
-  theme_bw() +
-  #scale_y_continuous(limits = c(NA, 900)) + 
-  #scale_x_date(
-  #limits = c(as.Date("2024-02-02"), as.Date("2024-06-01")),
-  #breaks = as.Date(c("2024-02-01", "2024-03-01", "2024-04-01", "2024-05-01", "2024-06-01")), 
-  #minor_breaks = "1 month",  # Adds light grid lines for all months
- # date_labels = "%b"
-#) + 
-  # Custom colors
-  scale_color_manual(values = c("open area" = "grey30", 
-                                "tree 1" = "#1B7837", 
-                                "tree 2" = "#D95F02", 
-                                "tree 3" = "#2166AC", 
-                                "tree 4" = "grey10")) +
-
-  # Only tree 4 gets a dashed line, all others solid
-  scale_linetype_manual(values = c("open area" = "solid",
-                                   "tree 1" = "solid",
-                                   "tree 2" = "solid",
-                                   "tree 3" = "solid",
-                                   "tree 4" = "dashed")) + 
-  #manually setting the length of legend lines
-  theme(
-    legend.key.width = unit(1, "cm"),  # Increase the width of the legend keys
-    legend.key.height = unit(0.85, "cm")  # Adjust the height of the legend key if needed
-  )
-
-transb_SWE_fullseason_lineplot_V2
-
 ```
 
 ## New daily tree vs well diam plots
