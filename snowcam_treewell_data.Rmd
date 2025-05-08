@@ -6837,33 +6837,6 @@ ggsave(filename = "comb_snowdepth_scatterplot_V3.png", plot = comb_snowdepth_sca
 
 ## Volume Calculations
 
-```{r}
-#rough well volume calculations for 35 square meter area
-# Parameters
-area_m2 <- 35 * 35           # Total area in m²
-rough_snow_depth_m <- 0.5         # Uniform snow depth in meters
-n_trees <- 233                # Number of trees
-treewell_diam_m <- 1.5         # Average tree well diameter in meters
-treewell_rad_m <- treewell_diam_m / 2  # Radius in meters
-
-# Total snow volume in area
-total_snow_volume_m3 <- area_m2 * rough_snow_depth_m
-
-# Volume of a single hemispherical tree well
-treewell_volume_m3 <- (2/3) * pi * (treewell_rad_m^3)
-
-# Total volume missing due to all tree wells
-total_well_volume_m3 <- n_trees * treewell_volume_m3
-
-# Remaining snow volume in the open region
-remaining_snow_volume_m3 <- total_snow_volume_m3 - total_well_volume_m3
-
-# Print results
-cat("Total snow volume in area:", round(total_snow_volume_m3, 2), "m³\n")
-cat("Volume missing due to tree wells:", round(total_well_volume_m3, 2), "m³\n")
-cat("Remaining snow volume:", round(remaining_snow_volume_m3, 2), "m³\n")
-```
-
 PSZ
 
 \*\* this might be a little trickier, since the DB snow depth might be slightly different as it's form a different camera
@@ -7026,7 +6999,11 @@ vol_transb_daily_wx_fullseason <- filtered_daily_transb_wx_15min_r %>%
          vol_sensor_cm3 = pi * rad_cylinder_cm2^2 * SnowDepth_cm, 
          #converting volumne to m^3
          vol_sensor_m3 = vol_sensor_cm3/1e6) %>%
-  filter(date <= "2024-05-12")  %>%
+  filter(date <= "2024-05-12") 
+
+
+
+%>%
   #getting rid of some weird data
   filter(!date %in% as.Date(c("2024-03-12", "2024-03-13", "2024-03-14", "2024-03-15", "2024-03-16", "2024-03-17")))
 ```
@@ -7325,7 +7302,9 @@ transb_col_tree4_abla <- vol_transb_corr_data_abla %>%
 
 ```{r}
 transb_col_tree1 <- fullseason_vol_transb %>%
-  filter(tree_id == "1", vol_tree_m3 >= 0) %>%
+  filter(tree_id == "1", vol_tree_m3 >= 0)
+
+%>%
   #getting rid of some weird data
   filter(!date %in% as.Date(c("2024-03-12", "2024-03-13", "2024-03-14", "2024-03-15", "2024-03-16", "2024-03-17")))
   
@@ -7335,7 +7314,7 @@ transb_col_tree2 <- fullseason_vol_transb %>%
   filter(!date %in% as.Date(c("2024-03-12", "2024-03-13", "2024-03-14", "2024-03-15", "2024-03-16", "2024-03-17")))
 
 transb_col_tree3 <- fullseason_vol_transb %>%
-  filter(tree_id == "3", vol_tree_m3 >= 0)  %>%
+  filter(tree_id == "3", vol_tree_m3 >= 0) %>%
   #getting rid of some weird data
   filter(!date %in% as.Date(c("2024-03-12", "2024-03-13", "2024-03-14", "2024-03-15", "2024-03-16", "2024-03-17")))
 
@@ -7570,6 +7549,262 @@ comb_abla_SWEvol
 
 ```{r}
 ggsave("comb_abla_SWEvol.png", height = 5, width = 8, plot = comb_abla_SWEvol, dpi = 600)
+```
+
+### Large Area Volume Calculations
+
+V1 - rough calculations for a single day
+
+```{r}
+#rough well volume calculations for 35 square meter area
+# Parameters
+area_m2 <- 35 * 35           # Total area in m²
+rough_snow_depth_m <- 0.5         # Uniform snow depth in meters
+n_trees <- 233                # Number of trees
+treewell_diam_m <- 1.5         # Average tree well diameter in meters
+treewell_rad_m <- treewell_diam_m / 2  # Radius in meters
+
+# Total snow volume in area
+total_snow_volume_m3 <- area_m2 * rough_snow_depth_m
+
+# Volume of a single hemispherical tree well
+treewell_volume_m3 <- (2/3) * pi * (treewell_rad_m^3)
+
+# Total volume missing due to all tree wells
+total_well_volume_m3 <- n_trees * treewell_volume_m3
+
+# Remaining snow volume in the open region
+remaining_snow_volume_m3 <- total_snow_volume_m3 - total_well_volume_m3
+
+# Print results
+cat("Total snow volume in area:", round(total_snow_volume_m3, 2), "m³\n")
+cat("Volume missing due to tree wells:", round(total_well_volume_m3, 2), "m³\n")
+cat("Remaining snow volume:", round(remaining_snow_volume_m3, 2), "m³\n")
+```
+
+V2 - calculations based on known tree well diameters from one tree per site, for entire season
+
+```{r}
+#making dataset for TSZ with weather station snow depth and volume data for open area and tree data for tree volume 
+
+TSZ_tree1_welldata <- transb_col_tree1 %>%
+  select(date, season, maximum_depth_cm, well_diam_m, vol_treewell_cm3, vol_tree_m3) %>%
+  mutate(tree_snowdepth_cm = maximum_depth_cm, 
+         tree_snowdepth_m = tree_snowdepth_cm/100)
+
+TSZ_openarea_vol_data <- vol_transb_daily_wx_fullseason %>%
+  select(date, SnowDepth_m) %>%
+  rename(open_snowdepth_m = SnowDepth_m)
+  
+
+TSZ_largearea_vol_data <- full_join(TSZ_tree1_welldata, TSZ_openarea_vol_data)
+```
+
+```{r}
+#ADDING IN CALCULATIONS FOR full area
+TSZ_largearea_vol_data <- TSZ_largearea_vol_data %>%
+  mutate(
+    total_vol_tree_m3 = vol_tree_m3*n_trees, 
+    total_vol_tree_m3 = replace_na(total_vol_tree_m3, 0),
+    total_openarea_vol_m3 = area_m2 * (open_snowdepth_m), 
+    remaining_snowvol_m3 = total_openarea_vol_m3 - total_vol_tree_m3) %>%
+  #adding a row for the first "snow-free" date then making all values zero
+  bind_rows(tibble(
+    date = as_date("2024-05-13"),
+    total_vol_tree_m3 = 0,
+    total_openarea_vol_m3 = 0,
+    remaining_snowvol_m3 = 0,
+    # add other columns with default or NA values if needed
+  )) %>%
+  arrange(date) 
+
+
+```
+
+Plotting
+
+```{r}
+TSZ_largearea_wellvol_plot <- ggplot() + 
+  # Line denoting ablation season
+  geom_vline(xintercept = as.Date('2024-04-01'), color = "grey23", linetype = "dashed", linewidth = 0.6, alpha = 0.7) +
+  geom_line(data = TSZ_largearea_vol_data, aes(x = date, y = remaining_snowvol_m3, color = "open area", linetype = "open area"), linewidth = 0.8, alpha = 0.8) + 
+  geom_line(data = TSZ_largearea_vol_data, aes(x = date, y = total_vol_tree_m3, color = "tree well", linetype = "tree well"), linewidth = 0.8, alpha = 0.8) + 
+  labs(
+    title = NULL,
+    x = "Date",
+    y = "Snow Volume (m³)",
+    color = NULL,
+    linetype = NULL  # This ensures linetype and color share the same legend
+  ) +
+  theme_bw() +
+  #scale_y_continuous(limits = c(0, 3)) + 
+  scale_x_date(
+  limits = c(as.Date("2024-02-02"), as.Date("2024-06-01")),
+  breaks = as.Date(c("2024-02-01", "2024-03-01", "2024-04-01", "2024-05-01", "2024-06-01")), 
+  minor_breaks = "1 month",  # Adds light grid lines for all months
+  date_labels = "%b"
+) + 
+  # Custom colors
+  scale_color_manual(values = c("open area" = "grey30", 
+                                "tree well" = "#1B7837")) +
+
+  # Only tree 4 gets a dashed line, all others solid
+  scale_linetype_manual(values = c("open area" = "solid",
+                                   "tree well" = "solid"))
+  theme(
+    strip.text = element_text(size = 11),  # Facet title size
+    axis.title = element_text(size = 11),  # Axis title size
+    axis.text = element_text(size = 10),  # Axis tick labels
+    legend.title = element_text(size = 11),  # Legend title size
+    legend.text = element_text(size = 10)  # Legend labels size
+  ) + 
+  theme(
+    legend.key.width = unit(1, "cm"),  # Increase the width of the legend keys
+    legend.key.height = unit(0.85, "cm"))
+
+TSZ_largearea_wellvol_plot
+```
+
+```{r}
+
+# Constants
+area_m2 <- 35 * 35  # Total area in m²
+n_trees <- 233  # Number of trees
+
+PSZ_largearea_vol <- persb_col_tree2 %>%
+  #anything with L is for this large area calculations
+   mutate(
+    L_well_diam_m = well_diam/100, 
+    L_well_rad_m = L_well_diam_m/2, 
+     # Daily well volume around one tree, 
+    L_tree_vol_m3 = (2/3) * pi * (L_well_rad_m^3), 
+     #total area snow volume for 35x35m area
+    L_openarea_vol_m3 = area_m2 * (maximum_depth_cm/100), 
+    # well volume by tree, as applied to well diam data by day
+    L_total_well_vol_m3 = n_trees * L_tree_vol_m3,
+    # Remaining snow volume in open areas with tree volume subtracted
+    L_remainingsnow_vol_m3 = L_openarea_vol_m3 - L_total_well_vol_m3
+  ) %>%
+  mutate(
+    L_openarea_vol_m3 = if_else(row_number() == n(), 0, L_openarea_vol_m3),
+    L_remainingsnow_vol_m3 = if_else(row_number() == n(), 0, L_remainingsnow_vol_m3)
+  ) %>%
+  mutate(
+    total_vol_tree_m3 = vol_tree_m3*n_trees, 
+    total_openarea_vol_m3 = area_m2 * (maximum_depth_cm/100), 
+    remaining_snowvol_m3 = total_openarea_vol_m3 - total_vol_tree_m3)
+
+TSZ_largearea_vol <- transb_col_tree1 %>%
+  #anything with L is for this large area calculations
+   mutate(
+    L_well_diam_m = well_diam/100, 
+    L_well_rad_m = L_well_diam_m/2, 
+     # Daily well volume around one tree, 
+    L_tree_vol_m3 = (2/3) * pi * (L_well_rad_m^3), 
+     #total area snow volume for 35x35m area
+    L_openarea_vol_m3 = area_m2 * (SnowDepth_cm/100), 
+    # well volume by tree, as applied to well diam data by day
+    L_total_well_vol_m3 = n_trees * L_tree_vol_m3,
+    # Remaining snow volume in open areas with tree volume subtracted
+    L_remainingsnow_vol_m3 = L_openarea_vol_m3 - L_total_well_vol_m3
+  ) %>%
+  mutate(
+    L_openarea_vol_m3 = if_else(row_number() == n(), 0, L_openarea_vol_m3),
+    L_remainingsnow_vol_m3 = if_else(row_number() == n(), 0, L_remainingsnow_vol_m3)
+  ) %>%
+  mutate(
+    total_vol_tree_m3 = vol_tree_m3*n_trees, 
+    total_openarea_vol_m3 = area_m2 * (maximum_depth_cm/100), 
+    remaining_snowvol_m3 = total_openarea_vol_m3 - total_vol_tree_m3)
+```
+
+Plotting
+
+```{r}
+PSZ_largearea_wellvol_plot <- ggplot() + 
+  # Line denoting ablation season
+  geom_vline(xintercept = as.Date('2024-05-06'), color = "grey23", linetype = "dashed", linewidth = 0.6, alpha = 0.7) +
+  geom_line(data = PSZ_largearea_vol, aes(x = date, y =
+                                            remaining_snowvol_m3, color = "open area", linetype = "open area"), linewidth = 0.8, alpha = 0.8) + 
+  geom_line(data = PSZ_largearea_vol, aes(x = date, y = total_vol_tree_m3, color = "tree well", linetype = "tree well"), linewidth = 0.8, alpha = 0.8) + 
+  labs(
+    title = "a) PSZ",
+    x = "Date",
+    y = "Snow Volume (m³)",
+    color = NULL,
+    linetype = NULL  # This ensures linetype and color share the same legend
+  ) +
+  theme_bw() +
+  #scale_y_continuous(limits = c(0, 3)) + 
+  scale_x_date(
+  limits = c(as.Date("2024-02-02"), as.Date("2024-06-01")),
+  breaks = as.Date(c("2024-02-01", "2024-03-01", "2024-04-01", "2024-05-01", "2024-06-01")), 
+  minor_breaks = "1 month",  # Adds light grid lines for all months
+  date_labels = "%b"
+) + 
+  # Custom colors
+  scale_color_manual(values = c("open area" = "grey30", 
+                                "tree well"  = "#1B7837")) +
+
+  # Only tree 4 gets a dashed line, all others solid
+  scale_linetype_manual(values = c("open area" = "solid",
+                                   "tree well" = "solid"))
+  theme(
+    strip.text = element_text(size = 11),  # Facet title size
+    axis.title = element_text(size = 11),  # Axis title size
+    axis.text = element_text(size = 10),  # Axis tick labels
+    legend.title = element_text(size = 11),  # Legend title size
+    legend.text = element_text(size = 10)  # Legend labels size
+  ) + 
+  theme(
+    legend.key.width = unit(1, "cm"),  # Increase the width of the legend keys
+    legend.key.height = unit(0.85, "cm"))
+
+PSZ_largearea_wellvol_plot
+```
+
+```{r}
+TSZ_largearea_wellvol_plot <- ggplot() + 
+  # Line denoting ablation season
+  geom_vline(xintercept = as.Date('2024-04-01'), color = "grey23", linetype = "dashed", linewidth = 0.6, alpha = 0.7) +
+  geom_line(data = TSZ_largearea_vol, aes(x = date, y = remaining_snowvol_m3, color = "open area", linetype = "open area"), linewidth = 0.8, alpha = 0.8) + 
+  geom_line(data = TSZ_largearea_vol, aes(x = date, y = total_vol_tree_m3, color = "tree well", linetype = "tree well"), linewidth = 0.8, alpha = 0.8)
+
++ 
+  labs(
+    title = "b) TSZ",
+    x = "Date",
+    y = "Snow Volume (m³)",
+    color = NULL,
+    linetype = NULL  # This ensures linetype and color share the same legend
+  ) +
+  theme_bw() +
+  #scale_y_continuous(limits = c(0, 3)) + 
+  scale_x_date(
+  limits = c(as.Date("2024-02-02"), as.Date("2024-06-01")),
+  breaks = as.Date(c("2024-02-01", "2024-03-01", "2024-04-01", "2024-05-01", "2024-06-01")), 
+  minor_breaks = "1 month",  # Adds light grid lines for all months
+  date_labels = "%b"
+) + 
+  # Custom colors
+  scale_color_manual(values = c("open area" = "grey30", 
+                                "tree well" = "#2166AC")) +
+
+  # Only tree 4 gets a dashed line, all others solid
+  scale_linetype_manual(values = c("open area" = "solid",
+                                   "tree well" = "solid"))
+  theme(
+    strip.text = element_text(size = 11),  # Facet title size
+    axis.title = element_text(size = 11),  # Axis title size
+    axis.text = element_text(size = 10),  # Axis tick labels
+    legend.title = element_text(size = 11),  # Legend title size
+    legend.text = element_text(size = 10)  # Legend labels size
+  ) + 
+  theme(
+    legend.key.width = unit(1, "cm"),  # Increase the width of the legend keys
+    legend.key.height = unit(0.85, "cm"))
+
+TSZ_largearea_wellvol_plot
 ```
 
 ### Stats
@@ -7827,8 +8062,7 @@ PSZ_tree4_meltrate <- persb_col_tree4_abla %>%
 ```
 
 ```{r}
-#creating a dataframe with these average melt rate changes by tree per zone 
-
+#creating a dataframe with these average melt rate changes by tree per zone
 PSZ_snowvol_meltrate <- rbind(PSZ_tree1_meltrate, PSZ_tree2_meltrate, PSZ_tree3_meltrate, PSZ_tree4_meltrate) %>%
   mutate(zone = "PSZ") %>%
   select(tree_id, zone, everything())
@@ -8064,8 +8298,7 @@ mean_snowvol_abla <- rbind(PSZ_snowvol_abla, TSZ_snowvol_abla) %>%
             mean_percent_diff = mean(percent_diff))
 ```
 
-\
-Tree Diam vs Well Diam V2
+## Tree Diam vs Well Diam V2
 
 Correlating full seasons tree vs well diameters
 
