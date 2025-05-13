@@ -1,0 +1,276 @@
+---
+title: "treewell_data"
+author: "Erika Lee"
+date: "2024-05-16"
+output: html_document
+---
+
+```{r setup, warnings='hide',message=FALSE}
+library(tidyverse) # Package with dplyr, tibble, readr, and others to help clean coding
+library(knitr) #Makes nice tables
+library(kableExtra) #Makes even nicer tables
+library(lubridate) #Makes working with dates easier
+library(tidyr)
+library(readxl)#Makes multiple simultaneous models easier
+library(plotly)
+library(rstatix)
+library(ggpubr)
+```
+
+```{r}
+setwd("/Volumes/wcnr-network/Research/Kampf/Private/field_data")
+```
+
+## Download Prep
+
+Download Data
+
+```{r}
+treewell_composite=read_excel("nsf/treewell_data/treewell_data_r.xlsx")
+```
+
+## Tidying Dataframe
+
+```{r}
+#adjusting date/time, although there is technically no time in this data
+treewell_clean <- treewell_composite %>%
+  mutate(date = ymd(date)) %>%
+  #adding in a column with site name
+  mutate(site = if_else(str_detect(tree_ID, "tt"), "TSZ", "PSZ")) %>%
+  #reorder columns
+  select(c(tree_ID, site, everything()))
+```
+
+```{r}
+#treewell_zeroed is the main dataframe used for thesis!
+treewell_zeroed <- treewell_clean %>%
+  mutate(across(-(1:4), ~ ifelse(is.na(.), 0, .))) %>%
+  rename(zone = site)
+
+treewell_NAremoved <- treewell_clean %>%
+  drop_na(dbh, treewell_diameter) %>%
+  rename(zone = site, burn_status = tree_mort)
+```
+
+## Initial Data Exploration
+
+```{r}
+#initial visualization - all data histogram
+treewell_d_hist <- ggplot(data = treewell_zeroed, aes(x = treewell_diameter)) +
+  geom_histogram(binwidth = 5, fill = "#2166AC", color = "black") +
+  labs(
+  #  title = "Histogram of Treewell Diameter",
+    x = "Treewell Diameter (cm)",
+    y = "Frequency"
+  ) +
+  facet_wrap(~date) +
+  theme_bw()
+
+print(treewell_d_hist)
+
+#initial visualization - all data scatterplot w/ correlation
+dbh_treewell_diameter_plot <- ggplot(data = treewell_zeroed, aes(y = treewell_diameter, x = dbh)) +
+  geom_smooth(method = 'lm', se = TRUE, color = "grey") +
+  geom_point(aes(color = zone)) +
+  labs(
+   # title = "Well vs Tree Diameter",
+    y = "Well Diameter (cm)",
+    x = "Tree Diameter (cm)"
+  ) +
+  theme_bw() +
+  scale_color_manual(values = c(
+    "PSZ" = "#2166AC",
+    "TSZ" = "#D95F02"))
+
+ggplotly(dbh_treewell_diameter_plot)
+```
+
+## Correlation Test
+
+Used in thesis!
+
+### Tree vs Well Diam
+
+#### V1
+
+Including tree diameter as part of well diameter
+
+```{r}
+#creating a dataframe with only April for TSZ and May for PSZ-> because the snowpack is more even between zones and months at these times
+
+## this is the dataframe I used for thesis!
+treewell_Tapril_Pmay <- treewell_zeroed %>%
+  filter(
+    case_when(
+      zone == "PSZ" ~ date == as.Date("2024-05-03"),
+      zone == "TSZ" ~ date == as.Date("2024-04-12"),
+      TRUE ~ FALSE  # Exclude all other cases
+    )
+  ) %>%
+  mutate(zone = case_when(
+    zone == "PSZ" ~ "a) PSZ", 
+    zone == "TSZ" ~ "b) TSZ",
+    TRUE ~ zone  # Keep original values for other cases
+  ))
+
+treewell_may03only <- treewell_zeroed %>%
+  filter(date == "2024-05-03")
+```
+
+```{r}
+#wrangling data so that it is in meters and matches snowcam data formats
+treewell_Tapril_Pmay <- treewell_Tapril_Pmay %>%
+  mutate(tree_mort = case_when(
+    tree_mort == "db" ~ "DB",
+    tree_mort == "gb" ~ "GB",
+    TRUE ~ tree_mort  # Keep other values unchanged
+  )) %>%
+  mutate(dbh_m = dbh/100, treewell_diameter_m = treewell_diameter/100) %>%
+  #adding in a new well_diam that has the tree diameter subtracted
+  mutate(well_diam_m_minustree = treewell_diameter_m - dbh_m)
+```
+
+```{r}
+treewell_manual_stats <- treewell_Tapril_Pmay %>%
+  drop_na(treewell_diameter_m, dbh_m) %>%
+  group_by(zone) %>%
+  summarize(
+    cor_test = list(cor.test(dbh_m, treewell_diameter_m, use = "complete.obs")),
+    .groups = "drop"
+  ) %>%
+   mutate(
+    cor_coeff = map_dbl(cor_test, ~ .x$estimate),  # Extract correlation coefficient (r)
+    R2 = cor_coeff^2,  # Compute R²
+    p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
+    conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
+    conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
+    p_label = ifelse(p_value < 0.05, "p-value < 0.05", "p-value ≥ 0.05"),  # Conditional p-value label
+    R2_label = paste0("r = ", formatC(cor_coeff, format = "f", digits = 2), 
+                      "\nR² = ", formatC(R2, format = "f", digits = 2), 
+                      "\n", p_label)  # Ensure two decimal places
+  )
+
+# Scatterplot
+treewell_manual_scatterplot <- ggplot(treewell_Tapril_Pmay, aes(x = dbh_m, y = treewell_diameter_m, color = factor(zone))) +
+  geom_point(aes(shape = tree_mort), size = 2, alpha = 0.8) + 
+  geom_smooth(method = "lm", color = "grey", se = TRUE) +
+  facet_wrap(~ zone, nrow = 1) +  # Separate by tree_id
+  labs(
+    x = "Tree Diameter (m)",
+    y = "Well Diameter (m)",
+    color = "Burn Status"
+  ) +
+  scale_color_manual(name = NULL, values = c(
+    "a) PSZ" = "#2166AC",
+    "b) TSZ" = "#D95F02"),
+    guide = "none"
+) +
+  theme_bw() +
+  scale_x_continuous(labels = scales::label_comma()) + 
+  guides(color = "none") +
+  scale_shape_manual(name = NULL, values = c("GB" = 16, "DB" = 15)) +
+  geom_text(data = treewell_manual_stats, aes(x = Inf, y = Inf, label = R2_label), 
+            hjust = 1.1, vjust = 1.3, inherit.aes = FALSE, size = 4) + 
+  theme(
+    strip.text = element_text(size = 11),  # Facet title size
+    axis.title = element_text(size = 11),  # Axis title size
+    axis.text = element_text(size = 11),  # Axis tick labels
+    legend.text = element_text(size = 10), legend.position = "bottom"
+  )
+
+treewell_manual_scatterplot
+```
+
+```{r}
+ggsave(
+  filename = "treewell_manual_scatterplot.png",  # File name
+  plot = treewell_manual_scatterplot,           # The arranged plot object
+  width = 7,                                          # Adjust width as needed
+  height = 5,                                         # Adjust height as needed
+  dpi = 600                                            # High resolution
+)
+```
+
+#### V2
+
+Excluding tree diameter as part of well diameter
+
+```{r}
+treewell_manual_stats_V2 <- treewell_Tapril_Pmay %>%
+  drop_na(well_diam_m_minustree, dbh_m) %>%
+  group_by(zone) %>%
+  summarize(
+    cor_test = list(cor.test(dbh_m, well_diam_m_minustree, use = "complete.obs")),
+    .groups = "drop"
+  ) %>%
+   mutate(
+    R2 = map_dbl(cor_test, ~ .x$estimate^2),  # Extract R²
+    p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
+    conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
+    conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
+    p_label = ifelse(p_value < 0.05, "p-value < 0.05", "p-value ≥ 0.05"),  # Conditional p-value label
+    R2_label = paste0("R² = ", formatC(R2, format = "f", digits = 2), "\n", p_label)  # Ensure two decimal places
+  )
+
+# Scatterplot
+treewell_manual_scatterplot_V2 <- ggplot(treewell_Tapril_Pmay, aes(x = dbh_m, y = well_diam_m_minustree, color = factor(zone))) +
+  geom_point(aes(shape = tree_mort), size = 2, alpha = 0.8) + 
+  geom_smooth(method = "lm", color = "grey", se = TRUE) +
+  facet_wrap(~ zone, nrow = 1) +  # Separate by tree_id
+  labs(
+    x = "Tree Diameter (m)",
+    y = "Well Diameter (m)",
+    color = "Burn Status"
+  ) +
+  scale_color_manual(name = NULL, values = c(
+    "a) PSZ" = "#2166AC",
+    "b) TSZ" = "#D95F02"),
+    guide = "none"
+) +
+  theme_bw() +
+  scale_x_continuous(labels = scales::label_comma()) + 
+  guides(color = "none") +
+  scale_shape_manual(name = NULL, values = c("GB" = 16, "DB" = 15)) +
+  geom_text(data = treewell_manual_stats_V2, aes(x = Inf, y = Inf, label = R2_label), 
+            hjust = 1.1, vjust = 1.3, inherit.aes = FALSE, size = 4) + 
+  theme(
+    strip.text = element_text(size = 11),  # Facet title size
+    axis.title = element_text(size = 11),  # Axis title size
+    axis.text = element_text(size = 11),  # Axis tick labels
+    legend.text = element_text(size = 10), legend.position = "bottom"
+  )
+
+treewell_manual_scatterplot_V2
+```
+
+```{r}
+#including both R2 and R values in stats results, as well as p-value
+treewell_manual_stats_V3 <- treewell_Tapril_Pmay %>%
+  drop_na(well_diam_m_minustree, dbh_m) %>%
+  group_by(zone) %>%
+  summarize(
+    cor_test = list(cor.test(dbh_m, well_diam_m_minustree, use = "complete.obs")),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    cor_coeff = map_dbl(cor_test, ~ .x$estimate),  # Extract correlation coefficient (r)
+    R2 = cor_coeff^2,  # Compute R²
+    p_value = map_dbl(cor_test, ~ .x$p.value),  # Extract p-value
+    conf_low = map_dbl(cor_test, ~ .x$conf.int[1]),  # Lower bound of CI
+    conf_high = map_dbl(cor_test, ~ .x$conf.int[2]),  # Upper bound of CI
+    p_label = ifelse(p_value < 0.05, "p-value < 0.05", "p-value ≥ 0.05"),  # Conditional p-value label
+    R2_label = paste0("r = ", formatC(cor_coeff, format = "f", digits = 2), 
+                      "\nR² = ", formatC(R2, format = "f", digits = 2), 
+                      "\n", p_label)  # Ensure two decimal places
+  )
+```
+
+```{r}
+ggsave(
+  filename = "treewell_manual_scatterplot_minustreediam.png",  # File name
+  plot = treewell_manual_scatterplot_V2,           # The arranged plot object
+  width = 7,                                          # Adjust width as needed
+  height = 5,                                         # Adjust height as needed
+  dpi = 600                                            # High resolution
+)
+```
